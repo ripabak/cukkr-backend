@@ -1,3 +1,6 @@
+## Technical Rules
+- Always use 'AppError' class for error handling (src/core/error.ts).
+
 ## Name convention
 - File name must be in kebab-case.
 - Folder name must be in kebab-case.
