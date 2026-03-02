@@ -57,7 +57,7 @@ export async function sendEmail({ to, subject, text, html }: SendEmailPayload) {
 export async function sendOtpEmail({ to, otp, purpose }: { to: string; otp: string; purpose: string }) {
     await sendEmail({
         to,
-        subject: `NODE | ${purpose} verification code`,
+        subject: `${purpose} verification code`,
         text: `Your verification code is ${otp}. This code will expire shortly.`,
     });
 }

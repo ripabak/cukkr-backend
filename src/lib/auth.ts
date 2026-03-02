@@ -1,9 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { openAPI } from "better-auth/plugins";
+import { emailOTP, openAPI } from "better-auth/plugins";
 import { db } from "./database";
 import * as schema from "../../drizzle/schemas"
 import { env } from "./env";
+import { sendOtpEmail } from "./mail";
 
 export const auth = betterAuth({
     basePath: "/api",
@@ -16,7 +17,15 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
-    plugins: [openAPI()],
+    plugins: [
+        openAPI(),
+        emailOTP({
+            async sendVerificationOTP({ email, otp, type }) {
+                await sendOtpEmail({ to: email, otp, purpose: type });
+            },
+        })
+
+    ],
     trustedOrigins: env.CORS_ORIGIN,
 
     rateLimit: {
