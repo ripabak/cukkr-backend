@@ -16,11 +16,42 @@ async function getAuthCookie() {
     return res.response?.headers.get("set-cookie") || "";
 }
 
+// Helper function to create an authenticated admin and return the cookie
+async function getAdminAuthCookie() {
+    const testEmail = `test_admin_${Date.now()}_${Math.random().toString(36).substring(7)}@example.com`;
+    const res = await (tClient as any).auth.api["sign-up"].email.post({
+        email: testEmail,
+        password: "adminpassword123",
+        name: "Admin User",
+        role: "admin"
+    });
+    return res.response?.headers.get("set-cookie") || "";
+}
+
 describe("Product Module Tests", () => {
     describe("GET /products", () => {
-        it("should return a list of products successfully", async () => {
-            const { status, error } = await tClient.api.products.get();
+        it("should return 401 Unauthorized for unauthenticated requests", async () => {
+            const { status } = await tClient.api.products.get();
+            expect(status).toBe(401);
+        });
 
+        it("should return 403 Forbidden for a regular user", async () => {
+            const authCookie = await getAuthCookie();
+            const { status } = await tClient.api.products.get({
+                fetch: {
+                    headers: { cookie: authCookie }
+                }
+            });
+            expect(status).toBe(403);
+        });
+
+        it("should return a list of products successfully for an admin", async () => {
+            const adminCookie = await getAdminAuthCookie();
+            const { status, error } = await tClient.api.products.get({
+                fetch: {
+                    headers: { cookie: adminCookie }
+                }
+            });
             expect(status).toBe(200);
             expect(error).toBeNull();
         });

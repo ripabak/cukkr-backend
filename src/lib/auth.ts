@@ -40,6 +40,16 @@ export const auth = betterAuth({
             sameSite: "none",
         },
     },
+
+    user: {
+        additionalFields: {
+            role: {
+                type: "string",
+                default: "user",
+            }
+        }
+    }
+
     //...
 });
 

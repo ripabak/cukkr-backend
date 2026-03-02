@@ -25,6 +25,7 @@ export const productHandler = new Elysia({
             });
         },
         {
+            requireAdmin: true, // need admin role
             query: ProductModel.ProductQuery,
             response: FormatResponseSchema(t.Array(ProductModel.ProductWithUserResponse)),
         },
@@ -55,7 +56,7 @@ export const productHandler = new Elysia({
             });
         },
         {
-            requireAuth: true,
+            requireAuth: true, // need auth role
             query: ProductModel.ProductQuery,
             response: FormatResponseSchema(t.Array(ProductModel.ProductResponse)),
         },
@@ -69,7 +70,7 @@ export const productHandler = new Elysia({
             return formatResponse({ path, data, status: 201, message: "Product created" });
         },
         {
-            requireAuth: true,
+            requireAuth: true, // need auth role
             body: ProductModel.ProductInputCreate,
             response: FormatResponseSchema(ProductModel.ProductResponse),
         },
@@ -83,7 +84,7 @@ export const productHandler = new Elysia({
             return formatResponse({ path, data, message: "Product updated" });
         },
         {
-            requireAuth: true,
+            requireAuth: true, // need auth role
             params: t.Object({ id: t.String() }),
             body: ProductModel.ProductInputUpdate,
             response: FormatResponseSchema(ProductModel.ProductResponse),
@@ -98,7 +99,7 @@ export const productHandler = new Elysia({
             return formatResponse({ path, data, message: "Product deleted" });
         },
         {
-            requireAuth: true,
+            requireAuth: true, // need auth role
             params: t.Object({ id: t.String() }),
             response: FormatResponseSchema(ProductModel.ProductResponse),
         },
