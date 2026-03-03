@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1772419846073,
-      "tag": "20260302025046_first init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1772420017126,
-      "tag": "20260302025337_second init",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1772494878316,
-      "tag": "20260302234118_plain_lifeguard",
+      "when": 1772523982999,
+      "tag": "20260303074622_brainy_scrambler",
       "breakpoints": true
     }
   ]
