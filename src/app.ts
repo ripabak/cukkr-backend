@@ -7,9 +7,28 @@ import cors from '@elysiajs/cors'
 import { healthCheck } from "./utils/health-check";
 import { AppError, CustomError } from "./core/error";
 import { productHandler } from "./modules/product/handler";
+import { rateLimit } from "elysia-rate-limit";
+import { logixlysia } from 'logixlysia'
 
 
 export const app = new Elysia()
+  .use(
+    logixlysia({
+      config: {
+        showStartupMessage: true,
+        startupMessageFormat: 'simple',
+        timestamp: {
+          translateTime: 'yyyy-mm-dd HH:MM:ss.SSS'
+        },
+        logFilePath: './logs/example.log',
+        ip: true,
+        customLogFormat:
+          '🦊 {now} {level} {duration} {method} {pathname} {status} {message} {ip}'
+      }
+    }))
+  .use(rateLimit({
+    max: 100
+  }))
   .use(
     cors({
       origin: env.CORS_ORIGIN,
