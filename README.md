@@ -2,6 +2,24 @@
 
 This is a modern backend starter template built with [ElysiaJS](https://elysiajs.com/), [Bun](https://bun.sh/), [Drizzle ORM](https://orm.drizzle.team/), PostgreSQL, and [Better Auth](https://better-auth.com/).
 
+## AI Agent Skills
+
+This project includes AI agent skills (`.agents/skills/`) to help with planning and documentation. Use them by mentioning the skill name in GitHub Copilot Chat:
+
+| Skill | When to Use |
+|---|---|
+| `prd` | Translate a vague idea into a structured requirements document |
+| `breakdown-epic-pm` | Create an Epic PRD for a large business capability |
+| `breakdown-feature-prd` | Break an Epic into a detailed Feature PRD |
+| `breakdown-feature-implementation` | Generate a technical implementation plan from a Feature PRD |
+| `breakdown-plan` | Generate GitHub Issues and a project plan from all artifacts |
+
+**Recommended flow:** `breakdown-epic-pm` → `breakdown-feature-prd` → `breakdown-feature-implementation` → `breakdown-plan`
+
+Documents are saved to `docs/ways-of-work/plan/{epic-name}/`.
+
+---
+
 ## Getting Started
 
 To get started with this template, install the dependencies:
