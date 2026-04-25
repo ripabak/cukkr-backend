@@ -9,7 +9,7 @@
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "prepare": "husky"
+    "prepare": "command -v husky >/dev/null && husky"
   },
   "lint-staged": {
     "*.ts": [
