@@ -17,7 +17,7 @@ The output should be a complete implementation plan in Markdown format, saved to
 
 ### Module Structure
 
-New feature modules follow the cukkr-backend module convention:
+New feature modules follow the backend module convention:
 
 ```
 src/modules/{module-name}/
