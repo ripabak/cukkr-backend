@@ -1,5 +1,39 @@
 # Repository Guidelines
 
+## Tech Stack Overview
+
+This is a modern, type-safe backend built with cutting-edge technologies. Understanding these core technologies is essential for development:
+
+### Core Technologies
+
+| Technology | Purpose | Key Information |
+|---|---|---|
+| **Bun** | Runtime & Package Manager | Faster alternative to Node.js. Use `bun run` for all commands. |
+| **Elysia** | Web Framework | Type-safe routing framework. Define routes in `handler.ts` using Elysia groups. See [Elysia Docs](https://elysiajs.com) |
+| **TypeScript** | Language | Strict mode enforced. No `any` types—use proper types. |
+| **Drizzle ORM** | Database ORM | Type-safe database queries. Define schemas in `schema.ts`, migrations auto-generated. Use `drizzle-kit` for migrations (never `push/up/drop`). See [Drizzle Docs](https://orm.drizzle.team/) |
+| **PostgreSQL** | Database | Primary data store. Connection via `DATABASE_URL` in `.env`. See `src/lib/database.ts` for client setup. |
+| **Better Auth** | Authentication & Multi-Tenancy | Handles user auth, sessions, and organizations. Built-in multi-tenant support via Organizations plugin. See `src/lib/auth.ts`. |
+| **Eden Treaty** | Type-Safe API Client | End-to-end typed HTTP client for testing and internal calls. Used in all test files. |
+
+### Essential Tools
+
+| Tool | Purpose | Command |
+|---|---|---|
+| **ESLint + Prettier** | Code Quality & Formatting | `bun run lint:fix` & `bun run format` before commits |
+| **Husky + Lint-Staged** | Git Hooks | Auto-runs linting on commit. Never bypass with `--no-verify`. |
+| **Bun Test Runner** | Testing | `bun test` to run all tests. Uses `bun:test` (built-in). |
+| **Docker** | Containerization | `Dockerfile` included for production deployments. |
+
+### Quick Reference Links
+
+- **Elysia Route Patterns:** See `src/modules/product-example/handler.ts`
+- **Database Schemas:** See `src/modules/*/schema.ts` and `drizzle/schemas.ts`
+- **Authentication Setup:** See `src/lib/auth.ts` and `tests/modules/auth.test.ts`
+- **Environment Variables:** See `src/lib/env.ts` (access all config here, never use `process.env` directly)
+
+---
+
 ## Project Structure & Module Organization
 
 ```
@@ -61,7 +95,7 @@ tests/
 - **DTOs:** Define all request/response shapes in the module's `model.ts`. Use the same DTO types consistently across `handler.ts` and `service.ts`.
 - **No magic strings:** Use enums or constants for status codes and error types.
 - **Don't use 'any' type:** Use proper types instead of 'any' as much as possible
-- **Multi-Tenant Scoping:** If a resource belongs to an organization, ensure its table has an `organizationId` foreign key (referencing `organization.id`). Use the `requireOrganization: true` macro in the handler to enforce tenant isolation and access `activeOrganizationId`. Service methods must always filter and insert data using the `organizationId`.
+- **Multi-Tenant Scoping:** If a resource belongs to an organization, ensure its table has an `organizationId` foreign key (referencing `organization.id`). Use the `requireOrganization: true` macro in the handler to enforce tenant isolation and access `activeOrganizationId`. Service methods must always filter and insert data using the `organizationId`. If needed adjust you can refer to "https://better-auth.com/docs/plugins/organization" for documentation.
 - **Always make tests for new features:** For every new feature or changes, create a new test or update existing test file in the `tests/modules/` directory.
 - **Don't edit product example module:** The product-example module is a template and should not be edited. Use it as a reference to create new modules.
 - **After changes, always run lint:fix and format:** Before committing, always run `bun run lint:fix` and `bun run format` to ensure your code is clean and consistent. If there are any lint errors, fix them.
