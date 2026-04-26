@@ -21,7 +21,7 @@ export const service = pgTable(
 		price: integer('price').notNull(),
 		duration: integer('duration').notNull(),
 		discount: integer('discount').default(0).notNull(),
-		isActive: boolean('is_active').default(true).notNull(),
+		isActive: boolean('is_active').default(false).notNull(),
 		isDefault: boolean('is_default').default(false).notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
@@ -34,6 +34,14 @@ export const service = pgTable(
 		index('service_organizationId_isDefault_idx').on(
 			table.organizationId,
 			table.isDefault
+		),
+		index('service_organizationId_isActive_idx').on(
+			table.organizationId,
+			table.isActive
+		),
+		index('service_organizationId_name_idx').on(
+			table.organizationId,
+			table.name
 		)
 	]
 )

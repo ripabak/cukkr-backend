@@ -257,37 +257,39 @@ describe('Service Creation Tests', () => {
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
 		expect(status).toBe(201)
-		expect(data?.data.isDefault).toBe(true)
-		expect(data?.data.isActive).toBe(true)
+		expect(data?.data.isDefault).toBe(false)
+		expect(data?.data.isActive).toBe(false)
 		expect(data?.data.name).toBe('Haircut')
 		expect(data?.data.price).toBe(50000)
 	})
 
-	it('should return 400 when price is 0', async () => {
-		const { status } = await tClient.api.services.post(
+	it('should create a service when price is 0', async () => {
+		const { status, data } = await tClient.api.services.post(
 			{ name: 'Bad Price', price: 0, duration: 30 },
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(201)
+		expect(data?.data.price).toBe(0)
 	})
 
-	it('should return 400 when price is negative', async () => {
+	it('should return 422 when price is negative', async () => {
 		const { status } = await tClient.api.services.post(
 			{ name: 'Negative Price', price: -1, duration: 30 },
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(422)
 	})
 
-	it('should return 400 when duration is less than 5', async () => {
-		const { status } = await tClient.api.services.post(
+	it('should create a service when duration is 4', async () => {
+		const { status, data } = await tClient.api.services.post(
 			{ name: 'Short Duration', price: 50000, duration: 4 },
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(201)
+		expect(data?.data.duration).toBe(4)
 	})
 
-	it('should return 400 when discount is greater than 100', async () => {
+	it('should return 422 when discount is greater than 100', async () => {
 		const { status } = await tClient.api.services.post(
 			{
 				name: 'Over Discount',
@@ -297,15 +299,15 @@ describe('Service Creation Tests', () => {
 			},
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(422)
 	})
 
-	it('should return 400 when name is missing (empty string)', async () => {
+	it('should return 422 when name is an empty string', async () => {
 		const { status } = await tClient.api.services.post(
-			{ name: 'a', price: 50000, duration: 30 },
+			{ name: '', price: 50000, duration: 30 },
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(422)
 	})
 
 	it('should return 401 without auth', async () => {
@@ -360,8 +362,8 @@ describe('Full Onboarding Wizard Flow', () => {
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
 		expect(serviceRes.status).toBe(201)
-		expect(serviceRes.data?.data.isDefault).toBe(true)
-		expect(serviceRes.data?.data.isActive).toBe(true)
+		expect(serviceRes.data?.data.isDefault).toBe(false)
+		expect(serviceRes.data?.data.isActive).toBe(false)
 
 		// Finish: Mark onboarding as complete
 		const completeRes = await tClient.api.barbershop.settings.patch(

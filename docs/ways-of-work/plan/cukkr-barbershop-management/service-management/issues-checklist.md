@@ -18,31 +18,31 @@
 
 ## Feature Level
 
-- [ ] **#62** `Feature: Service Management` — labels: `feature`, `priority-high`, `value-high`, `backend`; blocked by #28
+- [x] **#62** `Feature: Service Management` — labels: `feature`, `priority-high`, `value-high`, `backend`; blocked by #28
 
 ---
 
 ## Technical Enabler Level
 
-- [ ] **#63** `Technical Enabler: services Table DB Schema & Migration` — labels: `enabler`, `priority-high`, `database`, `backend`; feature #62; 3 pts
-- [ ] **#64** `Technical Enabler: TypeBox DTOs & Model Definitions for Service Management` — labels: `enabler`, `priority-high`, `backend`; feature #62; 2 pts
+- [x] **#63** `Technical Enabler: services Table DB Schema & Migration` — labels: `enabler`, `priority-high`, `database`, `backend`; feature #62; 3 pts
+- [x] **#64** `Technical Enabler: TypeBox DTOs & Model Definitions for Service Management` — labels: `enabler`, `priority-high`, `backend`; feature #62; 2 pts
 
 ---
 
 ## User Story Level
 
-- [ ] **#65** `User Story: Browse & Search Services (US-01–04)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 3 pts
-- [ ] **#66** `User Story: Create a Service (US-05–07)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 2 pts
-- [ ] **#67** `User Story: Edit & Toggle a Service (US-08–09)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64, #66; 3 pts
-- [ ] **#68** `User Story: Delete a Service (US-10–12)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 2 pts
-- [ ] **#69** `User Story: Default Service Management (US-13–15)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64, #66; 3 pts
-- [ ] **#70** `User Story: Barber View Active Services (US-16)` — labels: `user-story`, `priority-medium`, `backend`; feature #62; blocked by #63, #64, #65; 1 pt
+- [x] **#65** `User Story: Browse & Search Services (US-01–04)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 3 pts
+- [x] **#66** `User Story: Create a Service (US-05–07)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 2 pts
+- [x] **#67** `User Story: Edit & Toggle a Service (US-08–09)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64, #66; 3 pts
+- [x] **#68** `User Story: Delete a Service (US-10–12)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64; 2 pts
+- [x] **#69** `User Story: Default Service Management (US-13–15)` — labels: `user-story`, `priority-high`, `backend`; feature #62; blocked by #63, #64, #66; 3 pts
+- [x] **#70** `User Story: Barber View Active Services (US-16)` — labels: `user-story`, `priority-medium`, `backend`; feature #62; blocked by #63, #64, #65; 1 pt
 
 ---
 
 ## Test Level
 
-- [ ] **#71** `Test: Service Management Integration Tests` — labels: `test`, `priority-high`, `backend`; feature #62; blocked by #72–#76; 5 pts
+- [x] **#71** `Test: Service Management Integration Tests` — labels: `test`, `priority-high`, `backend`; feature #62; blocked by #72–#76; 5 pts
 
 ---
 
@@ -50,24 +50,24 @@
 
 ### Phase 1 — Schema & DTO Foundation
 
-- [ ] **#72** `Task: Create src/modules/service-management/schema.ts`
+- [x] **#72** `Task: Create src/modules/service-management/schema.ts`
   - **Scope:** Drizzle table definition with all fields (id, organizationId, name, description, price, duration, discount, isActive, isDefault, createdAt, updatedAt) and four composite indexes. Export from `drizzle/schemas.ts`.
   - **Acceptance:** TypeScript compiles, indexes defined, FK to `organization.id` present.
   - **Priority:** high | **Blocked by:** — | **Related:** #63
 
-- [ ] **#73** `Task: Generate & apply migration (add-services-table)`
+- [x] **#73** `Task: Generate & apply migration (add-services-table)`
   - **Scope:** `bunx drizzle-kit generate --name add-services-table`, review SQL output, `bunx drizzle-kit check`, `bunx drizzle-kit migrate`.
   - **Acceptance:** Migration applied, `services` table present in DB with correct columns and indexes.
   - **Priority:** high | **Blocked by:** #72 | **Related:** #63
 
-- [ ] **#74** `Task: Create src/modules/service-management/model.ts`
+- [x] **#74** `Task: Create src/modules/service-management/model.ts`
   - **Scope:** TypeBox schemas for `CreateServiceBody`, `UpdateServiceBody` (no `isDefault`), `ListServicesQuery` (search, sort enum, activeOnly), `ServiceIdParam`, `ServiceDto`.
   - **Acceptance:** Validates PRD constraints (name ≤ 100, description ≤ 500, price ≥ 0, duration ≥ 1, discount 0–100). `isDefault` absent from `UpdateServiceBody`. No `any` types.
   - **Priority:** high | **Blocked by:** — | **Related:** #64
 
 ### Phase 2 — Service-Layer Business Logic
 
-- [ ] **#75** `Task: Implement ServiceManagementService (list, get, create, update, delete, toggle-active, set-default)`
+- [x] **#75** `Task: Implement ServiceManagementService (list, get, create, update, delete, toggle-active, set-default)`
   - **Scope:**
     - `listServices(orgId, query)` — filtered by organizationId; supports search (ILIKE), sort, activeOnly
     - `getService(orgId, id)` — 404 if not found in org
@@ -81,7 +81,7 @@
 
 ### Phase 3 — HTTP Handler Integration
 
-- [ ] **#76** `Task: Create src/modules/service-management/handler.ts + register in app.ts`
+- [x] **#76** `Task: Create src/modules/service-management/handler.ts + register in app.ts`
   - **Scope:** Elysia route group under `/api/services` with `requireOrganization: true` on all routes:
     - `POST /api/services` → 201
     - `GET /api/services` → 200
@@ -96,7 +96,7 @@
 
 ### Phase 4 — Integration Tests
 
-- [ ] **#77** `Task: Create tests/modules/service-management.test.ts (full suite)`
+- [x] **#77** `Task: Create tests/modules/service-management.test.ts (full suite)`
   - **Scope:** Full Eden Treaty test file covering every scenario in the test plan table (project-plan.md). Two separate organizations required for tenant isolation tests. Use `beforeAll` to sign up owner, create org, set active org.
   - **Test scenarios must include:**
     - [ ] 401 for unauthenticated POST, PATCH, DELETE
@@ -122,7 +122,7 @@
 
 ### Phase 5 — Validation & Cleanup
 
-- [ ] **#78** `Task: Run lint:fix + format — service management quality gate`
+- [x] **#78** `Task: Run lint:fix + format — service management quality gate`
   - **Scope:** `bun run lint:fix` → 0 errors. `bun run format` → no unstaged changes. Remove any console.log or commented-out code. Confirm no `any` types.
   - **Acceptance:** Both commands exit 0; code committed clean.
   - **Priority:** high | **Blocked by:** #77
@@ -172,9 +172,9 @@
 
 - [ ] All 17 issues created in GitHub with correct labels and dependencies
 - [ ] Feature #62 linked to parent epic
-- [ ] All implementation tasks completed
-- [ ] All story acceptance criteria met
-- [ ] Integration tests passing (0 failures)
-- [ ] Lint + format clean
+- [x] All implementation tasks completed
+- [x] All story acceptance criteria met
+- [x] Integration tests passing (0 failures)
+- [x] Lint + format clean
 - [ ] Migration applied to production
 - [ ] Feature marked Done in project board

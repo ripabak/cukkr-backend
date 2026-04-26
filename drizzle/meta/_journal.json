@@ -15,6 +15,13 @@
       "when": 1777208109318,
       "tag": "20260426125509_onboarding-barbershop-setup",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777209747719,
+      "tag": "20260426132227_update-services-indexes-default",
+      "breakpoints": true
     }
   ]
 }
