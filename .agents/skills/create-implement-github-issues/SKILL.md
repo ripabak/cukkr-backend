@@ -7,4 +7,6 @@ Add issues neatly based on the provided `issues-checklist.md` list. Make sure to
 
 make sure `issues-checklist.md` is provided and contains the necessary information to create the issues. If not, ask the user for more details about the issues they want to create.
 
-If github issues already exist, implement them one by one, choosing which ones to implement based on priority and dependencies. Use the GitHub MCP (Model-Controller-Presenter) pattern or the `gh` CLI to manage the issues effectively. Understand each issue's requirements, description, and ensure they are implemented correctly, providing updates on the progress and any blockers encountered.
+If github issues already exist, implement them one by one (if possible you can run in parallel, make sure its independent tasks), choosing which ones to implement based on priority and dependencies. Use the GitHub MCP (Model-Controller-Presenter) pattern or the `gh` CLI to manage the issues effectively. Understand each issue's requirements, description, and ensure they are implemented correctly, providing updates on the progress and any blockers encountered.
+
+Update issues progress in GitHub and in issues-checklist.md right after each issue is implemented.
