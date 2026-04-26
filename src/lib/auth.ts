@@ -15,11 +15,17 @@ export const auth = betterAuth({
 		}
 	}),
 	emailAndPassword: {
-		enabled: true
+		enabled: true,
+		requireEmailVerification: false,
+		minPasswordLength: 8
 	},
 	plugins: [
 		openAPI(),
 		emailOTP({
+			otpLength: 4,
+			expiresIn: 300,
+			allowedAttempts: 5,
+			sendVerificationOnSignUp: true,
 			async sendVerificationOTP({ email, otp, type }) {
 				await sendOtpEmail({ to: email, otp, purpose: type })
 			}
@@ -29,7 +35,22 @@ export const auth = betterAuth({
 	trustedOrigins: env.CORS_ORIGIN,
 
 	rateLimit: {
-		enabled: false
+		enabled: env.NODE_ENV !== 'test',
+		window: 900,
+		max: 10
+	},
+
+	user: {
+		additionalFields: {
+			phone: {
+				type: 'string',
+				required: false
+			},
+			bio: {
+				type: 'string',
+				required: false
+			}
+		}
 	},
 
 	advanced: {
@@ -40,8 +61,6 @@ export const auth = betterAuth({
 			sameSite: 'none'
 		}
 	}
-
-	//...
 })
 
 let _schema: ReturnType<typeof auth.api.generateOpenAPISchema>

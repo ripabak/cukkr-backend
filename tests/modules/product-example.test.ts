@@ -4,15 +4,19 @@ import { app } from '../../src/app'
 
 // Wrap the app with Treaty client
 const tClient = treaty(app)
+const ORIGIN = 'http://localhost:3001'
 
 // Helper function to create an authenticated user and return the cookie
 async function getAuthCookie() {
 	const testEmail = `test_product_example_${Date.now()}_${Math.random().toString(36).substring(7)}@example.com`
-	const res = await (tClient as any).auth.api['sign-up'].email.post({
-		email: testEmail,
-		password: 'password123',
-		name: 'Test User'
-	})
+	const res = await (tClient as any).auth.api['sign-up'].email.post(
+		{
+			email: testEmail,
+			password: 'password123',
+			name: 'Test User'
+		},
+		{ fetch: { headers: { origin: ORIGIN } } }
+	)
 	const cookie = res.response?.headers.get('set-cookie') || ''
 
 	// Create an organization to be active for this request
@@ -22,7 +26,7 @@ async function getAuthCookie() {
 			slug: `test-org-${Math.random().toString(36).substring(7)}`
 		},
 		{
-			fetch: { headers: { cookie, origin: 'http://localhost' } }
+			fetch: { headers: { cookie, origin: ORIGIN } }
 		}
 	)
 
@@ -30,7 +34,7 @@ async function getAuthCookie() {
 		'set-active'
 	].post(
 		{ organizationId: orgRes.data?.id },
-		{ fetch: { headers: { cookie, origin: 'http://localhost' } } }
+		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 
 	const finalCookie =
@@ -41,12 +45,15 @@ async function getAuthCookie() {
 // Helper function to create an authenticated admin and return the cookie
 async function getAdminAuthCookie() {
 	const testEmail = `test_admin_${Date.now()}_${Math.random().toString(36).substring(7)}@example.com`
-	const res = await (tClient as any).auth.api['sign-up'].email.post({
-		email: testEmail,
-		password: 'adminpassword123',
-		name: 'Admin User',
-		role: 'admin'
-	})
+	const res = await (tClient as any).auth.api['sign-up'].email.post(
+		{
+			email: testEmail,
+			password: 'adminpassword123',
+			name: 'Admin User',
+			role: 'admin'
+		},
+		{ fetch: { headers: { origin: ORIGIN } } }
+	)
 	const cookie = res.response?.headers.get('set-cookie') || ''
 
 	// Create an organization to be active for this request
@@ -56,7 +63,7 @@ async function getAdminAuthCookie() {
 			slug: `admin-org-${Math.random().toString(36).substring(7)}`
 		},
 		{
-			fetch: { headers: { cookie, origin: 'http://localhost' } }
+			fetch: { headers: { cookie, origin: ORIGIN } }
 		}
 	)
 
@@ -65,7 +72,7 @@ async function getAdminAuthCookie() {
 		'set-active'
 	].post(
 		{ organizationId: orgRes.data?.id },
-		{ fetch: { headers: { cookie, origin: 'http://localhost' } } }
+		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 
 	return setActiveRes.response?.headers.get('set-cookie') || cookie

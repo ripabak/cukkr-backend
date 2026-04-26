@@ -35,6 +35,23 @@ function getTransporter() {
 	return transporter
 }
 
+const TRANSIENT_SMTP_ERRORS = new Set([
+	'ECONNRESET',
+	'ETIMEDOUT',
+	'ECONNREFUSED',
+	'ESOCKET'
+])
+
+function isTransientSmtpError(err: unknown): boolean {
+	return (
+		err !== null &&
+		typeof err === 'object' &&
+		'code' in err &&
+		typeof (err as { code: unknown }).code === 'string' &&
+		TRANSIENT_SMTP_ERRORS.has((err as { code: string }).code)
+	)
+}
+
 export async function sendEmail({ to, subject, text, html }: SendEmailPayload) {
 	if (!to) {
 		throw new Error('Destination email address (to) is required')
@@ -49,13 +66,23 @@ export async function sendEmail({ to, subject, text, html }: SendEmailPayload) {
 		)
 	}
 
-	await transporterInstance.sendMail({
-		from,
-		to,
-		subject,
-		text,
-		html
-	})
+	const payload = { from, to, subject, text, html }
+	const maxAttempts = 3
+
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		try {
+			await transporterInstance.sendMail(payload)
+			return
+		} catch (err) {
+			if (isTransientSmtpError(err) && attempt < maxAttempts - 1) {
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.pow(2, attempt) * 500)
+				)
+			} else {
+				throw err
+			}
+		}
+	}
 }
 
 export async function sendOtpEmail({

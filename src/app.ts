@@ -7,6 +7,7 @@ import cors from '@elysiajs/cors'
 import { healthCheck } from './utils/health-check'
 import { AppError, CustomError } from './core/error'
 import { productExampleHandler } from './modules/product-example/handler'
+import { authHandler } from './modules/auth/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 
@@ -62,6 +63,6 @@ export const app = new Elysia()
 	})
 
 	// Modules
-	.group('/api', (app) => app.use(productExampleHandler))
+	.group('/api', (app) => app.use(productExampleHandler).use(authHandler))
 
 export type App = typeof app
