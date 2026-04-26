@@ -273,7 +273,7 @@ This enabler supports:
 
 ## Labels
 
-`enabler`, `{priority-level}`, `infrastructure/api/database`, `{component-name}`
+`enabler`, `{priority-level}`, `frontend/backend`, `{component-name}`
 
 ## Feature
 
