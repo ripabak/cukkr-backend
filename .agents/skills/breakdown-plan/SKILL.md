@@ -1,17 +1,15 @@
 ---
 name: breakdown-plan
-description: 'Issue Planning and Automation prompt that generates comprehensive project plans with Epic > Feature > Story/Enabler > Test hierarchy, dependencies, priorities, and automated tracking.'
+description: 'Issue Planning prompt that generates GitHub issues breakdown with Epic > Feature > Story/Enabler > Test hierarchy, dependencies, and priorities.'
 ---
 
-# GitHub Issue Planning & Project Automation Prompt
+# GitHub Issue Planning Prompt
 
 ## Goal
 
-Act as a senior Project Manager and DevOps specialist with expertise in Agile methodology and GitHub project management. Your task is to take the complete set of feature artifacts (PRD, technical breakdown, implementation plan) and generate a comprehensive GitHub project plan with automated issue creation, dependency linking, priority assignment, and Kanban-style tracking.
+Act as a senior Project Manager with expertise in Agile methodology. Your task is to take the complete set of feature artifacts (PRD, technical breakdown, implementation plan) and generate a comprehensive GitHub issues breakdown with dependency linking and priority assignment.
 
-## GitHub Project Management Best Practices
-
-### Agile Work Item Hierarchy
+## Agile Work Item Hierarchy
 
 - **Epic**: Large business capability spanning multiple features (milestone level)
 - **Feature**: Deliverable user-facing functionality within an epic
@@ -20,89 +18,43 @@ Act as a senior Project Manager and DevOps specialist with expertise in Agile me
 - **Test**: Quality assurance work for validating stories and enablers
 - **Task**: Implementation-level work breakdown for stories/enablers
 
-### Project Management Principles
+### Core Principles
 
 - **INVEST Criteria**: Independent, Negotiable, Valuable, Estimable, Small, Testable
 - **Definition of Ready**: Clear acceptance criteria before work begins
 - **Definition of Done**: Quality gates and completion criteria
 - **Dependency Management**: Clear blocking relationships and critical path identification
-- **Value-Based Prioritization**: Business value vs. effort matrix for decision making
 
 ## Input Requirements
 
 Before using this prompt, ensure you have the complete feature artifacts:
 
-### Core Feature Documents
-
 1. **Feature PRD**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}.md`
-2. **Technical Breakdown**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/technical-breakdown.md`
-3. **Implementation Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
-
-### Related Planning Prompts
-
-- **Test Planning**: Use `plan-test` prompt for comprehensive test strategy, quality assurance planning, and test issue creation
-- **Architecture Planning**: Use `plan-epic-arch` prompt for system architecture and technical design
-- **Feature Planning**: Use `plan-feature-prd` prompt for detailed feature requirements and specifications
+2. **Implementation Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
 
 ## Output Format
 
-Create two primary deliverables:
+Create one deliverable:
 
-1. **Project Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md`
-2. **Issue Creation Checklist**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
+- **Issue Creation Checklist**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
 
-### Project Plan Structure
-
-#### 1. Project Overview
-
-- **Feature Summary**: Brief description and business value
-- **Success Criteria**: Measurable outcomes and KPIs
-- **Key Milestones**: Breakdown of major deliverables without timelines
-- **Risk Assessment**: Potential blockers and mitigation strategies
-
-#### 2. Work Item Hierarchy
-
-```mermaid
-graph TD
-    A[Epic: {Epic Name}] --> B[Feature: {Feature Name}]
-    B --> C[Story 1: {User Story}]
-    B --> D[Story 2: {User Story}]
-    B --> E[Enabler 1: {Technical Work}]
-    B --> F[Enabler 2: {Infrastructure}]
-
-    C --> G[Task: Handler Implementation]
-    C --> H[Task: Service Logic]
-    C --> I[Test: Integration Tests]
-
-    D --> J[Task: Schema Definition]
-    D --> K[Task: Migration]
-    D --> L[Test: Unit Tests]
-
-    E --> M[Task: Database Schema]
-    E --> N[Task: Migration Scripts]
-
-    F --> O[Task: CI/CD Pipeline]
-    F --> P[Task: Monitoring Setup]
-```
-
-#### 3. GitHub Issues Breakdown
+### GitHub Issues Breakdown
 
 ##### Epic Issue Template
 
 ```markdown
 # Epic: {Epic Name}
 
-## Epic Description
+## Description
 
 {Epic summary from PRD}
 
 ## Business Value
 
 - **Primary Goal**: {Main business objective}
-- **Success Metrics**: {KPIs and measurable outcomes}
 - **User Impact**: {How users will benefit}
 
-## Epic Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] {High-level requirement 1}
 - [ ] {High-level requirement 2}
@@ -117,16 +69,10 @@ graph TD
 - [ ] All feature stories completed
 - [ ] Integration tests passing
 - [ ] Lint and format checks passing
-- [ ] Performance benchmarks met
-- [ ] Documentation updated
 
 ## Labels
 
-`epic`, `{priority-level}`, `{value-tier}`
-
-## Milestone
-
-{Release version/date}
+`epic`, `{priority-level}`
 
 ## Estimate
 
@@ -138,7 +84,7 @@ graph TD
 ```markdown
 # Feature: {Feature Name}
 
-## Feature Description
+## Description
 
 {Feature summary from PRD}
 
@@ -168,11 +114,10 @@ graph TD
 - [ ] Technical enablers completed
 - [ ] Integration tests passing
 - [ ] Lint and format checks passing
-- [ ] Performance testing completed
 
 ## Labels
 
-`feature`, `{priority-level}`, `{value-tier}`, `{component-name}`
+`feature`, `{priority-level}`, `{component-name}`
 
 ## Epic
 
@@ -180,7 +125,7 @@ graph TD
 
 ## Estimate
 
-{Story points or t-shirt size}
+{T-shirt size: XS, S, M, L, XL}
 ```
 
 ##### User Story Issue Template
@@ -200,12 +145,8 @@ As a **{user type}**, I want **{goal}** so that **{benefit}**.
 
 ## Technical Tasks
 
-- [ ] #{task-issue-number} - {Implementation task}
-- [ ] #{task-issue-number} - {Integration task}
-
-## Testing Requirements
-
-- [ ] #{test-issue-number} - {Test implementation}
+- [ ] {Implementation task}
+- [ ] {Integration task}
 
 ## Dependencies
 
@@ -236,7 +177,7 @@ As a **{user type}**, I want **{goal}** so that **{benefit}**.
 ```markdown
 # Technical Enabler: {Enabler Title}
 
-## Enabler Description
+## Description
 
 {Technical work required to support user stories}
 
@@ -245,14 +186,7 @@ As a **{user type}**, I want **{goal}** so that **{benefit}**.
 - [ ] {Technical requirement 1}
 - [ ] {Technical requirement 2}
 
-## Implementation Tasks
-
-- [ ] #{task-issue-number} - {Implementation detail}
-- [ ] #{task-issue-number} - {Infrastructure setup}
-
 ## User Stories Enabled
-
-This enabler supports:
 
 - #{story-issue-number} - {Story title}
 - #{story-issue-number} - {Story title}
@@ -261,19 +195,17 @@ This enabler supports:
 
 - [ ] {Technical validation 1}
 - [ ] {Technical validation 2}
-- [ ] Performance benchmarks met
 
 ## Definition of Done
 
 - [ ] Implementation completed
 - [ ] Unit tests written
 - [ ] Integration tests passing
-- [ ] Documentation updated
 - [ ] Code review approved
 
 ## Labels
 
-`enabler`, `{priority-level}`, `frontend/backend`, `{component-name}`
+`enabler`, `{priority-level}`, `{component-name}`
 
 ## Feature
 
@@ -281,22 +213,21 @@ This enabler supports:
 
 ## Estimate
 
-{Story points or effort estimate}
+{Story points: 1, 2, 3, 5, 8}
 ```
 
-#### 4. Priority and Value Matrix
+### Priority Matrix
 
-| Priority | Value  | Criteria                        | Labels                            |
-| -------- | ------ | ------------------------------- | --------------------------------- |
-| P0       | High   | Critical path, blocking release | `priority-critical`, `value-high` |
-| P1       | High   | Core functionality, user-facing | `priority-high`, `value-high`     |
-| P1       | Medium | Core functionality, internal    | `priority-high`, `value-medium`   |
-| P2       | Medium | Important but not blocking      | `priority-medium`, `value-medium` |
-| P3       | Low    | Nice to have, technical debt    | `priority-low`, `value-low`       |
+| Priority | Criteria                        | Label               |
+| -------- | ------------------------------- | ------------------- |
+| P0       | Critical path, blocking release | `priority-critical` |
+| P1       | Core functionality, user-facing | `priority-high`     |
+| P2       | Important but not blocking      | `priority-medium`   |
+| P3       | Nice to have, technical debt    | `priority-low`      |
 
-#### 5. Estimation Guidelines
+### Estimation Guidelines
 
-##### Story Point Scale (Fibonacci)
+#### Story Point Scale (Fibonacci)
 
 - **1 point**: Simple change, <4 hours
 - **2 points**: Small feature, <1 day
@@ -305,7 +236,7 @@ This enabler supports:
 - **8 points**: Complex feature, 1-2 weeks
 - **13+ points**: Epic-level work, needs breakdown
 
-##### T-Shirt Sizing (Epics/Features)
+#### T-Shirt Sizing (Epics/Features)
 
 - **XS**: 1-2 story points total
 - **S**: 3-8 story points total
@@ -313,195 +244,32 @@ This enabler supports:
 - **L**: 20-40 story points total
 - **XL**: 40+ story points total (consider breaking down)
 
-#### 6. Dependency Management
-
-```mermaid
-graph LR
-    A[Epic Planning] --> B[Feature Definition]
-    B --> C[Enabler Implementation]
-    C --> D[Story Development]
-    D --> E[Testing Execution]
-    E --> F[Feature Delivery]
-
-    G[Infrastructure Setup] --> C
-    H[API Design] --> D
-    I[Database Schema] --> C
-    J[Authentication] --> D
-```
-
-##### Dependency Types
+### Dependency Types
 
 - **Blocks**: Work that cannot proceed until this is complete
 - **Related**: Work that shares context but not blocking
 - **Prerequisite**: Required infrastructure or setup work
 - **Parallel**: Work that can proceed simultaneously
 
-#### 7. Sprint Planning Template
+## Issue Creation Checklist
 
-##### Sprint Capacity Planning
+The output checklist at `/docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md` must include:
 
-- **Team Velocity**: {Average story points per sprint}
-- **Sprint Duration**: {2-week sprints recommended}
-- **Buffer Allocation**: 20% for unexpected work and bug fixes
-- **Focus Factor**: 70-80% of total time on planned work
+#### Epic Level
 
-##### Sprint Goal Definition
+- [ ] **Epic issue** with description and acceptance criteria
+- [ ] **Epic labels applied**: `epic` + priority label
 
-```markdown
-## Sprint {N} Goal
+#### Feature Level
 
-**Primary Objective**: {Main deliverable for this sprint}
+- [ ] **Feature issue** linking to parent epic
+- [ ] **Dependencies identified** and documented
+- [ ] **Estimation** using t-shirt sizing
 
-**Stories in Sprint**:
+#### Story/Enabler Level
 
-- #{issue} - {Story title} ({points} pts)
-- #{issue} - {Story title} ({points} pts)
-
-**Total Commitment**: {points} story points
-**Success Criteria**: {Measurable outcomes}
-```
-
-#### 8. GitHub Project Board Configuration
-
-##### Column Structure (Kanban)
-
-1. **Backlog**: Prioritized and ready for planning
-2. **Sprint Ready**: Detailed and estimated, ready for development
-3. **In Progress**: Currently being worked on
-4. **In Review**: Code review, testing, or stakeholder review
-5. **Testing**: QA validation and acceptance testing
-6. **Done**: Completed and accepted
-
-##### Custom Fields Configuration
-
-- **Priority**: P0, P1, P2, P3
-- **Value**: High, Medium, Low
-- **Component**: Handler, Service, Schema, Infrastructure, Testing
-- **Estimate**: Story points or t-shirt size
-- **Sprint**: Current sprint assignment
-- **Assignee**: Responsible team member
-- **Epic**: Parent epic reference
-
-#### 9. Automation and GitHub Actions
-
-##### Automated Issue Creation
-
-```yaml
-name: Create Feature Issues
-
-on:
-  workflow_dispatch:
-    inputs:
-      feature_name:
-        description: 'Feature name'
-        required: true
-      epic_issue:
-        description: 'Epic issue number'
-        required: true
-
-jobs:
-  create-issues:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Feature Issue
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: epic } = await github.rest.issues.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ github.event.inputs.epic_issue }}
-            });
-
-            const featureIssue = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Feature: ${{ github.event.inputs.feature_name }}`,
-              body: `# Feature: ${{ github.event.inputs.feature_name }}\n\n...`,
-              labels: ['feature', 'priority-medium'],
-              milestone: epic.data.milestone?.number
-            });
-```
-
-##### Automated Status Updates
-
-```yaml
-name: Update Issue Status
-
-on:
-  pull_request:
-    types: [opened, closed]
-
-jobs:
-  update-status:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Move to In Review
-        if: github.event.action == 'opened'
-        uses: actions/github-script@v7
-        # Move related issues to "In Review" column
-
-      - name: Move to Done
-        if: github.event.action == 'closed' && github.event.pull_request.merged
-        uses: actions/github-script@v7
-        # Move related issues to "Done" column
-```
-
-### Issue Creation Checklist
-
-#### Pre-Creation Preparation
-
-- [ ] **Feature artifacts complete**: PRD, UX design, technical breakdown, testing plan
-- [ ] **Epic exists**: Parent epic issue created with proper labels and milestone
-- [ ] **Project board configured**: Columns, custom fields, and automation rules set up
-- [ ] **Team capacity assessed**: Sprint planning and resource allocation completed
-
-#### Epic Level Issues
-
-- [ ] **Epic issue created** with comprehensive description and acceptance criteria
-- [ ] **Epic milestone created** with target release date
-- [ ] **Epic labels applied**: `epic`, priority, value, and team labels
-- [ ] **Epic added to project board** in appropriate column
-
-#### Feature Level Issues
-
-- [ ] **Feature issue created** linking to parent epic
-- [ ] **Feature dependencies identified** and documented
-- [ ] **Feature estimation completed** using t-shirt sizing
-- [ ] **Feature acceptance criteria defined** with measurable outcomes
-
-#### Story/Enabler Level Issues documented in `/docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
-
-- [ ] **User stories created** following INVEST criteria
-- [ ] **Technical enablers identified** and prioritized
-- [ ] **Story point estimates assigned** using Fibonacci scale
+- [ ] **User stories** following INVEST criteria
+- [ ] **Technical enablers** identified and prioritized
+- [ ] **Story point estimates** using Fibonacci scale
 - [ ] **Dependencies mapped** between stories and enablers
-- [ ] **Acceptance criteria detailed** with testable requirements
-
-## Success Metrics
-
-### Project Management KPIs
-
-- **Sprint Predictability**: >80% of committed work completed per sprint
-- **Cycle Time**: Average time from "In Progress" to "Done" <5 business days
-- **Lead Time**: Average time from "Backlog" to "Done" <2 weeks
-- **Defect Escape Rate**: <5% of stories require post-release fixes
-- **Team Velocity**: Consistent story point delivery across sprints
-
-### Process Efficiency Metrics
-
-- **Issue Creation Time**: <1 hour to create full feature breakdown
-- **Dependency Resolution**: <24 hours to resolve blocking dependencies
-- **Status Update Accuracy**: >95% automated status transitions working correctly
-- **Documentation Completeness**: 100% of issues have required template fields
-- **Cross-Team Collaboration**: <2 business days for external dependency resolution
-
-### Project Delivery Metrics
-
-- **Definition of Done Compliance**: 100% of completed stories meet DoD criteria
-- **Acceptance Criteria Coverage**: 100% of acceptance criteria validated
-- **Sprint Goal Achievement**: >90% of sprint goals successfully delivered
-- **Stakeholder Satisfaction**: >90% stakeholder approval for completed features
-- **Planning Accuracy**: <10% variance between estimated and actual delivery time
-
-This comprehensive GitHub project management approach ensures complete traceability from epic-level planning down to individual implementation tasks, with automated tracking and clear accountability for all team members.
+- [ ] **Acceptance criteria** with testable requirements

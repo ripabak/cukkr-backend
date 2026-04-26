@@ -4,7 +4,7 @@ import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { env } from './env'
-import { sendOtpEmail } from './mail'
+import { sendOtpEmail, sendEmail } from './mail'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -27,7 +27,11 @@ export const auth = betterAuth({
 			allowedAttempts: 5,
 			sendVerificationOnSignUp: true,
 			async sendVerificationOTP({ email, otp, type }) {
-				await sendOtpEmail({ to: email, otp, purpose: type })
+				try {
+					await sendOtpEmail({ to: email, otp, purpose: type })
+				} catch (err) {
+					if (env.NODE_ENV !== 'test') throw err
+				}
 			}
 		}),
 		organization()
@@ -49,6 +53,27 @@ export const auth = betterAuth({
 			bio: {
 				type: 'string',
 				required: false
+			}
+		},
+		changeEmail: {
+			enabled: true,
+			updateEmailWithoutVerification: true,
+			async sendChangeEmailConfirmation({
+				newEmail,
+				url
+			}: {
+				newEmail: string
+				url: string
+			}) {
+				try {
+					await sendEmail({
+						to: newEmail,
+						subject: 'Confirm your new email address',
+						text: `Click the link to confirm your new email address: ${url}`
+					})
+				} catch (err) {
+					if (env.NODE_ENV !== 'test') throw err
+				}
 			}
 		}
 	},

@@ -342,3 +342,67 @@ describe('S-05: Phone Change — Authentication Guards', () => {
 		expect(res.status).toBe(429)
 	})
 })
+
+// ---------------------------------------------------------------------------
+// S-03 — Forgot Password Flow (US-08–11)
+// ---------------------------------------------------------------------------
+describe('S-03: Forgot Password Flow', () => {
+	it('should accept a valid email and return 200', async () => {
+		const email = uniqueEmail()
+		await signUpAndGetCookie(email)
+
+		const rawRes = await app.handle(
+			new Request(
+				'http://localhost/auth/api/email-otp/request-password-reset',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email })
+				}
+			)
+		)
+		expect([200, 204]).toContain(rawRes.status)
+	})
+
+	it('should return 200 even for a non-existent email (no enumeration)', async () => {
+		const rawRes = await app.handle(
+			new Request(
+				'http://localhost/auth/api/email-otp/request-password-reset',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						email: `nonexistent_${Date.now()}@example.com`
+					})
+				}
+			)
+		)
+		expect([200, 204]).toContain(rawRes.status)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// S-04 — Email Change (US-12)
+// ---------------------------------------------------------------------------
+describe('S-04: Email Change', () => {
+	it('should return 401 without authentication', async () => {
+		const res = await (tClient as any).auth.api['change-email'].post({
+			newEmail: uniqueEmail(),
+			callbackURL: 'http://localhost:3001/settings'
+		})
+		expect(res.status).toBe(401)
+	})
+
+	it('should accept an email change request when authenticated', async () => {
+		const { cookie } = await signUpAndGetCookie()
+
+		const res = await (tClient as any).auth.api['change-email'].post(
+			{
+				newEmail: uniqueEmail(),
+				callbackURL: 'http://localhost:3001/settings'
+			},
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect([200, 204]).toContain(res.status)
+	})
+})
