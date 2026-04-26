@@ -22,6 +22,20 @@
       "when": 1777209747719,
       "tag": "20260426132227_update-services-indexes-default",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777214817996,
+      "tag": "20260426144657_add-open-hours-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777214921119,
+      "tag": "20260426144841_add-bookings-module",
+      "breakpoints": true
     }
   ]
 }

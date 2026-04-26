@@ -10,7 +10,9 @@ import { productExampleHandler } from './modules/product-example/handler'
 import { barbershopHandler } from './modules/barbershop/handler'
 import { barbersHandler } from './modules/barbers/handler'
 import { servicesHandler } from './modules/services/handler'
+import { openHoursHandler } from './modules/open-hours/handler'
 import { authHandler } from './modules/auth/handler'
+import { bookingsHandler } from './modules/bookings/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 
@@ -74,6 +76,8 @@ export const app = new Elysia()
 			.use(barbershopHandler)
 			.use(barbersHandler)
 			.use(servicesHandler)
+			.use(bookingsHandler)
+			.use(openHoursHandler)
 	)
 
 export type App = typeof app
