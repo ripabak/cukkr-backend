@@ -1,17 +1,15 @@
 ---
 name: breakdown-plan
-description: 'Issue Planning and Automation prompt that generates comprehensive project plans with Epic > Feature > Story/Enabler > Test hierarchy, dependencies, priorities, and automated tracking.'
+description: 'Issue Planning prompt that generates GitHub issues breakdown with Epic > Feature > Story/Enabler > Test hierarchy, dependencies, and priorities.'
 ---
 
-# GitHub Issue Planning & Project Automation Prompt
+# GitHub Issue Planning Prompt
 
 ## Goal
 
-Act as a senior Project Manager and DevOps specialist with expertise in Agile methodology and GitHub project management. Your task is to take the complete set of feature artifacts (PRD, technical breakdown, implementation plan) and generate a comprehensive GitHub project plan with automated issue creation, dependency linking, priority assignment, and Kanban-style tracking.
+Act as a senior Project Manager with expertise in Agile methodology. Your task is to take the complete set of feature artifacts (PRD, technical breakdown, implementation plan) and generate a comprehensive GitHub issues breakdown with dependency linking and priority assignment.
 
-## GitHub Project Management Best Practices
-
-### Agile Work Item Hierarchy
+## Agile Work Item Hierarchy
 
 - **Epic**: Large business capability spanning multiple features (milestone level)
 - **Feature**: Deliverable user-facing functionality within an epic
@@ -20,29 +18,19 @@ Act as a senior Project Manager and DevOps specialist with expertise in Agile me
 - **Test**: Quality assurance work for validating stories and enablers
 - **Task**: Implementation-level work breakdown for stories/enablers
 
-### Project Management Principles
+### Core Principles
 
 - **INVEST Criteria**: Independent, Negotiable, Valuable, Estimable, Small, Testable
 - **Definition of Ready**: Clear acceptance criteria before work begins
 - **Definition of Done**: Quality gates and completion criteria
 - **Dependency Management**: Clear blocking relationships and critical path identification
-- **Value-Based Prioritization**: Business value vs. effort matrix for decision making
 
 ## Input Requirements
 
 Before using this prompt, ensure you have the complete feature artifacts:
 
-### Core Feature Documents
-
-1. **Feature PRD**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}.md`
-2. **Technical Breakdown**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/technical-breakdown.md`
-3. **Implementation Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
-
-### Related Planning Prompts
-
-- **Test Planning**: Use `plan-test` prompt for comprehensive test strategy, quality assurance planning, and test issue creation
-- **Architecture Planning**: Use `plan-epic-arch` prompt for system architecture and technical design
-- **Feature Planning**: Use `plan-feature-prd` prompt for detailed feature requirements and specifications
+1. **Feature PRD**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/prd.md`
+2. **Implementation Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
 
 ## Output Format
 
@@ -51,41 +39,7 @@ Create two primary deliverables:
 1. **Project Plan**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md`
 2. **Issue Creation Checklist**: `/docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
 
-### Project Plan Structure
-
-#### 1. Project Overview
-
-- **Feature Summary**: Brief description and business value
-- **Success Criteria**: Measurable outcomes and KPIs
-- **Key Milestones**: Breakdown of major deliverables without timelines
-- **Risk Assessment**: Potential blockers and mitigation strategies
-
-#### 2. Work Item Hierarchy
-
-```mermaid
-graph TD
-    A[Epic: {Epic Name}] --> B[Feature: {Feature Name}]
-    B --> C[Story 1: {User Story}]
-    B --> D[Story 2: {User Story}]
-    B --> E[Enabler 1: {Technical Work}]
-    B --> F[Enabler 2: {Infrastructure}]
-
-    C --> G[Task: Handler Implementation]
-    C --> H[Task: Service Logic]
-    C --> I[Test: Integration Tests]
-
-    D --> J[Task: Schema Definition]
-    D --> K[Task: Migration]
-    D --> L[Test: Unit Tests]
-
-    E --> M[Task: Database Schema]
-    E --> N[Task: Migration Scripts]
-
-    F --> O[Task: CI/CD Pipeline]
-    F --> P[Task: Monitoring Setup]
-```
-
-#### 3. GitHub Issues Breakdown
+### GitHub Issues Breakdown
 
 ##### Epic Issue Template
 
