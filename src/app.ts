@@ -7,6 +7,9 @@ import cors from '@elysiajs/cors'
 import { healthCheck } from './utils/health-check'
 import { AppError, CustomError } from './core/error'
 import { productExampleHandler } from './modules/product-example/handler'
+import { barbershopHandler } from './modules/barbershop/handler'
+import { barbersHandler } from './modules/barbers/handler'
+import { servicesHandler } from './modules/services/handler'
 import { authHandler } from './modules/auth/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
@@ -29,7 +32,8 @@ export const app = new Elysia()
 	)
 	.use(
 		rateLimit({
-			max: 100
+			max: 100,
+			skip: () => env.NODE_ENV === 'test'
 		})
 	)
 	.use(
@@ -63,6 +67,13 @@ export const app = new Elysia()
 	})
 
 	// Modules
-	.group('/api', (app) => app.use(productExampleHandler).use(authHandler))
+	.group('/api', (app) =>
+		app
+			.use(productExampleHandler)
+			.use(authHandler)
+			.use(barbershopHandler)
+			.use(barbersHandler)
+			.use(servicesHandler)
+	)
 
 export type App = typeof app

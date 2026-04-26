@@ -8,6 +8,13 @@
       "when": 1777186962254,
       "tag": "20260426070242_add-user-phone-bio",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777208109318,
+      "tag": "20260426125509_onboarding-barbershop-setup",
+      "breakpoints": true
     }
   ]
 }

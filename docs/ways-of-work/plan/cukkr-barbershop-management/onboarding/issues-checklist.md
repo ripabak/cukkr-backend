@@ -2,12 +2,47 @@
 
 **Version:** 1.0
 **Date:** April 26, 2026
-**Status:** Draft
+**Status:** Implemented ✅
 **Feature PRD:** [Onboarding & Barbershop Setup PRD](./prd.md)
 **Implementation Plan:** [Implementation Plan](./implementation-plan.md)
 **Project Plan:** [Project Plan](./project-plan.md)
 
 > Use this checklist to track GitHub issue creation. Replace all `#TBD` with actual issue numbers once created. Issues should be created in this order to allow dependency linking.
+
+---
+
+## Implementation Progress
+
+**Status:** ✅ All phases complete — 25/25 tests passing
+
+### Completed Tasks
+
+| Phase | Task | Status | Notes |
+|---|---|---|---|
+| Phase 1 | `src/modules/barbershop/schema.ts` | ✅ Done | `barbershop_settings` table with uniqueIndex |
+| Phase 1 | `src/modules/services/schema.ts` | ✅ Done | `service` table with indexes |
+| Phase 1 | `drizzle/schemas.ts` updated | ✅ Done | Both schemas exported |
+| Phase 1 | Migration `onboarding-barbershop-setup` | ✅ Done | Generated & applied |
+| Phase 2 | `src/modules/barbershop/model.ts` | ✅ Done | TypeBox schemas with `onboardingCompleted` |
+| Phase 2 | `src/modules/barbershop/service.ts` | ✅ Done | Owner check, slug validation, write-once flag |
+| Phase 2 | `src/modules/barbershop/handler.ts` | ✅ Done | 3 routes with rate limit on slug-check |
+| Phase 3 | `src/modules/barbers/model.ts` | ✅ Done | BarberInviteInput/Response |
+| Phase 3 | `src/modules/barbers/service.ts` | ✅ Done | Owner check, email validation, duplicate check |
+| Phase 3 | `src/modules/barbers/handler.ts` | ✅ Done | POST /invite |
+| Phase 4 | `src/modules/services/model.ts` | ✅ Done | ServiceCreateInput/Response |
+| Phase 4 | `src/modules/services/service.ts` | ✅ Done | Owner check, business rule validation |
+| Phase 4 | `src/modules/services/handler.ts` | ✅ Done | POST / with isDefault=true forced |
+| App | `src/app.ts` updated | ✅ Done | barbershopHandler, barbersHandler, servicesHandler registered |
+| Phase 5 | `tests/modules/onboarding.test.ts` | ✅ Done | 25 tests passing |
+| Phase 5 | `tests/modules/barbershop-settings.test.ts` | ✅ Updated | 19 tests passing |
+
+### Validation Notes
+
+- TypeBox returns 422 for its own validation errors (Elysia built-in behavior)
+- Service-layer AppError returns 400 for business rule violations (slug format, onboardingCompleted=false)
+- `slug` removed from TypeBox pattern constraint → service validates → returns 400 consistently
+- `name/description/address` keep TypeBox constraints → returns 422 for those
+- `onboardingCompleted` is write-once: only settable to `true`; subsequent `true` patches are idempotent
 
 ---
 
