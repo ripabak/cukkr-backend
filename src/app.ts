@@ -17,6 +17,10 @@ import { customersHandler } from './modules/customer-management/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 import { userProfileHandler } from './modules/user-profile/handler'
+import {
+	walkInPinHandler,
+	publicWalkInHandler
+} from './modules/walk-in-pin/handler'
 
 export const app = new Elysia()
 	.use(
@@ -82,6 +86,8 @@ export const app = new Elysia()
 			.use(customersHandler)
 			.use(openHoursHandler)
 			.use(userProfileHandler)
+			.use(walkInPinHandler)
+			.use(publicWalkInHandler)
 	)
 
 export type App = typeof app

@@ -50,6 +50,13 @@
       "when": 1777293770939,
       "tag": "20260427124250_add_customer_management_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777297637024,
+      "tag": "20260427134717_add_walk_in_pin_table",
+      "breakpoints": true
     }
   ]
 }

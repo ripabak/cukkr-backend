@@ -29,7 +29,10 @@ const envSchema = z.object({
 	SMTP_USER: z.string().optional(),
 	SMTP_PASS: z.string().optional(),
 	SMTP_SECURE: z.coerce.boolean().optional().default(false),
-	SMTP_FROM: z.string().optional()
+	SMTP_FROM: z.string().optional(),
+
+	// Walk-In PIN System
+	WALK_IN_TOKEN_SECRET: z.string().min(32)
 })
 
 const parsed = envSchema.safeParse(process.env)
