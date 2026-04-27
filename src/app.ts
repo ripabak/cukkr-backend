@@ -15,6 +15,7 @@ import { authHandler } from './modules/auth/handler'
 import { bookingsHandler } from './modules/bookings/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
+import { userProfileHandler } from './modules/user-profile/handler'
 
 export const app = new Elysia()
 	.use(
@@ -78,6 +79,7 @@ export const app = new Elysia()
 			.use(servicesHandler)
 			.use(bookingsHandler)
 			.use(openHoursHandler)
+			.use(userProfileHandler)
 	)
 
 export type App = typeof app

@@ -13,6 +13,11 @@ const envSchema = z.object({
 
 	BETTER_AUTH_URL: z.string().url(),
 
+	STORAGE_ENDPOINT: z.string().url().optional(),
+	STORAGE_BUCKET: z.string().min(1).optional(),
+	STORAGE_ACCESS_KEY: z.string().min(1).optional(),
+	STORAGE_SECRET_KEY: z.string().min(1).optional(),
+
 	CORS_ORIGIN: z
 		.string()
 		.optional()
