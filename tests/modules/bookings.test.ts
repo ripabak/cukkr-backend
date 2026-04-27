@@ -1,10 +1,11 @@
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { and, eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
 import { nanoid } from 'nanoid'
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
+import { expoPushClient } from '../../src/lib/push'
 import { member } from '../../src/modules/auth/schema'
 import {
 	booking,
@@ -12,6 +13,10 @@ import {
 	bookingService,
 	customer
 } from '../../src/modules/bookings/schema'
+import {
+	notification,
+	notificationPushToken
+} from '../../src/modules/notifications/schema'
 import { openHour } from '../../src/modules/open-hours/schema'
 import { service } from '../../src/modules/services/schema'
 
@@ -32,6 +37,12 @@ interface OwnerContext {
 	orgId: string
 	ownerMemberId: string
 	ownerUserId: string
+}
+
+interface AuthUserContext {
+	cookie: string
+	userId: string
+	email: string
 }
 
 interface ServiceSeed {
@@ -108,6 +119,73 @@ function getFutureWibIso(
 
 function extractReferenceSequence(referenceNumber: string): string {
 	return referenceNumber.split('-')[2] ?? ''
+}
+
+async function signUpUser(args: {
+	name: string
+	emailPrefix: string
+}): Promise<AuthUserContext> {
+	const email = `${args.emailPrefix}_${Date.now()}_${nanoid(4)}@example.com`
+
+	const signUpRes = await (tClient as any).auth.api['sign-up'].email.post(
+		{ email, password: 'password123', name: args.name },
+		{ fetch: { headers: { origin: ORIGIN } } }
+	)
+	const cookie = signUpRes.response?.headers.get('set-cookie') ?? ''
+	const sessionRes = await (tClient as any).auth.api['get-session'].get({
+		headers: { cookie }
+	})
+	const createdUser = sessionRes.data?.user
+
+	if (!createdUser) {
+		throw new Error('Failed to create booking notification test user')
+	}
+
+	return {
+		cookie,
+		userId: createdUser.id,
+		email: createdUser.email
+	}
+}
+
+async function createBarberMemberContext(args: {
+	organizationId: string
+	suffix: string
+}): Promise<AuthUserContext & { memberId: string }> {
+	const barberUser = await signUpUser({
+		name: `Booking Barber ${args.suffix}`,
+		emailPrefix: `booking_barber_${args.suffix}`
+	})
+	const memberId = nanoid()
+
+	await db.insert(member).values({
+		id: memberId,
+		organizationId: args.organizationId,
+		userId: barberUser.userId,
+		role: 'barber',
+		createdAt: new Date()
+	})
+
+	return {
+		...barberUser,
+		memberId
+	}
+}
+
+async function waitForTokenInvalidation(token: string): Promise<void> {
+	for (let attempt = 0; attempt < 20; attempt++) {
+		const tokenRow = await db.query.notificationPushToken.findFirst({
+			where: eq(notificationPushToken.token, token)
+		})
+
+		if (tokenRow && !tokenRow.isActive && tokenRow.invalidatedAt) {
+			return
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+	}
+
+	throw new Error('Timed out waiting for notification token invalidation')
 }
 
 async function createOwnerWithOrg(suffix: string): Promise<OwnerContext> {
@@ -997,5 +1075,129 @@ describe('Booking Lifecycle Endpoints', () => {
 		)
 
 		expect(status).toBe(400)
+	})
+})
+
+describe('Booking Notification Triggers', () => {
+	afterEach(() => {
+		expoPushClient.resetTransport()
+	})
+
+	it('creates appointment notifications for owners and barbers', async () => {
+		const owner = await createOwnerWithOrg('notif-appointment')
+		const barber = await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'notif-appointment'
+		})
+		const appointmentService = await seedService({
+			organizationId: owner.orgId,
+			name: 'Appointment Notification Service',
+			price: 95000,
+			duration: 45
+		})
+
+		await seedWeeklyOpenHours(owner.orgId, {
+			0: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			1: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			2: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			3: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			4: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			5: { isOpen: true, openTime: '09:00', closeTime: '17:00' },
+			6: { isOpen: true, openTime: '09:00', closeTime: '17:00' }
+		})
+
+		const response = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Notif Appointment Customer',
+				customerEmail: `appointment_${Date.now()}@example.com`,
+				serviceIds: [appointmentService.id],
+				scheduledAt: getFutureWibIso(1, 11, 0),
+				barberId: barber.memberId
+			},
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+
+		const notificationRows = await db.query.notification.findMany({
+			where: eq(notification.referenceId, response.data?.data.id ?? '')
+		})
+
+		expect(response.status).toBe(201)
+		expect(notificationRows).toHaveLength(2)
+		expect(
+			notificationRows.map((row) => row.recipientUserId).sort()
+		).toEqual([owner.ownerUserId, barber.userId].sort())
+		expect(
+			notificationRows.every(
+				(row) =>
+					row.type === 'appointment_requested' &&
+					row.referenceType === 'booking'
+			)
+		).toBe(true)
+	})
+
+	it('creates walk-in notifications and keeps booking success when push delivery fails', async () => {
+		const owner = await createOwnerWithOrg('notif-walkin')
+		const barber = await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'notif-walkin'
+		})
+		const walkInService = await seedService({
+			organizationId: owner.orgId,
+			name: 'Walk-In Notification Service',
+			price: 70000,
+			duration: 30
+		})
+		const failingToken = `ExpoPushToken[booking-fail-${Date.now()}]`
+
+		await db.insert(notificationPushToken).values({
+			id: nanoid(),
+			userId: owner.ownerUserId,
+			token: failingToken,
+			isActive: true,
+			lastRegisteredAt: new Date(),
+			invalidatedAt: null,
+			createdAt: new Date(),
+			updatedAt: new Date()
+		})
+
+		expoPushClient.setTransport({
+			async send(messages) {
+				return messages.map(() => ({
+					status: 'error' as const,
+					message: 'Device not registered',
+					details: { error: 'DeviceNotRegistered' }
+				}))
+			}
+		})
+
+		const response = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Notif Walk In Customer',
+				serviceIds: [walkInService.id],
+				barberId: barber.memberId
+			},
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+
+		const notificationRows = await db.query.notification.findMany({
+			where: eq(notification.referenceId, response.data?.data.id ?? '')
+		})
+
+		await waitForTokenInvalidation(failingToken)
+
+		const tokenRow = await db.query.notificationPushToken.findFirst({
+			where: eq(notificationPushToken.token, failingToken)
+		})
+
+		expect(response.status).toBe(201)
+		expect(response.data?.data.status).toBe('waiting')
+		expect(notificationRows).toHaveLength(2)
+		expect(
+			notificationRows.every((row) => row.type === 'walk_in_arrival')
+		).toBe(true)
+		expect(tokenRow?.isActive).toBe(false)
+		expect(tokenRow?.invalidatedAt).toBeTruthy()
 	})
 })

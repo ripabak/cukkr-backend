@@ -3,6 +3,7 @@ import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
+import { NotificationService } from '../notifications/service'
 import { member, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
 import { service as serviceTable } from '../services/schema'
@@ -43,6 +44,41 @@ const STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
 }
 
 export abstract class BookingService {
+	private static async createBookingNotifications(
+		bookingDetail: BookingModel.BookingDetailResponse
+	): Promise<void> {
+		const recipientUserIds =
+			await NotificationService.getOrganizationRecipientUserIds(
+				bookingDetail.organizationId
+			)
+
+		if (recipientUserIds.length === 0) {
+			return
+		}
+
+		const title =
+			bookingDetail.type === 'appointment'
+				? 'New Appointment Request'
+				: 'New Walk-In Arrival'
+		const body =
+			bookingDetail.type === 'appointment'
+				? `${bookingDetail.customer.name} requested an appointment.`
+				: `${bookingDetail.customer.name} has arrived as a walk-in customer.`
+
+		await NotificationService.createNotificationsForRecipients({
+			organizationId: bookingDetail.organizationId,
+			recipientUserIds,
+			type:
+				bookingDetail.type === 'appointment'
+					? 'appointment_requested'
+					: 'walk_in_arrival',
+			title,
+			body,
+			referenceId: bookingDetail.id,
+			referenceType: 'booking'
+		})
+	}
+
 	private static toWibDate(date: Date): Date {
 		return new Date(date.getTime() + WIB_OFFSET_MS)
 	}
@@ -580,7 +616,14 @@ export abstract class BookingService {
 			return nextBookingId
 		})
 
-		return BookingService.getBooking(organizationId, bookingId)
+		const bookingDetail = await BookingService.getBooking(
+			organizationId,
+			bookingId
+		)
+
+		await BookingService.createBookingNotifications(bookingDetail)
+
+		return bookingDetail
 	}
 
 	static async getBooking(

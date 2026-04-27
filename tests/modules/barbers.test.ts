@@ -1,12 +1,17 @@
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { and, eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
 import { nanoid } from 'nanoid'
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
+import { expoPushClient } from '../../src/lib/push'
 import { invitation, member, user } from '../../src/modules/auth/schema'
 import { booking, customer } from '../../src/modules/bookings/schema'
+import {
+	notification,
+	notificationPushToken
+} from '../../src/modules/notifications/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -218,8 +223,28 @@ async function seedBookingForBarber(args: {
 	return bookingId
 }
 
+async function waitForTokenInvalidation(token: string): Promise<void> {
+	for (let attempt = 0; attempt < 20; attempt++) {
+		const tokenRow = await db.query.notificationPushToken.findFirst({
+			where: eq(notificationPushToken.token, token)
+		})
+
+		if (tokenRow && !tokenRow.isActive && tokenRow.invalidatedAt) {
+			return
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+	}
+
+	throw new Error('Timed out waiting for invitation push token invalidation')
+}
+
 describe('Barber Management Tests', () => {
 	let owner: OwnerContext
+
+	afterEach(() => {
+		expoPushClient.resetTransport()
+	})
 
 	beforeAll(async () => {
 		owner = await createOwnerContext('suite')
@@ -481,5 +506,75 @@ describe('Barber Management Tests', () => {
 			})
 
 		expect(status).toBe(403)
+	})
+
+	it('T-16: POST /barbers/invite creates an invitation notification for an existing user and preserves success when push fails', async () => {
+		const targetUser = await signUpUser({
+			name: 'Existing Invitee',
+			emailPrefix: 'existing_invitee'
+		})
+		const failingToken = `ExpoPushToken[invite-fail-${Date.now()}]`
+
+		await db.insert(notificationPushToken).values({
+			id: nanoid(),
+			userId: targetUser.userId,
+			token: failingToken,
+			isActive: true,
+			lastRegisteredAt: new Date(),
+			invalidatedAt: null,
+			createdAt: new Date(),
+			updatedAt: new Date()
+		})
+
+		expoPushClient.setTransport({
+			async send(messages) {
+				return messages.map(() => ({
+					status: 'error' as const,
+					message: 'Device not registered',
+					details: { error: 'DeviceNotRegistered' }
+				}))
+			}
+		})
+
+		const { status, data } = await tClient.api.barbers.invite.post(
+			{ email: targetUser.email },
+			{ fetch: { headers: { cookie: owner.cookie } } }
+		)
+		const notificationRows = await db.query.notification.findMany({
+			where: eq(notification.referenceId, data?.data.id ?? '')
+		})
+
+		await waitForTokenInvalidation(failingToken)
+
+		const tokenRow = await db.query.notificationPushToken.findFirst({
+			where: eq(notificationPushToken.token, failingToken)
+		})
+
+		expect(status).toBe(201)
+		expect(data?.data.email).toBe(targetUser.email)
+		expect(notificationRows).toHaveLength(1)
+		expect(notificationRows[0]).toMatchObject({
+			recipientUserId: targetUser.userId,
+			type: 'barbershop_invitation',
+			referenceType: 'invitation'
+		})
+		expect(tokenRow?.isActive).toBe(false)
+		expect(tokenRow?.invalidatedAt).toBeTruthy()
+	})
+
+	it('T-17: POST /barbers/invite does not create a notification for an unknown user', async () => {
+		const email = `unknown_invitee_${Date.now()}_${nanoid(4)}@example.com`
+
+		const { status, data } = await tClient.api.barbers.invite.post(
+			{ email },
+			{ fetch: { headers: { cookie: owner.cookie } } }
+		)
+		const notificationRows = await db.query.notification.findMany({
+			where: eq(notification.referenceId, data?.data.id ?? '')
+		})
+
+		expect(status).toBe(201)
+		expect(data?.data.email).toBe(email.toLowerCase())
+		expect(notificationRows).toHaveLength(0)
 	})
 })

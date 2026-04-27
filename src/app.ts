@@ -22,6 +22,7 @@ import {
 	publicWalkInHandler
 } from './modules/walk-in-pin/handler'
 import { analyticsHandler } from './modules/analytics/handler'
+import { notificationsHandler } from './modules/notifications/handler'
 
 export const app = new Elysia()
 	.use(
@@ -90,6 +91,7 @@ export const app = new Elysia()
 			.use(walkInPinHandler)
 			.use(publicWalkInHandler)
 			.use(analyticsHandler)
+			.use(notificationsHandler)
 	)
 
 export type App = typeof app

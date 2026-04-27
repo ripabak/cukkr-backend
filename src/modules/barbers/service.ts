@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
 import { invitation, member, user } from '../auth/schema'
+import { NotificationService } from '../notifications/service'
 import { BarberModel } from './model'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -203,6 +204,18 @@ export abstract class BarberService {
 				inviterId: userId
 			})
 			.returning()
+
+		if (targetUser) {
+			await NotificationService.createNotificationsForRecipients({
+				organizationId,
+				recipientUserIds: [targetUser.id],
+				type: 'barbershop_invitation',
+				title: 'New Barbershop Invitation',
+				body: 'You have been invited to join a barbershop.',
+				referenceId: created.id,
+				referenceType: 'invitation'
+			})
+		}
 
 		return {
 			id: created.id,

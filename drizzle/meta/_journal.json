@@ -64,6 +64,13 @@
       "when": 1777302256480,
       "tag": "20260427150416_add_analytics_completed_at_index",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777309541752,
+      "tag": "20260427170541_add-notifications-module",
+      "breakpoints": true
     }
   ]
 }
