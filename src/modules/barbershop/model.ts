@@ -29,4 +29,36 @@ export namespace BarbershopModel {
 		available: t.Boolean()
 	})
 	export type SlugCheckResponse = typeof SlugCheckResponse.static
+
+	export const CreateBarbershopInput = t.Object({
+		name: t.String({ minLength: 2, maxLength: 100 }),
+		slug: t.String({ minLength: 3, maxLength: 60 }),
+		description: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
+		address: t.Optional(t.Nullable(t.String({ maxLength: 300 })))
+	})
+	export type CreateBarbershopInput = typeof CreateBarbershopInput.static
+
+	export const BarbershopListItem = t.Object({
+		id: t.String(),
+		name: t.String(),
+		slug: t.String(),
+		description: t.Nullable(t.String()),
+		address: t.Nullable(t.String()),
+		onboardingCompleted: t.Boolean(),
+		role: t.String()
+	})
+	export type BarbershopListItem = typeof BarbershopListItem.static
+
+	export const BarbershopListResponse = t.Array(BarbershopListItem)
+	export type BarbershopListResponse = typeof BarbershopListResponse.static
+
+	export const OrgIdParam = t.Object({
+		orgId: t.String()
+	})
+	export type OrgIdParam = typeof OrgIdParam.static
+
+	export const LeaveOrgResponse = t.Object({
+		message: t.String()
+	})
+	export type LeaveOrgResponse = typeof LeaveOrgResponse.static
 }

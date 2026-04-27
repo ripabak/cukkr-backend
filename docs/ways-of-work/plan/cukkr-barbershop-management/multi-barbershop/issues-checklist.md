@@ -160,15 +160,15 @@ Update status here as issues are implemented:
 
 | # | Title | Status | PR |
 |---|-------|--------|-----|
-| #1 | Feature: Multi-Barbershop & Branch Management | `open` | — |
-| #2 | Enabler: Database Migration — Composite Member Index | `open` | — |
-| #3 | Enabler: BarbershopModel — Multi-Barbershop TypeBox Types | `open` | — |
-| #4 | Enabler: BarbershopService — Extract validateAndCheckSlug Helper | `open` | — |
-| #5 | Story: Create New Barbershop Organization | `open` | — |
-| #6 | Story: List All User's Barbershops | `open` | — |
-| #7 | Story: Leave Organization | `open` | — |
-| #8 | Story: Cross-Tenant Data Isolation Validation | `open` | — |
-| #9 | Test: Integration Tests — Multi-Barbershop | `open` | — |
+| #1 | Feature: Multi-Barbershop & Branch Management | `done` | — |
+| #2 | Enabler: Database Migration — Composite Member Index | `done` | — |
+| #3 | Enabler: BarbershopModel — Multi-Barbershop TypeBox Types | `done` | — |
+| #4 | Enabler: BarbershopService — Extract validateAndCheckSlug Helper | `done` | — |
+| #5 | Story: Create New Barbershop Organization | `done` | — |
+| #6 | Story: List All User's Barbershops | `done` | — |
+| #7 | Story: Leave Organization | `done` | — |
+| #8 | Story: Cross-Tenant Data Isolation Validation | `done` | — |
+| #9 | Test: Integration Tests — Multi-Barbershop | `done` | — |
 
 ---
 

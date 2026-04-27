@@ -30,6 +30,36 @@ export const barbershopHandler = new Elysia({
 		}
 	)
 
+	// POST /barbershop — create a new barbershop organization
+	.post(
+		'/',
+		async ({ body, path, user, set }) => {
+			set.status = 201
+			const data = await BarbershopService.createBarbershop(user.id, body)
+			return formatResponse({ path, data, status: 201 })
+		},
+		{
+			requireAuth: true,
+			body: BarbershopModel.CreateBarbershopInput,
+			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
+		}
+	)
+
+	// GET /barbershop/list — list all orgs for the authenticated user
+	.get(
+		'/list',
+		async ({ path, user }) => {
+			const data = await BarbershopService.listBarbershops(user.id)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			response: FormatResponseSchema(
+				BarbershopModel.BarbershopListResponse
+			)
+		}
+	)
+
 	// PATCH /barbershop/settings — partial update of profile fields
 	.patch(
 		'/settings',
@@ -46,6 +76,23 @@ export const barbershopHandler = new Elysia({
 			requireOrganization: true,
 			body: BarbershopModel.BarbershopSettingsInput,
 			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
+		}
+	)
+
+	// DELETE /barbershop/:orgId/leave — leave an organization
+	.delete(
+		'/:orgId/leave',
+		async ({ params, path, user }) => {
+			const data = await BarbershopService.leaveBarbershop(
+				user.id,
+				params.orgId
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			params: BarbershopModel.OrgIdParam,
+			response: FormatResponseSchema(BarbershopModel.LeaveOrgResponse)
 		}
 	)
 

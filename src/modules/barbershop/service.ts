@@ -1,4 +1,4 @@
-import { and, eq, ne } from 'drizzle-orm'
+import { and, count, eq, ne } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { db } from '../../lib/database'
@@ -21,6 +21,32 @@ export abstract class BarbershopService {
 				onboardingCompleted: false
 			})
 			.onConflictDoNothing()
+	}
+
+	private static async validateAndCheckSlug(
+		slug: string,
+		excludeOrgId?: string
+	): Promise<void> {
+		if (slug.length < 3 || slug.length > 60 || !SLUG_REGEX.test(slug)) {
+			throw new AppError('Invalid slug format', 'BAD_REQUEST')
+		}
+
+		const conditions = excludeOrgId
+			? and(
+					eq(organization.slug, slug),
+					ne(organization.id, excludeOrgId)
+				)
+			: eq(organization.slug, slug)
+
+		const taken = await db
+			.select({ id: organization.id })
+			.from(organization)
+			.where(conditions)
+			.limit(1)
+
+		if (taken[0]) {
+			throw new AppError('Slug is already taken', 'CONFLICT')
+		}
 	}
 
 	static async getSettings(
@@ -84,24 +110,7 @@ export abstract class BarbershopService {
 		}
 
 		if (slug !== undefined) {
-			if (slug.length < 3 || slug.length > 60 || !SLUG_REGEX.test(slug)) {
-				throw new AppError('Invalid slug format', 'BAD_REQUEST')
-			}
-
-			const taken = await db
-				.select({ id: organization.id })
-				.from(organization)
-				.where(
-					and(
-						eq(organization.slug, slug),
-						ne(organization.id, organizationId)
-					)
-				)
-				.limit(1)
-
-			if (taken[0]) {
-				throw new AppError('Slug is already taken', 'CONFLICT')
-			}
+			await BarbershopService.validateAndCheckSlug(slug, organizationId)
 		}
 
 		if (name !== undefined || slug !== undefined) {
@@ -158,5 +167,124 @@ export abstract class BarbershopService {
 			.limit(1)
 
 		return { available: rows.length === 0 }
+	}
+
+	static async createBarbershop(
+		userId: string,
+		body: BarbershopModel.CreateBarbershopInput
+	): Promise<BarbershopModel.BarbershopResponse> {
+		await BarbershopService.validateAndCheckSlug(body.slug)
+
+		const orgId = nanoid()
+		const now = new Date()
+
+		await db.insert(organization).values({
+			id: orgId,
+			name: body.name,
+			slug: body.slug,
+			createdAt: now
+		})
+
+		await db.insert(member).values({
+			id: nanoid(),
+			organizationId: orgId,
+			userId,
+			role: 'owner',
+			createdAt: now
+		})
+
+		await BarbershopService.ensureSettingsRow(orgId)
+
+		if (body.description !== undefined || body.address !== undefined) {
+			const settingsUpdate: {
+				description?: string | null
+				address?: string | null
+			} = {}
+			if (body.description !== undefined)
+				settingsUpdate.description = body.description
+			if (body.address !== undefined)
+				settingsUpdate.address = body.address
+
+			await db
+				.update(barbershopSettings)
+				.set(settingsUpdate)
+				.where(eq(barbershopSettings.organizationId, orgId))
+		}
+
+		return BarbershopService.getSettings(orgId)
+	}
+
+	static async listBarbershops(
+		userId: string
+	): Promise<BarbershopModel.BarbershopListResponse> {
+		const rows = await db
+			.select({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug,
+				description: barbershopSettings.description,
+				address: barbershopSettings.address,
+				onboardingCompleted: barbershopSettings.onboardingCompleted,
+				role: member.role
+			})
+			.from(member)
+			.innerJoin(organization, eq(organization.id, member.organizationId))
+			.leftJoin(
+				barbershopSettings,
+				eq(barbershopSettings.organizationId, organization.id)
+			)
+			.where(eq(member.userId, userId))
+			.orderBy(organization.createdAt)
+
+		return rows.map((row) => ({
+			id: row.id,
+			name: row.name,
+			slug: row.slug,
+			description: row.description ?? null,
+			address: row.address ?? null,
+			onboardingCompleted: row.onboardingCompleted ?? false,
+			role: row.role
+		}))
+	}
+
+	static async leaveBarbershop(
+		userId: string,
+		orgId: string
+	): Promise<BarbershopModel.LeaveOrgResponse> {
+		const memberRow = await db.query.member.findFirst({
+			where: and(
+				eq(member.userId, userId),
+				eq(member.organizationId, orgId)
+			)
+		})
+
+		if (!memberRow) {
+			throw new AppError('Not a member of this organization', 'NOT_FOUND')
+		}
+
+		if (memberRow.role === 'owner') {
+			const ownerCountResult = await db
+				.select({ count: count() })
+				.from(member)
+				.where(
+					and(
+						eq(member.organizationId, orgId),
+						eq(member.role, 'owner')
+					)
+				)
+
+			const ownerCount = ownerCountResult[0]?.count ?? 0
+
+			if (ownerCount <= 1) {
+				throw new AppError(
+					'Cannot leave: you are the sole owner. Transfer ownership or archive the barbershop first.',
+					'BAD_REQUEST'
+				)
+			}
+		}
+
+		await db.delete(member).where(eq(member.id, memberRow.id))
+
+		return { message: 'You have left the organization' }
 	}
 }
