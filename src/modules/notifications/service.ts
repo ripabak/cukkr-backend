@@ -38,6 +38,24 @@ export type CreateNotificationsForRecipientsInput = {
 }
 
 export abstract class NotificationService {
+	private static toNotificationListItem(
+		row: NotificationRow
+	): NotificationListItem {
+		return {
+			id: row.id,
+			organizationId: row.organizationId,
+			type: row.type as NotificationListItem['type'],
+			title: row.title,
+			body: row.body,
+			referenceId: row.referenceId,
+			referenceType:
+				row.referenceType as NotificationListItem['referenceType'],
+			isRead: row.isRead,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt
+		}
+	}
+
 	private static async dispatchPushNotifications(
 		notifications: NotificationRow[]
 	): Promise<void> {
@@ -180,7 +198,9 @@ export abstract class NotificationService {
 		])
 
 		return {
-			data,
+			data: data.map((row) =>
+				NotificationService.toNotificationListItem(row)
+			),
 			totalItems: countResult[0]?.count ?? 0,
 			pagination
 		}
