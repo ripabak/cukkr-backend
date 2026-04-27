@@ -33,6 +33,10 @@ export const BookingListStatusEnum = t.Union([
 ])
 
 export namespace BookingModel {
+	export type BookingType = (typeof BOOKING_TYPES)[number]
+	export type BookingStatus = (typeof BOOKING_STATUSES)[number]
+	export type BookingListStatus = (typeof BOOKING_LIST_STATUSES)[number]
+
 	export const WalkInBookingCreateInput = t.Object(
 		{
 			type: t.Literal('walk_in'),

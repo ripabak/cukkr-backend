@@ -194,7 +194,7 @@ describe('Service Management Tests', () => {
 		activeServiceId = newId
 
 		const { status, data } = await tClient.api.services.get({
-			query: { activeOnly: 'true' },
+			query: { activeOnly: 'true' as unknown as boolean },
 			fetch: { headers: { cookie: authCookieA } }
 		})
 		expect(status).toBe(200)
