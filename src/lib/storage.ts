@@ -1,4 +1,8 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+	HeadBucketCommand,
+	PutObjectCommand,
+	S3Client
+} from '@aws-sdk/client-s3'
 
 import { env } from './env'
 
@@ -80,3 +84,42 @@ export const storageClient: StorageClient =
 	env.NODE_ENV === 'test'
 		? new TestStorageClient()
 		: new S3CompatibleStorageClient()
+
+export async function verifyStorage() {
+	if (env.NODE_ENV === 'test') {
+		return true
+	}
+
+	const {
+		STORAGE_ENDPOINT,
+		STORAGE_BUCKET,
+		STORAGE_ACCESS_KEY,
+		STORAGE_SECRET_KEY
+	} = env
+
+	if (
+		!STORAGE_ENDPOINT ||
+		!STORAGE_BUCKET ||
+		!STORAGE_ACCESS_KEY ||
+		!STORAGE_SECRET_KEY
+	) {
+		throw new Error('Storage configuration is incomplete.')
+	}
+
+	const client = new S3Client({
+		endpoint: STORAGE_ENDPOINT.replace(/\/$/, ''),
+		region: 'auto',
+		forcePathStyle: true,
+		credentials: {
+			accessKeyId: STORAGE_ACCESS_KEY,
+			secretAccessKey: STORAGE_SECRET_KEY
+		}
+	})
+
+	try {
+		await client.send(new HeadBucketCommand({ Bucket: STORAGE_BUCKET }))
+		return true
+	} finally {
+		client.destroy()
+	}
+}
