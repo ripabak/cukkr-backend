@@ -211,12 +211,12 @@ describe('Barber Invite Tests', () => {
 		expect(status).toBe(409)
 	})
 
-	it('should return 400 for invalid email format', async () => {
+	it('should return 422 for invalid email format', async () => {
 		const { status } = await tClient.api.barbers.invite.post(
 			{ email: 'not-an-email' },
 			{ fetch: { headers: { cookie: owner.cookie } } }
 		)
-		expect(status).toBe(400)
+		expect(status).toBe(422)
 	})
 
 	it('should return 401 without auth', async () => {

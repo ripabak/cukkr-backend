@@ -1,4 +1,4 @@
-import { Elysia } from 'elysia'
+import { Elysia, t } from 'elysia'
 
 import { BarberService } from './service'
 import { BarberModel } from './model'
@@ -14,7 +14,20 @@ export const barbersHandler = new Elysia({
 })
 	.use(authMiddleware)
 
-	// POST /barbers/invite — invite a barber by email
+	.get(
+		'/',
+		async ({ path, activeOrganizationId }) => {
+			const data = await BarberService.listBarbers(activeOrganizationId)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			response: FormatResponseSchema(t.Array(BarberModel.BarberListItem))
+		}
+	)
+
 	.post(
 		'/invite',
 		async ({ body, path, user, activeOrganizationId, set }) => {
@@ -22,7 +35,7 @@ export const barbersHandler = new Elysia({
 			const data = await BarberService.inviteBarber(
 				activeOrganizationId,
 				user.id,
-				body.email
+				body
 			)
 			return formatResponse({
 				path,
@@ -36,5 +49,56 @@ export const barbersHandler = new Elysia({
 			requireOrganization: true,
 			body: BarberModel.BarberInviteInput,
 			response: FormatResponseSchema(BarberModel.BarberInviteResponse)
+		}
+	)
+
+	.delete(
+		'/invite/:invitationId',
+		async ({
+			params: { invitationId },
+			path,
+			user,
+			activeOrganizationId
+		}) => {
+			const data = await BarberService.cancelInvitation(
+				activeOrganizationId,
+				user.id,
+				invitationId
+			)
+
+			return formatResponse({
+				path,
+				data,
+				message: data.message
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: BarberModel.InvitationIdParam,
+			response: FormatResponseSchema(BarberModel.CancelInviteResponse)
+		}
+	)
+
+	.delete(
+		'/:memberId',
+		async ({ params: { memberId }, path, user, activeOrganizationId }) => {
+			const data = await BarberService.removeBarber(
+				activeOrganizationId,
+				user.id,
+				memberId
+			)
+
+			return formatResponse({
+				path,
+				data,
+				message: data.message
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: BarberModel.MemberIdParam,
+			response: FormatResponseSchema(BarberModel.BarberRemoveResponse)
 		}
 	)

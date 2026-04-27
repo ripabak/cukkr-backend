@@ -36,6 +36,13 @@
       "when": 1777214921119,
       "tag": "20260426144841_add-bookings-module",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777283150319,
+      "tag": "20260427094550_add-invitation-composite-idx",
+      "breakpoints": true
     }
   ]
 }

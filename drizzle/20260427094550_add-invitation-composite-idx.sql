@@ -1,0 +1,1 @@
+CREATE INDEX "invitation_organizationId_status_expiresAt_idx" ON "invitation" USING btree ("organization_id","status","expires_at");

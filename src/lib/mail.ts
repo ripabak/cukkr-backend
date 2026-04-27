@@ -57,6 +57,10 @@ export async function sendEmail({ to, subject, text, html }: SendEmailPayload) {
 		throw new Error('Destination email address (to) is required')
 	}
 
+	if (env.NODE_ENV === 'test') {
+		return
+	}
+
 	const transporterInstance = getTransporter()
 	const from = env.SMTP_FROM ?? env.SMTP_USER
 
@@ -102,6 +106,10 @@ export async function sendOtpEmail({
 }
 
 export async function verifySmtp() {
+	if (env.NODE_ENV === 'test') {
+		return true
+	}
+
 	try {
 		const transporterInstance = getTransporter()
 		await transporterInstance.verify()

@@ -152,4 +152,18 @@
 
 ---
 
+## Local Implementation Status
+
+- [x] **#F-01 implemented locally** — merged barber management surface shipped in `src/modules/barbers/handler.ts`, `src/modules/barbers/service.ts`, `src/modules/barbers/model.ts`, with coverage in `tests/modules/barbers.test.ts`
+- [x] **#EN-01 implemented locally** — invitation composite index added in `src/modules/auth/schema.ts`; migration generated in `drizzle/20260427094550_add-invitation-composite-idx.sql`
+- [x] **#EN-02 implemented locally** — `listBarbers`, `inviteBarber`, `cancelInvitation`, and `removeBarber` implemented in `src/modules/barbers/service.ts`
+- [x] **#EN-03 implemented locally** — barber DTO and route updates completed in `src/modules/barbers/model.ts` and `src/modules/barbers/handler.ts`
+- [x] **#S-01 implemented locally** — `GET /api/barbers` returns active barbers plus non-expired pending invitations; covered by T-01 to T-03 in `tests/modules/barbers.test.ts`
+- [x] **#S-02 implemented locally** — `POST /api/barbers/invite` accepts email or phone input; phone invitations resolve an existing user by phone and create the underlying org invitation against that user email for Better Auth compatibility; covered by T-04 to T-08 in `tests/modules/barbers.test.ts`
+- [x] **#S-03 implemented locally** — `DELETE /api/barbers/invite/:invitationId` implemented and covered by T-09 to T-11 in `tests/modules/barbers.test.ts`
+- [x] **#S-04 implemented locally** — `DELETE /api/barbers/:memberId` implemented with self-removal guard and booking preservation via existing FK behavior; covered by T-12 to T-15 in `tests/modules/barbers.test.ts`
+- [x] **#T-01 implemented locally** — `tests/modules/barbers.test.ts` now covers all 15 planned integration scenarios
+
+---
+
 *Update this checklist as issues are created in GitHub. Reference actual issue numbers once assigned.*
