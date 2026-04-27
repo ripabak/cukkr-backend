@@ -103,6 +103,11 @@ export const booking = pgTable(
 			table.organizationId,
 			table.customerId,
 			table.createdAt
+		),
+		index('booking_organizationId_status_completedAt_idx').on(
+			table.organizationId,
+			table.status,
+			table.completedAt
 		)
 	]
 )
