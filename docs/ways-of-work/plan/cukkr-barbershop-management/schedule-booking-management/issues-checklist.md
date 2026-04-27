@@ -3,12 +3,18 @@
 **Feature:** Schedule & Booking Management
 **Epic:** Cukkr — Barbershop Management & Booking System
 **Date:** April 27, 2026
+**Status:** In Progress — feature implemented locally, GitHub issue wiring still pending
+**Project Plan:** [project-plan.md](./project-plan.md)
+**Feature PRD:** [prd.md](./prd.md)
+**Implementation Plan:** [implementation-plan.md](./implementation-plan.md)
+
+> Use this checklist to create and wire the GitHub issues for Schedule & Booking Management. Record actual issue numbers during the second pass while keeping the local implementation state reconciled against the codebase.
 
 ---
 
 ## Pre-Creation Preparation
 
-- [ ] **Feature artifacts complete:** PRD (`prd.md`), implementation plan (`implementation-plan.md`), and project plan (`project-plan.md`) are finalized.
+- [x] **Feature artifacts complete:** PRD (`prd.md`), implementation plan (`implementation-plan.md`), and project plan (`project-plan.md`) are finalized.
 - [ ] **Epic exists:** Parent epic issue created in GitHub with `epic`, `priority-critical`, `value-high` labels and milestone set.
 - [ ] **Project board configured:** Columns (Backlog → Sprint Ready → In Progress → In Review → Testing → Done) and custom fields (Priority, Value, Component, Estimate, Sprint) are set up.
 - [ ] **Team capacity assessed:** Sprint velocity agreed upon; 3 sprints planned totalling ~35 story points.
@@ -55,6 +61,11 @@
   - [ ] TASK-E01-5: Verify/fix `generateReferenceNumber` atomicity
   - [ ] TASK-E01-6: Verify/fix `upsertCustomer` for all three lookup paths
 
+  **Implementation Status:**
+  - [x] `src/modules/bookings/service.ts` now exposes the planned lifecycle helpers for status-transition validation, open-hours validation, and the single-`in_progress` guard
+  - [x] `updateBookingStatus()` enforces one active `in_progress` booking per barber and returns `409 Conflict` for the second attempt
+  - [x] The daily reference counter upsert and customer upsert paths are covered by integration scenarios in [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+
 ### E-02: Booking Model & Handler Verification
 
 - [ ] Issue created: **"Technical Enabler: Booking Model & Handler Verification"**
@@ -67,6 +78,11 @@
   - [ ] TASK-E02-2: Verify/fix TypeBox union schema for walk-in vs. appointment
   - [ ] TASK-E02-3: Audit all 4 routes in `handler.ts` for correct schema application
 
+  **Implementation Status:**
+  - [x] `BookingStatusUpdateInput` in [src/modules/bookings/model.ts](../../../../../src/modules/bookings/model.ts) now accepts optional `cancelReason`
+  - [x] The walk-in vs. appointment union contract is enforced in [src/modules/bookings/model.ts](../../../../../src/modules/bookings/model.ts) and exercised in [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+  - [x] All four bookings routes are registered with auth, organization gating, and request/response schemas in [src/modules/bookings/handler.ts](../../../../../src/modules/bookings/handler.ts)
+
 ### E-03: DB Index — booking_orgId_status_barberId_idx (Conditional)
 
 - [ ] Issue created: **"Technical Enabler: DB Index booking_orgId_status_barberId_idx"**
@@ -78,6 +94,9 @@
 - [ ] Sub-tasks linked:
   - [ ] TASK-E03-1: Add index to `src/modules/bookings/schema.ts`
   - [ ] TASK-E03-2: Generate and apply migration via `drizzle-kit`
+
+  **Implementation Status:**
+  - [ ] Deferred locally: the conditional index was not added because the new single-`in_progress` check is implemented and there is no evidence yet that this query is a hotspot
 
 ---
 
@@ -95,6 +114,9 @@
 - [ ] Task issues linked: TASK-S01-1, TASK-S01-2
 - [ ] Test references linked: T-01, T-02, T-03, T-07, T-19
 
+  **Implementation Status:**
+  - [x] Implemented locally in [src/modules/bookings/handler.ts](../../../../../src/modules/bookings/handler.ts), [src/modules/bookings/service.ts](../../../../../src/modules/bookings/service.ts), and [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+
 ### S-02: Create Appointment Booking with Open-Hours Validation
 
 - [ ] Issue created: **"User Story: Create Appointment Booking with Open-Hours Validation"**
@@ -106,6 +128,9 @@
 - [ ] Acceptance criteria written and testable
 - [ ] Task issues linked: TASK-S02-1
 - [ ] Test references linked: T-04, T-05, T-06
+
+  **Implementation Status:**
+  - [x] Implemented locally in [src/modules/bookings/handler.ts](../../../../../src/modules/bookings/handler.ts), [src/modules/bookings/service.ts](../../../../../src/modules/bookings/service.ts), [src/modules/open-hours/service.ts](../../../../../src/modules/open-hours/service.ts), and [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
 
 ### S-03: Booking Lifecycle — Status Transition Management
 
@@ -119,6 +144,9 @@
 - [ ] Task issues linked: (delegates to E-01 tasks)
 - [ ] Test references linked: T-12, T-13, T-14, T-15, T-16
 
+  **Implementation Status:**
+  - [x] Implemented locally in [src/modules/bookings/service.ts](../../../../../src/modules/bookings/service.ts), [src/modules/bookings/model.ts](../../../../../src/modules/bookings/model.ts), [src/modules/bookings/handler.ts](../../../../../src/modules/bookings/handler.ts), and [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+
 ### S-04: Booking List & Detail View
 
 - [ ] Issue created: **"User Story: Booking List & Detail View"**
@@ -131,6 +159,9 @@
 - [ ] Task issues linked: TASK-S04-1, TASK-S04-2
 - [ ] Test references linked: T-08, T-09, T-10, T-11
 
+  **Implementation Status:**
+  - [x] Implemented locally in [src/modules/bookings/handler.ts](../../../../../src/modules/bookings/handler.ts), [src/modules/bookings/service.ts](../../../../../src/modules/bookings/service.ts), and [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+
 ### S-05: Booking Reference Number Generation
 
 - [ ] Issue created: **"User Story: Booking Reference Number Generation"**
@@ -142,6 +173,9 @@
 - [ ] Acceptance criteria written and testable
 - [ ] Task issues linked: TASK-S05-1
 - [ ] Test references linked: T-17, T-18
+
+  **Implementation Status:**
+  - [x] Implemented locally in [src/modules/bookings/service.ts](../../../../../src/modules/bookings/service.ts) and [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
 
 ---
 
@@ -158,31 +192,35 @@
 - [ ] All 19 test case IDs documented in issue body
 - [ ] Test file path noted: `tests/modules/bookings.test.ts`
 
+  **Implementation Status:**
+  - [x] All 19 planned booking test cases are implemented in [tests/modules/bookings.test.ts](../../../../../tests/modules/bookings.test.ts)
+  - [x] Repo validation passed after reconciliation: `bun run lint:fix`, `bun run format`, `bun run build`, and `bun test`
+
 ---
 
 ## Test Case Coverage Tracker
 
 | ID | Test Case | Story | Status |
 |---|---|---|---|
-| T-01 | Walk-in valid input → 201, ref present | S-01 | [ ] |
-| T-02 | Walk-in missing customerName → 422 | S-01 | [ ] |
-| T-03 | Walk-in invalid serviceId → 400 | S-01 | [ ] |
-| T-04 | Appointment valid + scheduledAt → 201 | S-02 | [ ] |
-| T-05 | Appointment closed day → 400 | S-02 | [ ] |
-| T-06 | Appointment outside hours → 400 | S-02 | [ ] |
-| T-07 | POST without auth → 401 | S-01 | [ ] |
-| T-08 | GET list by date → 200, array | S-04 | [ ] |
-| T-09 | GET list by date + status filter → 200 | S-04 | [ ] |
-| T-10 | GET detail valid id → 200, full detail | S-04 | [ ] |
-| T-11 | GET detail cross-org id → 404 | S-04 | [ ] |
-| T-12 | PATCH waiting → in_progress → startedAt set | S-03 | [ ] |
-| T-13 | PATCH in_progress → completed → completedAt set | S-03 | [ ] |
-| T-14 | PATCH in_progress → waiting → startedAt null | S-03 | [ ] |
-| T-15 | PATCH completed → cancelled → 400 | S-03 | [ ] |
-| T-16 | 2nd in_progress same barber → 409 | S-03 | [ ] |
-| T-17 | Two simultaneous walk-ins → unique refs | S-05 | [ ] |
-| T-18 | Daily seq resets per day → format correct | S-05 | [ ] |
-| T-19 | Same email → one customer, two bookings | S-01 | [ ] |
+| T-01 | Walk-in valid input → 201, ref present | S-01 | [x] |
+| T-02 | Walk-in missing customerName → 422 | S-01 | [x] |
+| T-03 | Walk-in invalid serviceId → 400 | S-01 | [x] |
+| T-04 | Appointment valid + scheduledAt → 201 | S-02 | [x] |
+| T-05 | Appointment closed day → 400 | S-02 | [x] |
+| T-06 | Appointment outside hours → 400 | S-02 | [x] |
+| T-07 | POST without auth → 401 | S-01 | [x] |
+| T-08 | GET list by date → 200, array | S-04 | [x] |
+| T-09 | GET list by date + status filter → 200 | S-04 | [x] |
+| T-10 | GET detail valid id → 200, full detail | S-04 | [x] |
+| T-11 | GET detail cross-org id → 404 | S-04 | [x] |
+| T-12 | PATCH waiting → in_progress → startedAt set | S-03 | [x] |
+| T-13 | PATCH in_progress → completed → completedAt set | S-03 | [x] |
+| T-14 | PATCH in_progress → waiting → startedAt null | S-03 | [x] |
+| T-15 | PATCH completed → cancelled → 400 | S-03 | [x] |
+| T-16 | 2nd in_progress same barber → 409 | S-03 | [x] |
+| T-17 | Two simultaneous walk-ins → unique refs | S-05 | [x] |
+| T-18 | Daily seq resets per day → format correct | S-05 | [x] |
+| T-19 | Same email → one customer, two bookings | S-01 | [x] |
 
 ---
 

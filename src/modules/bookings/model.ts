@@ -101,7 +101,10 @@ export namespace BookingModel {
 
 	export const BookingStatusUpdateInput = t.Object(
 		{
-			status: BookingStatusEnum
+			status: BookingStatusEnum,
+			cancelReason: t.Optional(
+				t.Nullable(t.String({ minLength: 1, maxLength: 500 }))
+			)
 		},
 		{ additionalProperties: false }
 	)

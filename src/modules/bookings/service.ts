@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, lt, or, sql } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNotNull, lt, ne, or, sql } from 'drizzle-orm'
 import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -22,6 +22,7 @@ type UserRow = typeof user.$inferSelect
 type ServiceRow = typeof serviceTable.$inferSelect
 type BookingStatus = BookingModel.BookingStatus
 type BookingCreateInput = BookingModel.BookingCreateInput
+type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 type BookingReadRow = BookingRow & {
 	customer: CustomerRow
@@ -34,7 +35,7 @@ const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
 const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'barber'])
 const STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
-	pending: ['waiting', 'cancelled'],
+	pending: ['waiting'],
 	waiting: ['in_progress', 'cancelled'],
 	in_progress: ['completed', 'waiting', 'cancelled'],
 	completed: [],
@@ -206,6 +207,15 @@ export abstract class BookingService {
 			)
 		}
 
+		await BookingService.validateOpenHours(organizationId, scheduledAt)
+
+		return scheduledAt
+	}
+
+	private static async validateOpenHours(
+		organizationId: string,
+		scheduledAt: Date
+	): Promise<void> {
 		const schedule =
 			await OpenHoursService.getWeeklyScheduleForOrganization(
 				organizationId
@@ -227,11 +237,9 @@ export abstract class BookingService {
 				'BAD_REQUEST'
 			)
 		}
-
-		return scheduledAt
 	}
 
-	private static assertValidTransition(
+	private static validateStatusTransition(
 		currentStatus: BookingStatus,
 		nextStatus: BookingStatus
 	): void {
@@ -246,6 +254,31 @@ export abstract class BookingService {
 			throw new AppError(
 				`Cannot transition booking from ${currentStatus} to ${nextStatus}`,
 				'BAD_REQUEST'
+			)
+		}
+	}
+
+	private static async checkSingleInProgress(
+		tx: DatabaseTransaction,
+		organizationId: string,
+		barberId: string | null,
+		excludedBookingId: string
+	): Promise<void> {
+		if (!barberId) return
+
+		const existingInProgress = await tx.query.booking.findFirst({
+			where: and(
+				eq(booking.organizationId, organizationId),
+				eq(booking.barberId, barberId),
+				eq(booking.status, 'in_progress'),
+				ne(booking.id, excludedBookingId)
+			)
+		})
+
+		if (existingInProgress) {
+			throw new AppError(
+				'Barber already has a booking in progress',
+				'CONFLICT'
 			)
 		}
 	}
@@ -582,32 +615,49 @@ export abstract class BookingService {
 		id: string,
 		input: BookingModel.BookingStatusUpdateInput
 	): Promise<BookingModel.BookingDetailResponse> {
-		const existing = await db.query.booking.findFirst({
-			where: and(
-				eq(booking.id, id),
-				eq(booking.organizationId, organizationId)
-			)
-		})
-
-		if (!existing) {
-			throw new AppError('Booking not found', 'NOT_FOUND')
-		}
-
-		BookingService.assertValidTransition(
-			existing.status as BookingStatus,
-			input.status
-		)
-
-		const now = new Date()
-		await db
-			.update(booking)
-			.set(BookingService.buildStatusUpdate(existing, input.status, now))
-			.where(
-				and(
+		await db.transaction(async (tx) => {
+			const existing = await tx.query.booking.findFirst({
+				where: and(
 					eq(booking.id, id),
 					eq(booking.organizationId, organizationId)
 				)
+			})
+
+			if (!existing) {
+				throw new AppError('Booking not found', 'NOT_FOUND')
+			}
+
+			BookingService.validateStatusTransition(
+				existing.status as BookingStatus,
+				input.status
 			)
+
+			if (input.status === 'in_progress') {
+				await BookingService.checkSingleInProgress(
+					tx,
+					organizationId,
+					existing.barberId,
+					id
+				)
+			}
+
+			const now = new Date()
+			await tx
+				.update(booking)
+				.set(
+					BookingService.buildStatusUpdate(
+						existing,
+						input.status,
+						now
+					)
+				)
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
+				)
+		})
 
 		return BookingService.getBooking(organizationId, id)
 	}

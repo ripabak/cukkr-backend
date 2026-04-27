@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
 import { nanoid } from 'nanoid'
 
@@ -8,6 +8,7 @@ import { db } from '../../src/lib/database'
 import { member } from '../../src/modules/auth/schema'
 import {
 	booking,
+	bookingDailyCounter,
 	bookingService,
 	customer
 } from '../../src/modules/bookings/schema'
@@ -69,6 +70,19 @@ function buildWeek(
 
 function toWibDate(date: Date): Date {
 	return new Date(date.getTime() + WIB_OFFSET_MS)
+}
+
+function getWibDayOfWeek(date: Date): number {
+	return toWibDate(date).getUTCDay()
+}
+
+function getWibDateKey(date: Date): string {
+	const wibDate = toWibDate(date)
+	const year = wibDate.getUTCFullYear()
+	const month = String(wibDate.getUTCMonth() + 1).padStart(2, '0')
+	const day = String(wibDate.getUTCDate()).padStart(2, '0')
+
+	return `${year}${month}${day}`
 }
 
 function getFutureWibIso(
@@ -487,6 +501,18 @@ describe('Booking Creation Endpoints', () => {
 		expect(status).toBe(401)
 	})
 
+	it('returns 422 when walk-in customerName is missing', async () => {
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				serviceIds: [activeServiceA.id]
+			} as any,
+			{ fetch: { headers: { cookie: ownerA.authCookie } } }
+		)
+
+		expect(status).toBe(422)
+	})
+
 	it('creates a walk-in booking, matches an existing customer, and snapshots service pricing', async () => {
 		const customerCountBefore = (
 			await db.query.customer.findMany({
@@ -566,6 +592,41 @@ describe('Booking Creation Endpoints', () => {
 		expect(data?.data.customer.email).toBe('booked@example.com')
 	})
 
+	it('reuses the same customer for repeated bookings with the same email', async () => {
+		const repeatedEmail = `repeat_${Date.now()}@example.com`
+
+		const first = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Repeat Email Walk-In',
+				customerEmail: repeatedEmail,
+				serviceIds: [activeServiceA.id]
+			},
+			{ fetch: { headers: { cookie: ownerA.authCookie } } }
+		)
+		const second = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Repeat Email Appointment',
+				customerEmail: repeatedEmail,
+				serviceIds: [activeServiceA.id],
+				scheduledAt: getFutureWibIso(2, 10, 0)
+			},
+			{ fetch: { headers: { cookie: ownerA.authCookie } } }
+		)
+		const customerRows = await db.query.customer.findMany({
+			where: and(
+				eq(customer.organizationId, ownerA.orgId),
+				eq(customer.email, repeatedEmail)
+			)
+		})
+
+		expect(first.status).toBe(201)
+		expect(second.status).toBe(201)
+		expect(first.data?.data.customer.id).toBe(second.data?.data.customer.id)
+		expect(customerRows).toHaveLength(1)
+	})
+
 	it('returns 422 when appointment scheduledAt is missing', async () => {
 		const { status } = await tClient.api.bookings.post(
 			{
@@ -588,6 +649,33 @@ describe('Booking Creation Endpoints', () => {
 				scheduledAt: new Date(Date.now() - 60 * 60 * 1000).toISOString()
 			},
 			{ fetch: { headers: { cookie: ownerA.authCookie } } }
+		)
+
+		expect(status).toBe(400)
+	})
+
+	it('returns 400 when appointment scheduledAt falls on a closed day', async () => {
+		const closedDayOwner = await createOwnerWithOrg('closed-day')
+		const closedDayService = await seedService({
+			organizationId: closedDayOwner.orgId,
+			name: 'Closed Day Service',
+			price: 90000,
+			duration: 45
+		})
+		const scheduledAt = getFutureWibIso(3, 10, 0)
+
+		await seedWeeklyOpenHours(closedDayOwner.orgId, {
+			[getWibDayOfWeek(new Date(scheduledAt))]: { isOpen: false }
+		})
+
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Closed Day Appointment',
+				serviceIds: [closedDayService.id],
+				scheduledAt
+			},
+			{ fetch: { headers: { cookie: closedDayOwner.authCookie } } }
 		)
 
 		expect(status).toBe(400)
@@ -650,12 +738,45 @@ describe('Booking Creation Endpoints', () => {
 			second.data?.data.referenceNumber
 		)
 	})
+
+	it('resets the daily reference sequence when only a prior-day counter exists', async () => {
+		const ownerRef = await createOwnerWithOrg('ref-reset')
+		const refService = await seedService({
+			organizationId: ownerRef.orgId,
+			name: 'Reference Reset Service',
+			price: 85000,
+			duration: 40
+		})
+		const now = new Date()
+
+		await db.insert(bookingDailyCounter).values({
+			organizationId: ownerRef.orgId,
+			bookingDate: getWibDateKey(
+				new Date(now.getTime() - 24 * 60 * 60 * 1000)
+			),
+			lastSequence: 9,
+			updatedAt: now
+		})
+
+		const { status, data } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Reset Sequence',
+				serviceIds: [refService.id]
+			},
+			{ fetch: { headers: { cookie: ownerRef.authCookie } } }
+		)
+
+		expect(status).toBe(201)
+		expect(data?.data.referenceNumber).toMatch(
+			new RegExp(`^BK-${getWibDateKey(now)}-001-[A-Z0-9]{2}$`)
+		)
+	})
 })
 
 describe('Booking Lifecycle Endpoints', () => {
 	let owner: OwnerContext
 	let waitingBookingId = ''
-	let inProgressBookingId = ''
 	let completedBookingId = ''
 	let pendingBookingId = ''
 
@@ -672,19 +793,6 @@ describe('Booking Lifecycle Endpoints', () => {
 				createdAt: new Date(),
 				customerName: 'Waiting Customer',
 				serviceNames: ['Waiting Cut']
-			})
-		).bookingId
-
-		inProgressBookingId = (
-			await seedBookingRecord({
-				organizationId: owner.orgId,
-				createdById: owner.ownerUserId,
-				barberId: owner.ownerMemberId,
-				type: 'walk_in',
-				status: 'in_progress',
-				createdAt: new Date(),
-				customerName: 'In Progress Customer',
-				serviceNames: ['Active Cut']
 			})
 		).bookingId
 
@@ -730,6 +838,19 @@ describe('Booking Lifecycle Endpoints', () => {
 	})
 
 	it('reverts in_progress bookings back to waiting and clears startedAt', async () => {
+		const inProgressBookingId = (
+			await seedBookingRecord({
+				organizationId: owner.orgId,
+				createdById: owner.ownerUserId,
+				barberId: owner.ownerMemberId,
+				type: 'walk_in',
+				status: 'in_progress',
+				createdAt: new Date(),
+				customerName: 'In Progress Customer',
+				serviceNames: ['Active Cut']
+			})
+		).bookingId
+
 		const { status, data } = await (tClient as any).api.bookings[
 			inProgressBookingId
 		].status.patch(
@@ -740,6 +861,32 @@ describe('Booking Lifecycle Endpoints', () => {
 		expect(status).toBe(200)
 		expect(data?.data.status).toBe('waiting')
 		expect(data?.data.startedAt).toBeNull()
+	})
+
+	it('cancels waiting bookings, accepts cancelReason, and sets cancelledAt', async () => {
+		const cancellableBookingId = (
+			await seedBookingRecord({
+				organizationId: owner.orgId,
+				createdById: owner.ownerUserId,
+				barberId: owner.ownerMemberId,
+				type: 'walk_in',
+				status: 'waiting',
+				createdAt: new Date(),
+				customerName: 'Cancellable Customer',
+				serviceNames: ['Cancel Cut']
+			})
+		).bookingId
+
+		const { status, data } = await (tClient as any).api.bookings[
+			cancellableBookingId
+		].status.patch(
+			{ status: 'cancelled', cancelReason: 'Customer no-show' },
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+
+		expect(status).toBe(200)
+		expect(data?.data.status).toBe('cancelled')
+		expect(data?.data.cancelledAt).toBeDefined()
 	})
 
 	it('allows pending appointments to move to waiting', async () => {
@@ -755,13 +902,18 @@ describe('Booking Lifecycle Endpoints', () => {
 	})
 
 	it('completes in_progress bookings and sets completedAt', async () => {
-		const promoted = await (tClient as any).api.bookings[
-			inProgressBookingId
-		].status.patch(
-			{ status: 'in_progress' },
-			{ fetch: { headers: { cookie: owner.authCookie } } }
-		)
-		expect(promoted.status).toBe(200)
+		const inProgressBookingId = (
+			await seedBookingRecord({
+				organizationId: owner.orgId,
+				createdById: owner.ownerUserId,
+				barberId: owner.ownerMemberId,
+				type: 'walk_in',
+				status: 'in_progress',
+				createdAt: new Date(),
+				customerName: 'Completable Customer',
+				serviceNames: ['Complete Cut']
+			})
+		).bookingId
 
 		const { status, data } = await (tClient as any).api.bookings[
 			inProgressBookingId
@@ -773,6 +925,43 @@ describe('Booking Lifecycle Endpoints', () => {
 		expect(status).toBe(200)
 		expect(data?.data.status).toBe('completed')
 		expect(data?.data.completedAt).toBeDefined()
+	})
+
+	it('returns 409 when a barber already has another in_progress booking', async () => {
+		const conflictOwner = await createOwnerWithOrg('lifecycle-conflict')
+
+		await seedBookingRecord({
+			organizationId: conflictOwner.orgId,
+			createdById: conflictOwner.ownerUserId,
+			barberId: conflictOwner.ownerMemberId,
+			type: 'walk_in',
+			status: 'in_progress',
+			createdAt: new Date(),
+			customerName: 'Already Active Customer',
+			serviceNames: ['Active Cut']
+		})
+
+		const waitingConflictBookingId = (
+			await seedBookingRecord({
+				organizationId: conflictOwner.orgId,
+				createdById: conflictOwner.ownerUserId,
+				barberId: conflictOwner.ownerMemberId,
+				type: 'walk_in',
+				status: 'waiting',
+				createdAt: new Date(),
+				customerName: 'Queued Customer',
+				serviceNames: ['Queued Cut']
+			})
+		).bookingId
+
+		const { status } = await (tClient as any).api.bookings[
+			waitingConflictBookingId
+		].status.patch(
+			{ status: 'in_progress' },
+			{ fetch: { headers: { cookie: conflictOwner.authCookie } } }
+		)
+
+		expect(status).toBe(409)
 	})
 
 	it('rejects invalid waiting to completed transitions', async () => {
