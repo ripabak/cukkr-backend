@@ -39,6 +39,10 @@ export const customer = pgTable(
 		index('customer_organizationId_email_idx').on(
 			table.organizationId,
 			table.email
+		),
+		index('customer_organizationId_name_idx').on(
+			table.organizationId,
+			table.name
 		)
 	]
 )
@@ -94,6 +98,11 @@ export const booking = pgTable(
 		uniqueIndex('booking_organizationId_referenceNumber_uidx').on(
 			table.organizationId,
 			table.referenceNumber
+		),
+		index('booking_organizationId_customerId_createdAt_idx').on(
+			table.organizationId,
+			table.customerId,
+			table.createdAt
 		)
 	]
 )

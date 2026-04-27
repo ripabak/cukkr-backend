@@ -13,6 +13,7 @@ import { servicesHandler } from './modules/services/handler'
 import { openHoursHandler } from './modules/open-hours/handler'
 import { authHandler } from './modules/auth/handler'
 import { bookingsHandler } from './modules/bookings/handler'
+import { customersHandler } from './modules/customer-management/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 import { userProfileHandler } from './modules/user-profile/handler'
@@ -78,6 +79,7 @@ export const app = new Elysia()
 			.use(barbersHandler)
 			.use(servicesHandler)
 			.use(bookingsHandler)
+			.use(customersHandler)
 			.use(openHoursHandler)
 			.use(userProfileHandler)
 	)
