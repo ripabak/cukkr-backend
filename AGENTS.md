@@ -22,7 +22,7 @@ This is a modern, type-safe backend built with cutting-edge technologies. Unders
 |---|---|---|
 | **ESLint + Prettier** | Code Quality & Formatting | `bun run lint:fix` & `bun run format` before commits |
 | **Husky + Lint-Staged** | Git Hooks | Auto-runs linting on commit. Never bypass with `--no-verify`. |
-| **Bun Test Runner** | Testing | `bun test` to run all tests. Uses `bun:test` (built-in). |
+| **Bun Test Runner** | Testing | `bun test --env-file=.env` to run all tests. Uses `bun:test` (built-in). |
 | **Docker** | Containerization | `Dockerfile` included for production deployments. |
 
 ### Quick Reference Links
@@ -75,8 +75,8 @@ tests/
 | `bun run start` | Run the compiled production binary |
 | `bun run lint:fix` | Fix lint errors via ESLint |
 | `bun run format` | Format all source files via Prettier |
-| `bun test` | Run all tests |
-| `bun test <pattern>` | Run tests matching a name or path pattern (e.g., `bun test auth`) |
+| `bun test --env-file=.env` | Run all tests |
+| `bun test --env-file=.env <pattern>` | Run tests matching a name or path pattern (e.g., `bun test auth`) |
 | `bunx drizzle-kit generate --name <name>` | Generate a migration from schema changes |
 | `bunx drizzle-kit check` | Validate pending migrations |
 | `bunx drizzle-kit migrate` | Apply pending migrations to the database |
