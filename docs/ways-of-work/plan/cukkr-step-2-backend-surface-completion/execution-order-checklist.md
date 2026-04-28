@@ -35,13 +35,13 @@ All items in this phase are unblocked by other Step 2 features and may be execut
 
 | Feature | Depends On | PRD Generated | Implementation Plan Generated | Implemented |
 |---|---|---|---|---|
-| [Unified Profile Contract](./unified-profile-contract/prd.md) | - | [x] | [x] | [ ] |
-| [Barbershop Logo Upload](./barbershop-logo-upload/prd.md) | - | [x] | [x] | [ ] |
-| [Service Thumbnail Upload](./service-thumbnail-upload/prd.md) | - | [x] | [x] | [ ] |
-| [Booking List Sorting And Barber Search](./booking-list-sorting-and-barber-search/prd.md) | - | [x] | [x] | [ ] |
-| [Booking State Machine By Type](./booking-state-machine-by-type/prd.md) | - | [x] | [x] | [ ] |
-| [Invitation Actions Expiry And Removal Safety](./invitation-actions-expiry-and-removal-safety/prd.md) | - | [x] | [x] | [ ] |
-| [Public Barbershop Landing And Read Surface](./public-barbershop-landing-and-read-surface/prd.md) | - | [x] | [x] | [ ] |
+| [Unified Profile Contract](./unified-profile-contract/prd.md) | - | [x] | [x] | [x] |
+| [Barbershop Logo Upload](./barbershop-logo-upload/prd.md) | - | [x] | [x] | [x] |
+| [Service Thumbnail Upload](./service-thumbnail-upload/prd.md) | - | [x] | [x] | [x] |
+| [Booking List Sorting And Barber Search](./booking-list-sorting-and-barber-search/prd.md) | - | [x] | [x] | [x] |
+| [Booking State Machine By Type](./booking-state-machine-by-type/prd.md) | - | [x] | [x] | [x] |
+| [Invitation Actions Expiry And Removal Safety](./invitation-actions-expiry-and-removal-safety/prd.md) | - | [x] | [x] | [x] |
+| [Public Barbershop Landing And Read Surface](./public-barbershop-landing-and-read-surface/prd.md) | - | [x] | [x] | [x] |
 
 ---
 
