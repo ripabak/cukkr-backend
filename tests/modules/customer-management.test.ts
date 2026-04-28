@@ -551,3 +551,153 @@ describe('Customer Management Tests', () => {
 		})
 	})
 })
+
+describe('Customer Stats and Booking Type Filter (F5)', () => {
+	let statsOwnerCookie = ''
+	let statsOrgId = ''
+	let statsMemberId = ''
+	let statsUserId = ''
+	let statsCustomerId = ''
+
+	beforeAll(async () => {
+		const owner = await createOwnerWithOrg('statsF5')
+		statsOwnerCookie = owner.authCookie
+		statsOrgId = owner.orgId
+		statsMemberId = owner.memberId
+		statsUserId = owner.userId
+
+		statsCustomerId = await seedCustomer({
+			organizationId: statsOrgId,
+			name: 'Stats Customer',
+			email: 'stats@example.com'
+		})
+
+		await seedBooking({
+			organizationId: statsOrgId,
+			customerId: statsCustomerId,
+			createdById: statsUserId,
+			barberId: statsMemberId,
+			type: 'appointment',
+			status: 'completed',
+			createdAt: new Date('2026-04-01T09:00:00.000Z'),
+			services: [{ name: 'Haircut A', price: 50000 }],
+			refSuffix: 'S001'
+		})
+
+		await seedBooking({
+			organizationId: statsOrgId,
+			customerId: statsCustomerId,
+			createdById: statsUserId,
+			barberId: statsMemberId,
+			type: 'appointment',
+			status: 'cancelled',
+			createdAt: new Date('2026-04-02T10:00:00.000Z'),
+			services: [{ name: 'Haircut B', price: 50000 }],
+			refSuffix: 'S002'
+		})
+
+		await seedBooking({
+			organizationId: statsOrgId,
+			customerId: statsCustomerId,
+			createdById: statsUserId,
+			barberId: statsMemberId,
+			type: 'walk_in',
+			status: 'completed',
+			createdAt: new Date('2026-04-03T11:00:00.000Z'),
+			services: [{ name: 'Fade Cut', price: 40000 }],
+			refSuffix: 'S003'
+		})
+
+		await seedBooking({
+			organizationId: statsOrgId,
+			customerId: statsCustomerId,
+			createdById: statsUserId,
+			barberId: statsMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-04-04T12:00:00.000Z'),
+			services: [{ name: 'Trim', price: 25000 }],
+			refSuffix: 'S004'
+		})
+	})
+
+	it('F5-01: GET /customers/:id includes all four stat fields', async () => {
+		const { status, data } = await tClient.api
+			.customers({ id: statsCustomerId })
+			.get({ fetch: { headers: { cookie: statsOwnerCookie } } })
+
+		expect(status).toBe(200)
+		const detail = data?.data
+		expect(typeof detail?.appointmentCount).toBe('number')
+		expect(typeof detail?.walkInCount).toBe('number')
+		expect(typeof detail?.completedCount).toBe('number')
+		expect(typeof detail?.cancelledCount).toBe('number')
+	})
+
+	it('F5-02: stat counts match seeded bookings', async () => {
+		const { data } = await tClient.api
+			.customers({ id: statsCustomerId })
+			.get({ fetch: { headers: { cookie: statsOwnerCookie } } })
+
+		const detail = data?.data
+		expect(detail?.appointmentCount).toBe(1)
+		expect(detail?.walkInCount).toBe(2)
+		expect(detail?.completedCount).toBe(2)
+		expect(detail?.cancelledCount).toBe(1)
+	})
+
+	it('F5-03: GET /customers/:id/bookings?type=appointment returns only appointment bookings', async () => {
+		const { status, data } = await (tClient as any).api
+			.customers({ id: statsCustomerId })
+			.bookings.get({
+				query: { type: 'appointment' },
+				fetch: { headers: { cookie: statsOwnerCookie } }
+			})
+
+		expect(status).toBe(200)
+		const bookings = data?.data ?? []
+		expect(bookings.length).toBe(2)
+		for (const b of bookings) {
+			expect(b.type).toBe('appointment')
+		}
+	})
+
+	it('F5-04: GET /customers/:id/bookings?type=walk_in returns only walk-in bookings', async () => {
+		const { status, data } = await (tClient as any).api
+			.customers({ id: statsCustomerId })
+			.bookings.get({
+				query: { type: 'walk_in' },
+				fetch: { headers: { cookie: statsOwnerCookie } }
+			})
+
+		expect(status).toBe(200)
+		const bookings = data?.data ?? []
+		expect(bookings.length).toBe(2)
+		for (const b of bookings) {
+			expect(b.type).toBe('walk_in')
+		}
+	})
+
+	it('F5-05: GET /customers/:id/bookings?type=all returns all bookings', async () => {
+		const { status, data } = await (tClient as any).api
+			.customers({ id: statsCustomerId })
+			.bookings.get({
+				query: { type: 'all' },
+				fetch: { headers: { cookie: statsOwnerCookie } }
+			})
+
+		expect(status).toBe(200)
+		const bookings = data?.data ?? []
+		expect(bookings.length).toBe(4)
+	})
+
+	it('F5-06: GET /customers/:id/bookings without type filter returns all bookings', async () => {
+		const { status, data } = await tClient.api
+			.customers({ id: statsCustomerId })
+			.bookings.get({ fetch: { headers: { cookie: statsOwnerCookie } } })
+
+		expect(status).toBe(200)
+		const bookings = data?.data ?? []
+		expect(bookings.length).toBe(4)
+	})
+})

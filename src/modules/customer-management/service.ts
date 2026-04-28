@@ -133,6 +133,18 @@ export abstract class CustomerManagementService {
 		const lastVisitAtSql = sql<Date | null>`
 			MAX(CASE WHEN ${booking.status} != 'cancelled' THEN ${booking.createdAt} END)
 		`
+		const appointmentCountSql = sql<number>`
+			COUNT(DISTINCT CASE WHEN ${booking.type} = 'appointment' AND ${booking.status} IN ('waiting', 'in_progress', 'completed') THEN ${booking.id} END)
+		`
+		const walkInCountSql = sql<number>`
+			COUNT(DISTINCT CASE WHEN ${booking.type} = 'walk_in' AND ${booking.status} IN ('waiting', 'in_progress', 'completed') THEN ${booking.id} END)
+		`
+		const completedCountSql = sql<number>`
+			COUNT(DISTINCT CASE WHEN ${booking.status} = 'completed' THEN ${booking.id} END)
+		`
+		const cancelledCountSql = sql<number>`
+			COUNT(DISTINCT CASE WHEN ${booking.status} = 'cancelled' THEN ${booking.id} END)
+		`
 
 		const rows = await db
 			.select({
@@ -145,7 +157,11 @@ export abstract class CustomerManagementService {
 				createdAt: customer.createdAt,
 				totalBookings: totalBookingsSql,
 				totalSpend: totalSpendSql,
-				lastVisitAt: lastVisitAtSql
+				lastVisitAt: lastVisitAtSql,
+				appointmentCount: appointmentCountSql,
+				walkInCount: walkInCountSql,
+				completedCount: completedCountSql,
+				cancelledCount: cancelledCountSql
 			})
 			.from(customer)
 			.leftJoin(booking, eq(booking.customerId, customer.id))
@@ -177,7 +193,11 @@ export abstract class CustomerManagementService {
 			createdAt: row.createdAt,
 			totalBookings: Number(row.totalBookings),
 			totalSpend: Number(row.totalSpend),
-			lastVisitAt: row.lastVisitAt
+			lastVisitAt: row.lastVisitAt,
+			appointmentCount: Number(row.appointmentCount),
+			walkInCount: Number(row.walkInCount),
+			completedCount: Number(row.completedCount),
+			cancelledCount: Number(row.cancelledCount)
 		}
 	}
 
@@ -205,7 +225,7 @@ export abstract class CustomerManagementService {
 	static async getCustomerBookings(
 		orgId: string,
 		customerId: string,
-		query: { page?: number; limit?: number }
+		query: { page?: number; limit?: number; type?: string }
 	): Promise<PaginatedResult<CustomerBookingItemResponse>> {
 		const pagination = normalizePagination(query)
 
@@ -220,12 +240,20 @@ export abstract class CustomerManagementService {
 			throw new AppError('Customer not found', 'NOT_FOUND')
 		}
 
+		const typeCondition =
+			query.type && query.type !== 'all'
+				? eq(booking.type, query.type)
+				: undefined
+
+		const whereCondition = and(
+			eq(booking.customerId, customerId),
+			eq(booking.organizationId, orgId),
+			typeCondition
+		)
+
 		const [bookings, countResult] = await Promise.all([
 			db.query.booking.findMany({
-				where: and(
-					eq(booking.customerId, customerId),
-					eq(booking.organizationId, orgId)
-				),
+				where: whereCondition,
 				orderBy: desc(booking.createdAt),
 				limit: pagination.take,
 				offset: pagination.skip,
@@ -233,15 +261,7 @@ export abstract class CustomerManagementService {
 					services: true
 				}
 			}),
-			db
-				.select({ count: count() })
-				.from(booking)
-				.where(
-					and(
-						eq(booking.customerId, customerId),
-						eq(booking.organizationId, orgId)
-					)
-				)
+			db.select({ count: count() }).from(booking).where(whereCondition)
 		])
 
 		const data: CustomerBookingItemResponse[] = bookings.map((b) => ({

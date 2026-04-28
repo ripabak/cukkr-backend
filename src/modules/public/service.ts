@@ -12,6 +12,55 @@ type MemberWithUser = typeof member.$inferSelect & {
 }
 
 export abstract class PublicService {
+	static async getWalkInFormData(
+		slug: string
+	): Promise<PublicModel.WalkInFormDataResponse> {
+		const orgRows = await db
+			.select({ id: organization.id })
+			.from(organization)
+			.where(eq(organization.slug, slug))
+			.limit(1)
+
+		const org = orgRows[0]
+		if (!org) {
+			throw new AppError('Barbershop not found', 'NOT_FOUND')
+		}
+
+		const [services, members] = await Promise.all([
+			db.query.service.findMany({
+				where: and(
+					eq(service.organizationId, org.id),
+					eq(service.isActive, true)
+				)
+			}),
+			db.query.member.findMany({
+				where: and(
+					eq(member.organizationId, org.id),
+					eq(member.role, 'barber')
+				),
+				with: { user: true }
+			})
+		])
+
+		return {
+			services: services.map((s) => ({
+				id: s.id,
+				name: s.name,
+				description: s.description ?? null,
+				price: s.price,
+				duration: s.duration,
+				discount: s.discount,
+				imageUrl: s.imageUrl ?? null,
+				isDefault: s.isDefault
+			})),
+			barbers: (members as MemberWithUser[]).map((m) => ({
+				id: m.id,
+				name: m.user.name,
+				avatarUrl: m.user.image ?? null
+			}))
+		}
+	}
+
 	static async getPublicBarbershop(
 		slug: string
 	): Promise<PublicModel.PublicBarbershopResponse> {

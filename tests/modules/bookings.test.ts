@@ -505,7 +505,7 @@ describe('Booking Read Endpoints', () => {
 			'Hair Wash',
 			'Premium Cut'
 		])
-		expect(data?.data.barber?.memberId).toBe(ownerA.ownerMemberId)
+		expect(data?.data.requestedBarber?.memberId).toBe(ownerA.ownerMemberId)
 		expect(data?.data.completedAt).toBeDefined()
 	})
 
@@ -614,7 +614,7 @@ describe('Booking Creation Endpoints', () => {
 		expect(status).toBe(201)
 		expect(data?.data.status).toBe('waiting')
 		expect(data?.data.customer.id).toBe(existingCustomer.id)
-		expect(data?.data.barber?.memberId).toBe(ownerA.ownerMemberId)
+		expect(data?.data.requestedBarber?.memberId).toBe(ownerA.ownerMemberId)
 		expect(data?.data.referenceNumber).toMatch(
 			/^BK-\d{8}-\d{3}-[A-Z0-9]{2}$/
 		)
@@ -1340,6 +1340,109 @@ describe('Booking Accept/Decline', () => {
 			.accept.post(undefined, {
 				fetch: { headers: { cookie: owner.authCookie } }
 			})
+
+		expect(status).toBe(400)
+	})
+})
+
+describe('Booking Barber Split (F1) & Open Hours Validation (F2)', () => {
+	let splitOwner: OwnerContext
+	let splitServiceId: string
+
+	beforeAll(async () => {
+		splitOwner = await createOwnerWithOrg('barber-split')
+		const svc = await seedService({
+			organizationId: splitOwner.orgId,
+			name: 'Split Service',
+			price: 80000,
+			duration: 30
+		})
+		splitServiceId = svc.id
+		await seedWeeklyOpenHours(splitOwner.orgId, {
+			0: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			1: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			2: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			3: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			4: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			5: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			6: { isOpen: true, openTime: '08:00', closeTime: '20:00' }
+		})
+	})
+
+	it('F1-01: newly created walk-in booking has requestedBarber set and handledByBarber null', async () => {
+		const { status, data } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Barber Split Customer',
+				serviceIds: [splitServiceId],
+				barberId: splitOwner.ownerMemberId
+			},
+			{ fetch: { headers: { cookie: splitOwner.authCookie } } }
+		)
+
+		expect(status).toBe(201)
+		expect(data?.data.requestedBarber?.memberId).toBe(
+			splitOwner.ownerMemberId
+		)
+		expect(data?.data.handledByBarber).toBeNull()
+	})
+
+	it('F1-02: transitioning to in_progress populates handledByBarber from requestedBarber', async () => {
+		const { data: createData } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Progress Customer',
+				serviceIds: [splitServiceId],
+				barberId: splitOwner.ownerMemberId
+			},
+			{ fetch: { headers: { cookie: splitOwner.authCookie } } }
+		)
+		const bookingId = createData?.data.id ?? ''
+
+		const { status, data } = await (tClient as any).api
+			.bookings({ id: bookingId })
+			.status.patch(
+				{ status: 'in_progress' },
+				{ fetch: { headers: { cookie: splitOwner.authCookie } } }
+			)
+
+		expect(status).toBe(200)
+		expect(data?.data.handledByBarber?.memberId).toBe(
+			splitOwner.ownerMemberId
+		)
+		expect(data?.data.requestedBarber?.memberId).toBe(
+			splitOwner.ownerMemberId
+		)
+	})
+
+	it('F1-03: booking detail response no longer has a barber field', async () => {
+		const { data: createData } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Schema Check Customer',
+				serviceIds: [splitServiceId]
+			},
+			{ fetch: { headers: { cookie: splitOwner.authCookie } } }
+		)
+		const detail = createData?.data as Record<string, unknown>
+
+		expect('barber' in detail).toBe(false)
+		expect('requestedBarber' in detail).toBe(true)
+		expect('handledByBarber' in detail).toBe(true)
+	})
+
+	it('F2-01: appointment created outside open hours returns 400', async () => {
+		const closedTime = getFutureWibIso(1, 6, 0)
+
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Out-of-Hours Customer',
+				serviceIds: [splitServiceId],
+				scheduledAt: closedTime
+			},
+			{ fetch: { headers: { cookie: splitOwner.authCookie } } }
+		)
 
 		expect(status).toBe(400)
 	})

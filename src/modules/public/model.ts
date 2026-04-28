@@ -28,6 +28,11 @@ const PublicBarbershopResponse = t.Object({
 	barbers: t.Array(PublicBarberItem)
 })
 
+const WalkInFormDataResponse = t.Object({
+	services: t.Array(PublicServiceItem),
+	barbers: t.Array(PublicBarberItem)
+})
+
 const PublicSlugParam = t.Object({
 	slug: t.String({ minLength: 1 })
 })
@@ -37,12 +42,14 @@ export namespace PublicModel {
 	export type PublicServiceItem = typeof PublicServiceItem.static
 	export type PublicBarbershopResponse =
 		typeof PublicBarbershopResponse.static
+	export type WalkInFormDataResponse = typeof WalkInFormDataResponse.static
 	export type PublicSlugParam = typeof PublicSlugParam.static
 
 	export const Schemas = {
 		PublicBarberItem,
 		PublicServiceItem,
 		PublicBarbershopResponse,
+		WalkInFormDataResponse,
 		PublicSlugParam
 	}
 }

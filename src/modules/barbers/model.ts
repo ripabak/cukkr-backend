@@ -81,4 +81,31 @@ export namespace BarberModel {
 		message: t.String()
 	})
 	export type BarberRemoveResponse = typeof BarberRemoveResponse.static
+
+	export const BulkInviteInput = t.Object(
+		{
+			targets: t.Array(
+				t.Object(
+					{
+						email: t.Optional(
+							t.String({ format: 'email', maxLength: 254 })
+						),
+						phone: t.Optional(
+							t.String({ pattern: '^\\+[1-9]\\d{1,14}$' })
+						)
+					},
+					{ additionalProperties: false }
+				),
+				{ minItems: 1, maxItems: 50 }
+			)
+		},
+		{ additionalProperties: false }
+	)
+	export type BulkInviteInput = typeof BulkInviteInput.static
+
+	export const BulkInviteResponse = t.Object({
+		invited: t.Array(BarberInviteResponse),
+		count: t.Number()
+	})
+	export type BulkInviteResponse = typeof BulkInviteResponse.static
 }

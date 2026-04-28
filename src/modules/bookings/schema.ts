@@ -63,6 +63,10 @@ export const booking = pgTable(
 		barberId: text('barber_id').references(() => member.id, {
 			onDelete: 'set null'
 		}),
+		handledByBarberId: text('handled_by_barber_id').references(
+			() => member.id,
+			{ onDelete: 'set null' }
+		),
 		scheduledAt: timestamp('scheduled_at'),
 		notes: text('notes'),
 		startedAt: timestamp('started_at'),
@@ -94,6 +98,11 @@ export const booking = pgTable(
 			table.organizationId,
 			table.barberId,
 			table.scheduledAt
+		),
+		index('booking_organizationId_handledByBarberId_status_idx').on(
+			table.organizationId,
+			table.handledByBarberId,
+			table.status
 		),
 		uniqueIndex('booking_organizationId_referenceNumber_uidx').on(
 			table.organizationId,
@@ -171,7 +180,13 @@ export const bookingRelations = relations(booking, ({ many, one }) => ({
 	}),
 	barber: one(member, {
 		fields: [booking.barberId],
-		references: [member.id]
+		references: [member.id],
+		relationName: 'booking_requested_barber'
+	}),
+	handledByBarber: one(member, {
+		fields: [booking.handledByBarberId],
+		references: [member.id],
+		relationName: 'booking_handled_barber'
 	}),
 	createdBy: one(user, {
 		fields: [booking.createdById],

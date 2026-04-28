@@ -33,6 +33,30 @@ export const barbersHandler = new Elysia({
 	)
 
 	.post(
+		'/bulk-invite',
+		async ({ body, path, user, activeOrganizationId, set }) => {
+			set.status = 201
+			const data = await BarberService.bulkInviteBarbers(
+				activeOrganizationId,
+				user.id,
+				body
+			)
+			return formatResponse({
+				path,
+				data,
+				status: 201,
+				message: `${data.count} barber(s) invited successfully`
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			body: BarberModel.BulkInviteInput,
+			response: FormatResponseSchema(BarberModel.BulkInviteResponse)
+		}
+	)
+
+	.post(
 		'/invite',
 		async ({ body, path, user, activeOrganizationId, set }) => {
 			set.status = 201

@@ -51,11 +51,11 @@ Items in this phase may run in parallel only after their listed dependencies are
 
 | Feature | Depends On | PRD Generated | Implementation Plan Generated | Implemented |
 |---|---|---|---|---|
-| [Booking Requested Vs Handled Barber Detail](./booking-requested-vs-handled-barber-detail/prd.md) | Booking State Machine By Type | [x] | [ ] | [ ] |
-| [Booking Open Hours Only Validation](./booking-open-hours-only-validation/prd.md) | Booking State Machine By Type | [x] | [ ] | [ ] |
-| [Atomic Bulk Barber Invite](./atomic-bulk-barber-invite/prd.md) | Invitation Actions Expiry And Removal Safety | [x] | [ ] | [ ] |
-| [Public Walk In Support Data](./public-walk-in-support-data/prd.md) | Public Barbershop Landing And Read Surface | [x] | [ ] | [ ] |
-| [Customer Detail Stats And Booking Type Filter](./customer-detail-stats-and-booking-type-filter/prd.md) | Booking State Machine By Type | [x] | [ ] | [ ] |
+| [Booking Requested Vs Handled Barber Detail](./booking-requested-vs-handled-barber-detail/prd.md) | Booking State Machine By Type | [x] | [x] | [ ] |
+| [Booking Open Hours Only Validation](./booking-open-hours-only-validation/prd.md) | Booking State Machine By Type | [x] | [x] | [ ] |
+| [Atomic Bulk Barber Invite](./atomic-bulk-barber-invite/prd.md) | Invitation Actions Expiry And Removal Safety | [x] | [x] | [ ] |
+| [Public Walk In Support Data](./public-walk-in-support-data/prd.md) | Public Barbershop Landing And Read Surface | [x] | [x] | [ ] |
+| [Customer Detail Stats And Booking Type Filter](./customer-detail-stats-and-booking-type-filter/prd.md) | Booking State Machine By Type | [x] | [x] | [ ] |
 
 ---
 

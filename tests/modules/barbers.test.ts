@@ -788,3 +788,99 @@ describe('Barber Removal Safety', () => {
 		expect(status).toBe(200)
 	})
 })
+
+describe('Bulk Barber Invite (F3)', () => {
+	let bulkOwner: OwnerContext
+
+	afterEach(() => {
+		expoPushClient.resetTransport()
+	})
+
+	beforeAll(async () => {
+		bulkOwner = await createOwnerContext('bulk-invite')
+	})
+
+	it('F3-01: POST /barbers/bulk-invite creates invitations for all valid targets', async () => {
+		const email1 = `bulk1_${Date.now()}_${nanoid(4)}@example.com`
+		const email2 = `bulk2_${Date.now()}_${nanoid(4)}@example.com`
+
+		const { status, data } = await (tClient as any).api.barbers[
+			'bulk-invite'
+		].post(
+			{ targets: [{ email: email1 }, { email: email2 }] },
+			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
+		)
+
+		expect(status).toBe(201)
+		expect(data?.data.count).toBe(2)
+		expect(data?.data.invited).toHaveLength(2)
+		const emails = data?.data.invited.map((i: { email: string }) => i.email)
+		expect(emails).toContain(email1.toLowerCase())
+		expect(emails).toContain(email2.toLowerCase())
+	})
+
+	it('F3-02: POST /barbers/bulk-invite returns 400 for duplicate emails in payload', async () => {
+		const email = `bulk_dup_${Date.now()}_${nanoid(4)}@example.com`
+
+		const { status } = await (tClient as any).api.barbers[
+			'bulk-invite'
+		].post(
+			{ targets: [{ email }, { email }] },
+			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
+		)
+
+		expect(status).toBe(400)
+	})
+
+	it('F3-03: POST /barbers/bulk-invite returns 400 when a target has neither email nor phone', async () => {
+		const { status } = await (tClient as any).api.barbers[
+			'bulk-invite'
+		].post(
+			{ targets: [{}] },
+			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
+		)
+
+		expect(status).toBe(400)
+	})
+
+	it('F3-04: POST /barbers/bulk-invite returns 409 and is all-or-nothing when any target conflicts', async () => {
+		const existingEmail = `bulk_conflict_${Date.now()}_${nanoid(4)}@example.com`
+		await seedInvitation({
+			organizationId: bulkOwner.orgId,
+			email: existingEmail,
+			inviterId: bulkOwner.userId
+		})
+
+		const newEmail = `bulk_new_${Date.now()}_${nanoid(4)}@example.com`
+
+		const { status } = await (tClient as any).api.barbers[
+			'bulk-invite'
+		].post(
+			{ targets: [{ email: existingEmail }, { email: newEmail }] },
+			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
+		)
+
+		expect(status).toBe(409)
+
+		const newInvitation = await db.query.invitation.findFirst({
+			where: eq(invitation.email, newEmail.toLowerCase())
+		})
+		expect(newInvitation).toBeUndefined()
+	})
+
+	it('F3-05: POST /barbers/bulk-invite returns 403 for non-owner caller', async () => {
+		const barber = await createBarberMemberContext({
+			organizationId: bulkOwner.orgId,
+			suffix: 'bulk-forbidden'
+		})
+
+		const { status } = await (tClient as any).api.barbers[
+			'bulk-invite'
+		].post(
+			{ targets: [{ email: `bulk_f_${Date.now()}@example.com` }] },
+			{ fetch: { headers: { cookie: barber.cookie } } }
+		)
+
+		expect(status).toBe(403)
+	})
+})

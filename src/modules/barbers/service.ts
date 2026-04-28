@@ -152,6 +152,121 @@ export abstract class BarberService {
 		}
 	}
 
+	static async bulkInviteBarbers(
+		organizationId: string,
+		userId: string,
+		input: BarberModel.BulkInviteInput
+	): Promise<BarberModel.BulkInviteResponse> {
+		await BarberService.requireOwner(organizationId, userId)
+
+		const normalized = input.targets.map((target) => ({
+			email: BarberService.normalizeEmail(target.email),
+			phone: BarberService.normalizePhone(target.phone)
+		}))
+
+		for (const target of normalized) {
+			if (!target.email && !target.phone) {
+				throw new AppError(
+					'Each target must have an email or phone',
+					'BAD_REQUEST'
+				)
+			}
+		}
+
+		const emailKeys = normalized
+			.map((t) => t.email)
+			.filter(Boolean) as string[]
+		const uniqueEmails = new Set(emailKeys)
+		if (uniqueEmails.size !== emailKeys.length) {
+			throw new AppError(
+				'Duplicate emails found in bulk invite targets',
+				'BAD_REQUEST'
+			)
+		}
+
+		const resolvedTargets = await Promise.all(
+			normalized.map(async (target) => {
+				const targetUser =
+					await BarberService.findUserByInviteTarget(target)
+				const invitationEmail =
+					targetUser?.email.toLowerCase() ?? target.email ?? null
+
+				if (!invitationEmail) {
+					throw new AppError(
+						'Email or phone is required for each target',
+						'BAD_REQUEST'
+					)
+				}
+
+				await BarberService.ensureNoPendingInvitation(
+					organizationId,
+					invitationEmail
+				)
+				await BarberService.ensureNotActiveMember(
+					organizationId,
+					targetUser?.id ?? null
+				)
+
+				return {
+					targetUser,
+					invitationEmail,
+					normalizedPhone: target.phone
+				}
+			})
+		)
+
+		const expiresAt = new Date(Date.now() + INVITATION_DURATION_MS)
+
+		const created = await db.transaction(async (tx) => {
+			return tx
+				.insert(invitation)
+				.values(
+					resolvedTargets.map((resolved) => ({
+						id: nanoid(),
+						organizationId,
+						email: resolved.invitationEmail,
+						role: BARBER_ROLE,
+						status: 'pending' as const,
+						expiresAt,
+						inviterId: userId
+					}))
+				)
+				.returning()
+		})
+
+		await Promise.allSettled(
+			resolvedTargets
+				.filter((resolved) => resolved.targetUser)
+				.map((resolved, index) =>
+					NotificationService.createNotificationsForRecipients({
+						organizationId,
+						recipientUserIds: [resolved.targetUser!.id],
+						type: 'barbershop_invitation',
+						title: 'New Barbershop Invitation',
+						body: 'You have been invited to join a barbershop.',
+						referenceId: created[index].id,
+						referenceType: 'invitation'
+					})
+				)
+		)
+
+		const invitedResponses: BarberModel.BarberInviteResponse[] =
+			created.map((row, index) => ({
+				id: row.id,
+				email: row.email,
+				phone:
+					resolvedTargets[index].targetUser?.phone ??
+					resolvedTargets[index].normalizedPhone ??
+					null,
+				role: row.role ?? BARBER_ROLE,
+				status: row.status,
+				expiresAt: row.expiresAt,
+				expired: false
+			}))
+
+		return { invited: invitedResponses, count: invitedResponses.length }
+	}
+
 	static async inviteBarber(
 		organizationId: string,
 		userId: string,

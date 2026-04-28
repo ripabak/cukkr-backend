@@ -1,4 +1,15 @@
-import { and, eq, gte, inArray, isNotNull, lt, ne, or, sql } from 'drizzle-orm'
+import {
+	and,
+	eq,
+	gte,
+	inArray,
+	isNotNull,
+	isNull,
+	lt,
+	ne,
+	or,
+	sql
+} from 'drizzle-orm'
 import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -28,6 +39,7 @@ type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 type BookingReadRow = BookingRow & {
 	customer: CustomerRow
 	barber: (MemberRow & { user: UserRow }) | null
+	handledByBarber: (MemberRow & { user: UserRow }) | null
 	services: BookingServiceRow[]
 }
 
@@ -252,7 +264,7 @@ export abstract class BookingService {
 		return scheduledAt
 	}
 
-	private static async validateOpenHours(
+	public static async validateOpenHours(
 		organizationId: string,
 		scheduledAt: Date
 	): Promise<void> {
@@ -307,15 +319,21 @@ export abstract class BookingService {
 	private static async checkSingleInProgress(
 		tx: DatabaseTransaction,
 		organizationId: string,
-		barberId: string | null,
+		handledByBarberId: string | null,
 		excludedBookingId: string
 	): Promise<void> {
-		if (!barberId) return
+		if (!handledByBarberId) return
 
 		const existingInProgress = await tx.query.booking.findFirst({
 			where: and(
 				eq(booking.organizationId, organizationId),
-				eq(booking.barberId, barberId),
+				or(
+					eq(booking.handledByBarberId, handledByBarberId),
+					and(
+						isNull(booking.handledByBarberId),
+						eq(booking.barberId, handledByBarberId)
+					)
+				),
 				eq(booking.status, 'in_progress'),
 				ne(booking.id, excludedBookingId)
 			)
@@ -337,6 +355,8 @@ export abstract class BookingService {
 		if (nextStatus === 'in_progress') {
 			return {
 				status: nextStatus,
+				handledByBarberId:
+					current.handledByBarberId ?? current.barberId,
 				startedAt: now,
 				completedAt: null,
 				cancelledAt: null,
@@ -377,7 +397,7 @@ export abstract class BookingService {
 	}
 
 	private static mapBarber(
-		barberRow: BookingReadRow['barber']
+		barberRow: (MemberRow & { user: UserRow }) | null
 	): BookingModel.BarberSummaryResponse | null {
 		if (!barberRow) return null
 
@@ -425,7 +445,8 @@ export abstract class BookingService {
 				createdAt: row.customer.createdAt,
 				updatedAt: row.customer.updatedAt
 			},
-			barber: BookingService.mapBarber(row.barber),
+			requestedBarber: BookingService.mapBarber(row.barber),
+			handledByBarber: BookingService.mapBarber(row.handledByBarber),
 			services: row.services.map((item) => ({
 				id: item.id,
 				serviceId: item.serviceId,
@@ -482,6 +503,11 @@ export abstract class BookingService {
 			with: {
 				customer: true,
 				barber: {
+					with: {
+						user: true
+					}
+				},
+				handledByBarber: {
 					with: {
 						user: true
 					}
@@ -654,6 +680,11 @@ export abstract class BookingService {
 						user: true
 					}
 				},
+				handledByBarber: {
+					with: {
+						user: true
+					}
+				},
 				services: true
 			}
 		})
@@ -692,7 +723,7 @@ export abstract class BookingService {
 				await BookingService.checkSingleInProgress(
 					tx,
 					organizationId,
-					existing.barberId,
+					existing.handledByBarberId ?? existing.barberId,
 					id
 				)
 			}
