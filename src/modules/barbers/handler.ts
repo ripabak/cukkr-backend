@@ -16,14 +16,18 @@ export const barbersHandler = new Elysia({
 
 	.get(
 		'/',
-		async ({ path, activeOrganizationId }) => {
-			const data = await BarberService.listBarbers(activeOrganizationId)
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BarberService.listBarbers(
+				activeOrganizationId,
+				query.search
+			)
 
 			return formatResponse({ path, data })
 		},
 		{
 			requireAuth: true,
 			requireOrganization: true,
+			query: BarberModel.BarberListQuery,
 			response: FormatResponseSchema(t.Array(BarberModel.BarberListItem))
 		}
 	)
@@ -100,5 +104,37 @@ export const barbersHandler = new Elysia({
 			requireOrganization: true,
 			params: BarberModel.MemberIdParam,
 			response: FormatResponseSchema(BarberModel.BarberRemoveResponse)
+		}
+	)
+
+	.post(
+		'/invitations/:invitationId/accept',
+		async ({ params: { invitationId }, path, user }) => {
+			const data = await BarberService.acceptInvitation(
+				user.id,
+				invitationId
+			)
+			return formatResponse({ path, data, message: data.message })
+		},
+		{
+			requireAuth: true,
+			params: BarberModel.InvitationIdParam,
+			response: FormatResponseSchema(BarberModel.InvitationActionResponse)
+		}
+	)
+
+	.post(
+		'/invitations/:invitationId/decline',
+		async ({ params: { invitationId }, path, user }) => {
+			const data = await BarberService.declineInvitation(
+				user.id,
+				invitationId
+			)
+			return formatResponse({ path, data, message: data.message })
+		},
+		{
+			requireAuth: true,
+			params: BarberModel.InvitationIdParam,
+			response: FormatResponseSchema(BarberModel.InvitationActionResponse)
 		}
 	)

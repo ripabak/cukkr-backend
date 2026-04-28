@@ -35,13 +35,17 @@ const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
 const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'barber'])
-const STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
-	pending: ['waiting'],
+const WALK_IN_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> = {
 	waiting: ['in_progress', 'cancelled'],
-	in_progress: ['completed', 'waiting', 'cancelled'],
-	completed: [],
-	cancelled: []
+	in_progress: ['completed', 'waiting', 'cancelled']
 }
+
+const APPOINTMENT_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> =
+	{
+		requested: ['waiting', 'cancelled'],
+		waiting: ['in_progress', 'cancelled'],
+		in_progress: ['completed', 'waiting', 'cancelled']
+	}
 
 export abstract class BookingService {
 	private static async createBookingNotifications(
@@ -276,6 +280,7 @@ export abstract class BookingService {
 	}
 
 	private static validateStatusTransition(
+		type: string,
 		currentStatus: BookingStatus,
 		nextStatus: BookingStatus
 	): void {
@@ -286,7 +291,12 @@ export abstract class BookingService {
 			)
 		}
 
-		if (!STATUS_TRANSITIONS[currentStatus].includes(nextStatus)) {
+		const transitions =
+			type === 'appointment'
+				? APPOINTMENT_TRANSITIONS
+				: WALK_IN_TRANSITIONS
+
+		if (!transitions[currentStatus]?.includes(nextStatus)) {
 			throw new AppError(
 				`Cannot transition booking from ${currentStatus} to ${nextStatus}`,
 				'BAD_REQUEST'
@@ -486,7 +496,9 @@ export abstract class BookingService {
 				const rightTime = (
 					right.scheduledAt ?? right.createdAt
 				).getTime()
-				return leftTime - rightTime
+				return query.sort === 'recently_added'
+					? rightTime - leftTime
+					: leftTime - rightTime
 			})
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
@@ -587,7 +599,7 @@ export abstract class BookingService {
 				organizationId,
 				referenceNumber,
 				type: input.type,
-				status: 'waiting',
+				status: input.type === 'appointment' ? 'requested' : 'waiting',
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
@@ -671,6 +683,7 @@ export abstract class BookingService {
 			}
 
 			BookingService.validateStatusTransition(
+				existing.type,
 				existing.status as BookingStatus,
 				input.status
 			)
@@ -694,6 +707,86 @@ export abstract class BookingService {
 						now
 					)
 				)
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
+				)
+		})
+
+		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async acceptBooking(
+		organizationId: string,
+		id: string
+	): Promise<BookingModel.BookingDetailResponse> {
+		await db.transaction(async (tx) => {
+			const existing = await tx.query.booking.findFirst({
+				where: and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			})
+
+			if (!existing) {
+				throw new AppError('Booking not found', 'NOT_FOUND')
+			}
+
+			BookingService.validateStatusTransition(
+				existing.type,
+				existing.status as BookingStatus,
+				'waiting'
+			)
+
+			const now = new Date()
+			await tx
+				.update(booking)
+				.set({ status: 'waiting', updatedAt: now })
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
+				)
+		})
+
+		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async declineBooking(
+		organizationId: string,
+		id: string,
+		input: BookingModel.BookingDeclineInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		await db.transaction(async (tx) => {
+			const existing = await tx.query.booking.findFirst({
+				where: and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			})
+
+			if (!existing) {
+				throw new AppError('Booking not found', 'NOT_FOUND')
+			}
+
+			BookingService.validateStatusTransition(
+				existing.type,
+				existing.status as BookingStatus,
+				'cancelled'
+			)
+
+			const now = new Date()
+			await tx
+				.update(booking)
+				.set({
+					status: 'cancelled',
+					cancelledAt: now,
+					notes: input.reason,
+					updatedAt: now
+				})
 				.where(
 					and(
 						eq(booking.id, id),

@@ -578,3 +578,213 @@ describe('Barber Management Tests', () => {
 		expect(notificationRows).toHaveLength(0)
 	})
 })
+
+describe('Barber Search', () => {
+	let owner: OwnerContext
+
+	beforeAll(async () => {
+		owner = await createOwnerContext('search')
+
+		await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'search-alice'
+		})
+		await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'search-bob'
+		})
+	})
+
+	it('T-BS01: GET /barbers?search= returns matching barbers only', async () => {
+		const { status, data } = await tClient.api.barbers.get({
+			query: { search: 'alice' },
+			fetch: { headers: { cookie: owner.cookie } }
+		})
+
+		expect(status).toBe(200)
+		const names = (data?.data ?? []).map((b: { name: string }) =>
+			b.name.toLowerCase()
+		)
+		expect(names.some((n: string) => n.includes('alice'))).toBe(true)
+		expect(names.every((n: string) => n.includes('alice'))).toBe(true)
+	})
+
+	it('T-BS02: GET /barbers without search returns all active barbers', async () => {
+		const { status, data } = await tClient.api.barbers.get({
+			fetch: { headers: { cookie: owner.cookie } }
+		})
+
+		expect(status).toBe(200)
+		expect((data?.data ?? []).length).toBeGreaterThanOrEqual(2)
+	})
+})
+
+describe('Invitation Accept/Decline', () => {
+	let owner: OwnerContext
+	let invitee: Awaited<ReturnType<typeof signUpUser>>
+	let otherUser: Awaited<ReturnType<typeof signUpUser>>
+
+	beforeAll(async () => {
+		owner = await createOwnerContext('invitation-action')
+		invitee = await signUpUser({
+			name: 'Invitee User',
+			emailPrefix: 'invitee_action'
+		})
+		otherUser = await signUpUser({
+			name: 'Other User',
+			emailPrefix: 'other_action'
+		})
+	})
+
+	it('T-IA01: POST /barbers/invitations/:id/accept accepts a pending invitation', async () => {
+		const invitationId = await seedInvitation({
+			organizationId: owner.orgId,
+			email: invitee.email,
+			inviterId: owner.userId
+		})
+
+		const { status, data } = await (tClient as any).api.barbers
+			.invitations({ invitationId })
+			.accept.post(undefined, {
+				fetch: { headers: { cookie: invitee.cookie } }
+			})
+
+		expect(status).toBe(200)
+		expect(data?.data?.message).toBe('Invitation accepted')
+	})
+
+	it('T-IA02: POST /barbers/invitations/:id/decline declines a pending invitation', async () => {
+		const invitee2 = await signUpUser({
+			name: 'Invitee Two',
+			emailPrefix: 'invitee_decline'
+		})
+		const invitationId = await seedInvitation({
+			organizationId: owner.orgId,
+			email: invitee2.email,
+			inviterId: owner.userId
+		})
+
+		const { status, data } = await (tClient as any).api.barbers
+			.invitations({ invitationId })
+			.decline.post(undefined, {
+				fetch: { headers: { cookie: invitee2.cookie } }
+			})
+
+		expect(status).toBe(200)
+		expect(data?.data?.message).toBe('Invitation declined')
+	})
+
+	it('T-IA03: POST /barbers/invitations/:id/accept returns 403 for a different user', async () => {
+		const invitee3 = await signUpUser({
+			name: 'Invitee Three',
+			emailPrefix: 'invitee_wrong'
+		})
+		const invitationId = await seedInvitation({
+			organizationId: owner.orgId,
+			email: invitee3.email,
+			inviterId: owner.userId
+		})
+
+		const { status } = await (tClient as any).api.barbers
+			.invitations({ invitationId })
+			.accept.post(undefined, {
+				fetch: { headers: { cookie: otherUser.cookie } }
+			})
+
+		expect(status).toBe(403)
+	})
+
+	it('T-IA04: POST /barbers/invitations/:id/accept returns 401 without auth', async () => {
+		const invitee4 = await signUpUser({
+			name: 'Invitee Four',
+			emailPrefix: 'invitee_unauth'
+		})
+		const invitationId = await seedInvitation({
+			organizationId: owner.orgId,
+			email: invitee4.email,
+			inviterId: owner.userId
+		})
+
+		const { status } = await (tClient as any).api.barbers
+			.invitations({ invitationId })
+			.accept.post(undefined)
+
+		expect(status).toBe(401)
+	})
+})
+
+describe('Barber Removal Safety', () => {
+	let owner: OwnerContext
+
+	beforeAll(async () => {
+		owner = await createOwnerContext('removal-safety')
+	})
+
+	it('T-RS01: DELETE /barbers/:memberId returns 409 when barber has an active booking', async () => {
+		const barber = await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'active-booking'
+		})
+
+		const customerId = nanoid()
+		const bookingId = nanoid()
+		const now = new Date()
+
+		await db.insert(customer).values({
+			id: customerId,
+			organizationId: owner.orgId,
+			name: 'Active Booking Customer',
+			phone: '+628100000001',
+			email: `${nanoid()}@example.com`,
+			isVerified: true,
+			notes: null
+		})
+
+		await db.insert(booking).values({
+			id: bookingId,
+			organizationId: owner.orgId,
+			referenceNumber: `BK-ACTIVE-${nanoid(4)}`,
+			type: 'walk_in',
+			status: 'waiting',
+			customerId,
+			barberId: barber.memberId,
+			scheduledAt: null,
+			notes: null,
+			startedAt: null,
+			completedAt: null,
+			cancelledAt: null,
+			createdById: owner.userId,
+			createdAt: now,
+			updatedAt: now
+		})
+
+		const { status } = await (tClient as any).api
+			.barbers({ memberId: barber.memberId })
+			.delete(undefined, {
+				fetch: { headers: { cookie: owner.cookie } }
+			})
+
+		expect(status).toBe(409)
+	})
+
+	it('T-RS02: DELETE /barbers/:memberId succeeds when barber has only completed bookings', async () => {
+		const barber = await createBarberMemberContext({
+			organizationId: owner.orgId,
+			suffix: 'completed-booking'
+		})
+
+		await seedBookingForBarber({
+			organizationId: owner.orgId,
+			createdById: owner.userId,
+			barberId: barber.memberId
+		})
+
+		const { status } = await (tClient as any).api
+			.barbers({ memberId: barber.memberId })
+			.delete(undefined, {
+				fetch: { headers: { cookie: owner.cookie } }
+			})
+
+		expect(status).toBe(200)
+	})
+})

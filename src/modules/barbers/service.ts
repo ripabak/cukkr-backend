@@ -1,9 +1,10 @@
-import { and, desc, eq, gte, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
 import { invitation, member, user } from '../auth/schema'
+import { booking } from '../bookings/schema'
 import { NotificationService } from '../notifications/service'
 import { BarberModel } from './model'
 
@@ -223,12 +224,14 @@ export abstract class BarberService {
 			phone: targetUser?.phone ?? normalizedPhone ?? null,
 			role: created.role ?? BARBER_ROLE,
 			status: created.status,
-			expiresAt: created.expiresAt
+			expiresAt: created.expiresAt,
+			expired: false
 		}
 	}
 
 	static async listBarbers(
-		organizationId: string
+		organizationId: string,
+		search?: string
 	): Promise<BarberModel.BarberListItem[]> {
 		const activeMembers = await db.query.member.findMany({
 			where: and(
@@ -283,9 +286,26 @@ export abstract class BarberService {
 					avatarUrl: invitedUser?.image ?? null,
 					role: row.role ?? BARBER_ROLE,
 					status: 'pending',
-					createdAt: row.createdAt
+					createdAt: row.createdAt,
+					expiresAt: row.expiresAt,
+					expired: false
 				}
 			})
+
+		if (search) {
+			const lowerSearch = search.toLowerCase()
+			const matchActive = activeItems.filter(
+				(item) =>
+					item.name.toLowerCase().includes(lowerSearch) ||
+					item.email.toLowerCase().includes(lowerSearch)
+			)
+			const matchPending = pendingItems.filter(
+				(item) =>
+					item.name.toLowerCase().includes(lowerSearch) ||
+					item.email.toLowerCase().includes(lowerSearch)
+			)
+			return [...matchActive, ...matchPending]
+		}
 
 		return [...activeItems, ...pendingItems]
 	}
@@ -343,10 +363,127 @@ export abstract class BarberService {
 			throw new AppError('Barber not found', 'NOT_FOUND')
 		}
 
+		const [activeBookingCount] = await db
+			.select({ count: count() })
+			.from(booking)
+			.where(
+				and(
+					eq(booking.organizationId, organizationId),
+					eq(booking.barberId, memberId),
+					inArray(booking.status, [
+						'requested',
+						'waiting',
+						'in_progress'
+					])
+				)
+			)
+
+		if ((activeBookingCount?.count ?? 0) > 0) {
+			throw new AppError(
+				'Cannot remove barber with active bookings',
+				'CONFLICT'
+			)
+		}
+
 		await db.delete(member).where(eq(member.id, targetMember.id))
 
 		return {
 			message: 'Barber removed successfully'
 		}
+	}
+
+	static async acceptInvitation(
+		userId: string,
+		invitationId: string
+	): Promise<BarberModel.InvitationActionResponse> {
+		const userRow = await db.query.user.findFirst({
+			where: eq(user.id, userId)
+		})
+		if (!userRow) {
+			throw new AppError('User not found', 'NOT_FOUND')
+		}
+
+		const invitationRow = await db.query.invitation.findFirst({
+			where: eq(invitation.id, invitationId)
+		})
+		if (!invitationRow) {
+			throw new AppError('Invitation not found', 'NOT_FOUND')
+		}
+
+		if (invitationRow.email.toLowerCase() !== userRow.email.toLowerCase()) {
+			throw new AppError('Forbidden', 'FORBIDDEN')
+		}
+
+		if (invitationRow.status !== 'pending') {
+			throw new AppError('Invitation is no longer pending', 'BAD_REQUEST')
+		}
+
+		if (invitationRow.expiresAt < new Date()) {
+			throw new AppError('Invitation has expired', 'BAD_REQUEST')
+		}
+
+		const existingMember = await db.query.member.findFirst({
+			where: and(
+				eq(member.organizationId, invitationRow.organizationId),
+				eq(member.userId, userId)
+			)
+		})
+
+		await db.transaction(async (tx) => {
+			await tx
+				.update(invitation)
+				.set({ status: 'accepted' })
+				.where(eq(invitation.id, invitationId))
+
+			if (!existingMember) {
+				await tx.insert(member).values({
+					id: nanoid(),
+					organizationId: invitationRow.organizationId,
+					userId,
+					role: invitationRow.role ?? BARBER_ROLE,
+					createdAt: new Date()
+				})
+			}
+		})
+
+		return { message: 'Invitation accepted' }
+	}
+
+	static async declineInvitation(
+		userId: string,
+		invitationId: string
+	): Promise<BarberModel.InvitationActionResponse> {
+		const userRow = await db.query.user.findFirst({
+			where: eq(user.id, userId)
+		})
+		if (!userRow) {
+			throw new AppError('User not found', 'NOT_FOUND')
+		}
+
+		const invitationRow = await db.query.invitation.findFirst({
+			where: eq(invitation.id, invitationId)
+		})
+		if (!invitationRow) {
+			throw new AppError('Invitation not found', 'NOT_FOUND')
+		}
+
+		if (invitationRow.email.toLowerCase() !== userRow.email.toLowerCase()) {
+			throw new AppError('Forbidden', 'FORBIDDEN')
+		}
+
+		if (invitationRow.status !== 'pending') {
+			throw new AppError('Invitation is no longer pending', 'BAD_REQUEST')
+		}
+
+		if (invitationRow.expiresAt < new Date()) {
+			throw new AppError('Invitation has expired', 'BAD_REQUEST')
+		}
+
+		await db
+			.update(invitation)
+			.set({ status: 'rejected' })
+			.where(eq(invitation.id, invitationId))
+
+		return { message: 'Invitation declined' }
 	}
 }

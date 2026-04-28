@@ -16,7 +16,8 @@ export namespace BarberModel {
 		phone: t.Nullable(t.String()),
 		role: t.String(),
 		status: t.String(),
-		expiresAt: t.Date()
+		expiresAt: t.Date(),
+		expired: t.Boolean()
 	})
 	export type BarberInviteResponse = typeof BarberInviteResponse.static
 
@@ -35,7 +36,9 @@ export namespace BarberModel {
 		avatarUrl: t.Nullable(t.String()),
 		role: t.String(),
 		status: BarberListStatus,
-		createdAt: t.Date()
+		createdAt: t.Date(),
+		expiresAt: t.Optional(t.Nullable(t.Date())),
+		expired: t.Optional(t.Boolean())
 	})
 	export type BarberListItem = typeof BarberListItem.static
 
@@ -54,6 +57,20 @@ export namespace BarberModel {
 		{ additionalProperties: false }
 	)
 	export type MemberIdParam = typeof MemberIdParam.static
+
+	export const BarberListQuery = t.Object(
+		{
+			search: t.Optional(t.String({ minLength: 1 }))
+		},
+		{ additionalProperties: false }
+	)
+	export type BarberListQuery = typeof BarberListQuery.static
+
+	export const InvitationActionResponse = t.Object({
+		message: t.String()
+	})
+	export type InvitationActionResponse =
+		typeof InvitationActionResponse.static
 
 	export const CancelInviteResponse = t.Object({
 		message: t.String()

@@ -6,6 +6,7 @@ import { organization, member } from '../auth/schema'
 import { barbershopSettings } from './schema'
 import { BarbershopModel } from './model'
 import { AppError } from '../../core/error'
+import { storageClient } from '../../lib/storage'
 
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
@@ -61,6 +62,7 @@ export abstract class BarbershopService {
 				slug: organization.slug,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
+				logoUrl: barbershopSettings.logoUrl,
 				onboardingCompleted: barbershopSettings.onboardingCompleted
 			})
 			.from(organization)
@@ -81,6 +83,7 @@ export abstract class BarbershopService {
 			slug: rows[0].slug,
 			description: rows[0].description ?? null,
 			address: rows[0].address ?? null,
+			logoUrl: rows[0].logoUrl ?? null,
 			onboardingCompleted: rows[0].onboardingCompleted ?? false
 		}
 	}
@@ -224,6 +227,7 @@ export abstract class BarbershopService {
 				slug: organization.slug,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
+				logoUrl: barbershopSettings.logoUrl,
 				onboardingCompleted: barbershopSettings.onboardingCompleted,
 				role: member.role
 			})
@@ -242,9 +246,60 @@ export abstract class BarbershopService {
 			slug: row.slug,
 			description: row.description ?? null,
 			address: row.address ?? null,
+			logoUrl: row.logoUrl ?? null,
 			onboardingCompleted: row.onboardingCompleted ?? false,
 			role: row.role
 		}))
+	}
+
+	static async uploadLogo(
+		organizationId: string,
+		userId: string,
+		file: File
+	): Promise<BarbershopModel.LogoUploadResponse> {
+		const memberRow = await db.query.member.findFirst({
+			where: and(
+				eq(member.userId, userId),
+				eq(member.organizationId, organizationId)
+			)
+		})
+		if (!memberRow || memberRow.role !== 'owner') {
+			throw new AppError('Forbidden', 'FORBIDDEN')
+		}
+
+		const LOGO_MAX_SIZE = 5 * 1024 * 1024
+		const ALLOWED_MIME_EXTENSIONS: Record<string, string> = {
+			'image/jpeg': 'jpg',
+			'image/png': 'png',
+			'image/webp': 'webp'
+		}
+
+		if (file.size > LOGO_MAX_SIZE) {
+			throw new AppError(
+				'Logo file exceeds maximum size of 5MB',
+				'UNPROCESSABLE_ENTITY'
+			)
+		}
+
+		const ext = ALLOWED_MIME_EXTENSIONS[file.type]
+		if (!ext) {
+			throw new AppError(
+				'Logo must be a JPEG, PNG, or WebP image',
+				'UNPROCESSABLE_ENTITY'
+			)
+		}
+
+		const buffer = new Uint8Array(await file.arrayBuffer())
+		const key = `logos/${organizationId}/${nanoid()}.${ext}`
+		const logoUrl = await storageClient.upload(key, buffer, file.type)
+
+		await BarbershopService.ensureSettingsRow(organizationId)
+		await db
+			.update(barbershopSettings)
+			.set({ logoUrl })
+			.where(eq(barbershopSettings.organizationId, organizationId))
+
+		return { logoUrl }
 	}
 
 	static async leaveBarbershop(

@@ -95,3 +95,45 @@ export const bookingsHandler = new Elysia({
 			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
 		}
 	)
+	.post(
+		'/:id/accept',
+		async ({ params: { id }, path, activeOrganizationId }) => {
+			const data = await BookingService.acceptBooking(
+				activeOrganizationId,
+				id
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Booking accepted successfully'
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: BookingModel.BookingIdParam,
+			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
+		}
+	)
+	.post(
+		'/:id/decline',
+		async ({ params: { id }, body, path, activeOrganizationId }) => {
+			const data = await BookingService.declineBooking(
+				activeOrganizationId,
+				id,
+				body
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Booking declined successfully'
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: BookingModel.BookingIdParam,
+			body: BookingModel.BookingDeclineInput,
+			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
+		}
+	)

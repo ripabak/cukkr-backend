@@ -40,6 +40,17 @@ export namespace ServiceModel {
 	})
 	export type ServiceIdParam = typeof ServiceIdParam.static
 
+	export const ServiceImageUploadInput = t.Object({
+		file: t.File()
+	})
+	export type ServiceImageUploadInput = typeof ServiceImageUploadInput.static
+
+	export const ServiceImageUploadResponse = t.Object({
+		imageUrl: t.String()
+	})
+	export type ServiceImageUploadResponse =
+		typeof ServiceImageUploadResponse.static
+
 	export const ServiceResponse = t.Object({
 		id: t.String(),
 		organizationId: t.String(),
@@ -48,6 +59,7 @@ export namespace ServiceModel {
 		price: t.Number(),
 		duration: t.Number(),
 		discount: t.Number(),
+		imageUrl: t.Nullable(t.String()),
 		isActive: t.Boolean(),
 		isDefault: t.Boolean(),
 		createdAt: t.Date(),

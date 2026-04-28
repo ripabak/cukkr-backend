@@ -142,7 +142,34 @@ export const servicesHandler = new Elysia({
 		}
 	)
 
-	// PATCH /services/:id/set-default — set as default (transactional)
+	// POST /services/:id/image — upload service thumbnail
+	.post(
+		'/:id/image',
+		async ({ params: { id }, body, path, activeOrganizationId, user }) => {
+			const data = await ServiceService.uploadServiceImage(
+				activeOrganizationId,
+				user.id,
+				id,
+				body.file
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Service image uploaded successfully'
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: ServiceModel.ServiceIdParam,
+			body: ServiceModel.ServiceImageUploadInput,
+			response: FormatResponseSchema(
+				ServiceModel.ServiceImageUploadResponse
+			)
+		}
+	)
+
+	// PATCH /services/:id/set-default — mark service as the default
 	.patch(
 		'/:id/set-default',
 		async ({ params: { id }, path, activeOrganizationId }) => {

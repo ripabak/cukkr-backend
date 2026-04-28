@@ -27,6 +27,7 @@ const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 
 type BookingSeedStatus =
 	| 'pending'
+	| 'requested'
 	| 'waiting'
 	| 'in_progress'
 	| 'completed'
@@ -665,7 +666,7 @@ describe('Booking Creation Endpoints', () => {
 		)
 
 		expect(status).toBe(201)
-		expect(data?.data.status).toBe('waiting')
+		expect(data?.data.status).toBe('requested')
 		expect(data?.data.scheduledAt).toBeDefined()
 		expect(data?.data.customer.email).toBe('booked@example.com')
 	})
@@ -893,7 +894,7 @@ describe('Booking Lifecycle Endpoints', () => {
 				createdById: owner.ownerUserId,
 				barberId: owner.ownerMemberId,
 				type: 'appointment',
-				status: 'pending',
+				status: 'requested',
 				createdAt: new Date(),
 				scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
 				customerName: 'Pending Customer',
@@ -967,7 +968,7 @@ describe('Booking Lifecycle Endpoints', () => {
 		expect(data?.data.cancelledAt).toBeDefined()
 	})
 
-	it('allows pending appointments to move to waiting', async () => {
+	it('allows requested appointments to move to waiting', async () => {
 		const { status, data } = await (tClient as any).api.bookings[
 			pendingBookingId
 		].status.patch(
@@ -1199,5 +1200,147 @@ describe('Booking Notification Triggers', () => {
 		).toBe(true)
 		expect(tokenRow?.isActive).toBe(false)
 		expect(tokenRow?.invalidatedAt).toBeTruthy()
+	})
+})
+
+describe('Booking List Sort', () => {
+	let owner: OwnerContext
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('sort')
+
+		const olderDate = new Date('2026-04-26T06:00:00.000Z')
+		const newerDate = new Date('2026-04-26T10:00:00.000Z')
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: olderDate,
+			customerName: 'Early Customer',
+			serviceNames: ['Early Cut']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: newerDate,
+			customerName: 'Late Customer',
+			serviceNames: ['Late Cut']
+		})
+	})
+
+	it('returns bookings oldest-first by default', async () => {
+		const { status, data } = await tClient.api.bookings.get({
+			query: { date: LIST_DATE },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		expect(data?.data[0]?.customerName).toBe('Early Customer')
+		expect(data?.data[1]?.customerName).toBe('Late Customer')
+	})
+
+	it('returns bookings newest-first with sort=recently_added', async () => {
+		const { status, data } = await tClient.api.bookings.get({
+			query: { date: LIST_DATE, sort: 'recently_added' },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		expect(data?.data[0]?.customerName).toBe('Late Customer')
+		expect(data?.data[1]?.customerName).toBe('Early Customer')
+	})
+})
+
+describe('Booking Accept/Decline', () => {
+	let owner: OwnerContext
+	let requestedBookingId: string
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('accept-decline')
+	})
+
+	it('POST /:id/accept moves a requested appointment to waiting', async () => {
+		const { bookingId } = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: new Date(),
+			scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+			customerName: 'Accept Customer',
+			serviceNames: ['Accept Cut']
+		})
+		requestedBookingId = bookingId
+
+		const { status, data } = await (tClient as any).api
+			.bookings({ id: bookingId })
+			.accept.post(undefined, {
+				fetch: { headers: { cookie: owner.authCookie } }
+			})
+
+		expect(status).toBe(200)
+		expect((data as any)?.data?.status).toBe('waiting')
+	})
+
+	it('POST /:id/accept returns 401 without auth', async () => {
+		const { status } = await (tClient as any).api
+			.bookings({ id: requestedBookingId })
+			.accept.post(undefined)
+
+		expect(status).toBe(401)
+	})
+
+	it('POST /:id/decline moves a requested appointment to cancelled with a reason', async () => {
+		const { bookingId } = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: new Date(),
+			scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+			customerName: 'Decline Customer',
+			serviceNames: ['Decline Cut']
+		})
+
+		const { status, data } = await (tClient as any).api
+			.bookings({ id: bookingId })
+			.decline.post(
+				{ reason: 'Schedule is full' },
+				{ fetch: { headers: { cookie: owner.authCookie } } }
+			)
+
+		expect(status).toBe(200)
+		expect((data as any)?.data?.status).toBe('cancelled')
+		expect((data as any)?.data?.notes).toBe('Schedule is full')
+	})
+
+	it('POST /:id/accept returns 400 for a non-requested booking', async () => {
+		const { bookingId } = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date(),
+			customerName: 'Already Waiting Customer',
+			serviceNames: ['Some Cut']
+		})
+
+		const { status } = await (tClient as any).api
+			.bookings({ id: bookingId })
+			.accept.post(undefined, {
+				fetch: { headers: { cookie: owner.authCookie } }
+			})
+
+		expect(status).toBe(400)
 	})
 })

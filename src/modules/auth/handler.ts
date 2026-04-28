@@ -3,10 +3,6 @@ import { Elysia } from 'elysia'
 import { authMiddleware } from '../../middleware/auth-middleware'
 import { AuthService } from './service'
 import { AuthModel } from './model'
-import {
-	formatResponse,
-	FormatResponseSchema
-} from '../../core/format-response'
 import { AppError } from '../../core/error'
 
 const PHONE_OTP_RATE_LIMIT = 3
@@ -41,21 +37,6 @@ export const authHandler = new Elysia({
 	tags: ['Auth']
 })
 	.use(authMiddleware)
-
-	.patch(
-		'/profile',
-		async ({ body, path, user }) => {
-			const data = await AuthService.updateProfile(user.id, body)
-			return formatResponse({ path, data, message: 'Profile updated' })
-		},
-		{
-			requireAuth: true,
-			body: AuthModel.Schemas.UpdateProfileBody,
-			response: FormatResponseSchema(
-				AuthModel.Schemas.UpdateProfileResponse
-			)
-		}
-	)
 
 	.post(
 		'/phone/send-otp',

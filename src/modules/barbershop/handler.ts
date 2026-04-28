@@ -96,6 +96,29 @@ export const barbershopHandler = new Elysia({
 		}
 	)
 
+	// POST /barbershop/logo — upload barbershop logo
+	.post(
+		'/logo',
+		async ({ body, path, user, activeOrganizationId }) => {
+			const data = await BarbershopService.uploadLogo(
+				activeOrganizationId,
+				user.id,
+				body.file
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Logo uploaded successfully'
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			body: BarbershopModel.LogoUploadInput,
+			response: FormatResponseSchema(BarbershopModel.LogoUploadResponse)
+		}
+	)
+
 	// GET /barbershop/slug-check — real-time slug availability (60 req/IP/min)
 	.group('/slug-check', (app) =>
 		app

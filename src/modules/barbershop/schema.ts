@@ -17,6 +17,7 @@ export const barbershopSettings = pgTable(
 			.references(() => organization.id, { onDelete: 'cascade' }),
 		description: text('description'),
 		address: text('address'),
+		logoUrl: text('logo_url'),
 		onboardingCompleted: boolean('onboarding_completed')
 			.default(false)
 			.notNull(),

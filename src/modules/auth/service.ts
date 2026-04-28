@@ -5,7 +5,6 @@ import { db } from '../../lib/database'
 import { user, verification } from './schema'
 import { AppError } from '../../core/error'
 import { sendOtpEmail } from '../../lib/mail'
-import type { AuthModel } from './model'
 
 function generateOtp(): string {
 	const array = new Uint32Array(1)
@@ -14,43 +13,6 @@ function generateOtp(): string {
 }
 
 export abstract class AuthService {
-	static async updateProfile(
-		userId: string,
-		dto: AuthModel.UpdateProfileBody
-	): Promise<AuthModel.UpdateProfileResponse> {
-		const updateData: Partial<{
-			name: string
-			bio: string | null
-			image: string | null
-		}> = {}
-
-		if (dto.name !== undefined) updateData.name = dto.name
-		if (dto.bio !== undefined) updateData.bio = dto.bio
-		if (dto.avatar !== undefined) updateData.image = dto.avatar
-
-		const [updated] = await db
-			.update(user)
-			.set(updateData)
-			.where(eq(user.id, userId))
-			.returning({
-				id: user.id,
-				name: user.name,
-				bio: user.bio,
-				image: user.image
-			})
-
-		if (!updated) {
-			throw new AppError('User not found', 'NOT_FOUND')
-		}
-
-		return {
-			id: updated.id,
-			name: updated.name,
-			bio: updated.bio ?? null,
-			image: updated.image ?? null
-		}
-	}
-
 	static async sendPhoneOtp(
 		userId: string,
 		userEmail: string,
