@@ -14,6 +14,8 @@ export const user = pgTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
+	phone: text('phone').unique(),
+	bio: text('bio'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at')
 		.defaultNow()
@@ -109,7 +111,11 @@ export const member = pgTable(
 	},
 	(table) => [
 		index('member_organizationId_idx').on(table.organizationId),
-		index('member_userId_idx').on(table.userId)
+		index('member_userId_idx').on(table.userId),
+		uniqueIndex('member_userId_orgId_uidx').on(
+			table.userId,
+			table.organizationId
+		)
 	]
 )
 
@@ -131,7 +137,12 @@ export const invitation = pgTable(
 	},
 	(table) => [
 		index('invitation_organizationId_idx').on(table.organizationId),
-		index('invitation_email_idx').on(table.email)
+		index('invitation_email_idx').on(table.email),
+		index('invitation_organizationId_status_expiresAt_idx').on(
+			table.organizationId,
+			table.status,
+			table.expiresAt
+		)
 	]
 )
 

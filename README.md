@@ -13,8 +13,9 @@ This project includes AI agent skills (`.agents/skills/`) to help with planning 
 | `breakdown-feature-prd` | Break an Epic into a detailed Feature PRD |
 | `breakdown-feature-implementation` | Generate a technical implementation plan from a Feature PRD |
 | `breakdown-plan` | Generate GitHub Issues and a project plan from all artifacts |
+| `implement-issues` | Implement issues given issue-checklist.md |
 
-**Recommended flow:** `breakdown-epic-pm` → `breakdown-feature-prd` → `breakdown-feature-implementation` → `breakdown-plan`
+**Recommended flow:** `breakdown-epic-pm` → `breakdown-feature-prd` → `breakdown-feature-implementation` → `breakdown-plan` → `implement-issues` 
 
 Documents are saved to `docs/ways-of-work/plan/{epic-name}/`.
 

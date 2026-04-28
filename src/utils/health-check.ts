@@ -1,9 +1,11 @@
 import { db } from '../lib/database'
 import { verifySmtp } from '../lib/mail'
+import { verifyStorage } from '../lib/storage'
 
 const CHECKS = {
 	DATABASE: false,
-	SMTP: false
+	SMTP: false,
+	STORAGE: false
 }
 
 const checkDatabaseConnection = async () => {
@@ -24,9 +26,21 @@ const checkSmtpConnection = async () => {
 	}
 }
 
+const checkStorageConnection = async () => {
+	try {
+		await verifyStorage()
+		CHECKS.STORAGE = true
+	} catch {
+		CHECKS.STORAGE = false
+	}
+}
+
 export const healthCheck = async () => {
-	await checkDatabaseConnection()
-	await checkSmtpConnection()
+	await Promise.all([
+		checkDatabaseConnection(),
+		checkSmtpConnection(),
+		checkStorageConnection()
+	])
 	return {
 		status: 'ok',
 		message: 'Elysia Backend is running',

@@ -18,6 +18,7 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1037.0",
     "@elysiajs/cors": "^1.4.1",
     "@elysiajs/eden": "^1.4.8",
     "@elysiajs/openapi": "^1.4.14",
@@ -26,6 +27,7 @@
     "drizzle-orm": "^0.45.1",
     "elysia": "latest",
     "elysia-rate-limit": "^4.5.0",
+    "jose": "^6.2.2",
     "logixlysia": "^6.2.0",
     "nanoid": "^5.1.6",
     "nodemailer": "^8.0.1",
@@ -43,6 +45,7 @@
     "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
+    "typescript": "^6.0.0-dev.20260416",
     "typescript-eslint": "^8.56.1"
   },
   "module": "src/index.js"

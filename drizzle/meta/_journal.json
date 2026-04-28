@@ -1,5 +1,83 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777186962254,
+      "tag": "20260426070242_add-user-phone-bio",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777208109318,
+      "tag": "20260426125509_onboarding-barbershop-setup",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777209747719,
+      "tag": "20260426132227_update-services-indexes-default",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777214817996,
+      "tag": "20260426144657_add-open-hours-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777214921119,
+      "tag": "20260426144841_add-bookings-module",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777283150319,
+      "tag": "20260427094550_add-invitation-composite-idx",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777293770939,
+      "tag": "20260427124250_add_customer_management_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777297637024,
+      "tag": "20260427134717_add_walk_in_pin_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1777302256480,
+      "tag": "20260427150416_add_analytics_completed_at_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777309541752,
+      "tag": "20260427170541_add-notifications-module",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777315402687,
+      "tag": "20260427184322_add_multi_barbershop_indexes",
+      "breakpoints": true
+    }
+  ]
 }

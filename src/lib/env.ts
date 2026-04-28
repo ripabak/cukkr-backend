@@ -13,6 +13,11 @@ const envSchema = z.object({
 
 	BETTER_AUTH_URL: z.string().url(),
 
+	STORAGE_ENDPOINT: z.string().url().optional(),
+	STORAGE_BUCKET: z.string().min(1).optional(),
+	STORAGE_ACCESS_KEY: z.string().min(1).optional(),
+	STORAGE_SECRET_KEY: z.string().min(1).optional(),
+
 	CORS_ORIGIN: z
 		.string()
 		.optional()
@@ -24,7 +29,10 @@ const envSchema = z.object({
 	SMTP_USER: z.string().optional(),
 	SMTP_PASS: z.string().optional(),
 	SMTP_SECURE: z.coerce.boolean().optional().default(false),
-	SMTP_FROM: z.string().optional()
+	SMTP_FROM: z.string().optional(),
+
+	// Walk-In PIN System
+	WALK_IN_TOKEN_SECRET: z.string().min(32)
 })
 
 const parsed = envSchema.safeParse(process.env)

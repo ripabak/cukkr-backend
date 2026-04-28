@@ -4,7 +4,7 @@ import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { env } from './env'
-import { sendOtpEmail } from './mail'
+import { sendOtpEmail, sendEmail } from './mail'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -15,13 +15,23 @@ export const auth = betterAuth({
 		}
 	}),
 	emailAndPassword: {
-		enabled: true
+		enabled: true,
+		requireEmailVerification: false,
+		minPasswordLength: 8
 	},
 	plugins: [
 		openAPI(),
 		emailOTP({
+			otpLength: 4,
+			expiresIn: 300,
+			allowedAttempts: 5,
+			sendVerificationOnSignUp: true,
 			async sendVerificationOTP({ email, otp, type }) {
-				await sendOtpEmail({ to: email, otp, purpose: type })
+				try {
+					await sendOtpEmail({ to: email, otp, purpose: type })
+				} catch (err) {
+					if (env.NODE_ENV !== 'test') throw err
+				}
 			}
 		}),
 		organization()
@@ -29,7 +39,43 @@ export const auth = betterAuth({
 	trustedOrigins: env.CORS_ORIGIN,
 
 	rateLimit: {
-		enabled: false
+		enabled: env.NODE_ENV !== 'test',
+		window: 900,
+		max: 10
+	},
+
+	user: {
+		additionalFields: {
+			phone: {
+				type: 'string',
+				required: false
+			},
+			bio: {
+				type: 'string',
+				required: false
+			}
+		},
+		changeEmail: {
+			enabled: true,
+			updateEmailWithoutVerification: true,
+			async sendChangeEmailConfirmation({
+				newEmail,
+				url
+			}: {
+				newEmail: string
+				url: string
+			}) {
+				try {
+					await sendEmail({
+						to: newEmail,
+						subject: 'Confirm your new email address',
+						text: `Click the link to confirm your new email address: ${url}`
+					})
+				} catch (err) {
+					if (env.NODE_ENV !== 'test') throw err
+				}
+			}
+		}
 	},
 
 	advanced: {
@@ -40,8 +86,6 @@ export const auth = betterAuth({
 			sameSite: 'none'
 		}
 	}
-
-	//...
 })
 
 let _schema: ReturnType<typeof auth.api.generateOpenAPISchema>

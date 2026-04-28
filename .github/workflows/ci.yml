@@ -46,3 +46,4 @@ jobs:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/elysia_test
           BETTER_AUTH_SECRET: test-secret-key-that-is-at-least-32-chars
           BETTER_AUTH_URL: http://localhost:3000
+          WALK_IN_TOKEN_SECRET: test-walk-in-token-secret-that-is-at-least-32-chars
