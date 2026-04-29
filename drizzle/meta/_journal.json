@@ -78,6 +78,20 @@
       "when": 1777315402687,
       "tag": "20260427184322_add_multi_barbershop_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1777398053674,
+      "tag": "20260428174053_add_logo_url_to_barbershop_and_image_url_to_service",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1777400585695,
+      "tag": "20260428182305_add-handled-by-barber-id-to-booking",
+      "breakpoints": true
     }
   ]
 }

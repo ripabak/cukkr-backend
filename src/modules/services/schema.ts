@@ -21,6 +21,7 @@ export const service = pgTable(
 		price: integer('price').notNull(),
 		duration: integer('duration').notNull(),
 		discount: integer('discount').default(0).notNull(),
+		imageUrl: text('image_url'),
 		isActive: boolean('is_active').default(false).notNull(),
 		isDefault: boolean('is_default').default(false).notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -1,4 +1,15 @@
-import { and, eq, gte, inArray, isNotNull, lt, ne, or, sql } from 'drizzle-orm'
+import {
+	and,
+	eq,
+	gte,
+	inArray,
+	isNotNull,
+	isNull,
+	lt,
+	ne,
+	or,
+	sql
+} from 'drizzle-orm'
 import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -28,6 +39,7 @@ type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 type BookingReadRow = BookingRow & {
 	customer: CustomerRow
 	barber: (MemberRow & { user: UserRow }) | null
+	handledByBarber: (MemberRow & { user: UserRow }) | null
 	services: BookingServiceRow[]
 }
 
@@ -35,13 +47,17 @@ const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
 const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'barber'])
-const STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
-	pending: ['waiting'],
+const WALK_IN_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> = {
 	waiting: ['in_progress', 'cancelled'],
-	in_progress: ['completed', 'waiting', 'cancelled'],
-	completed: [],
-	cancelled: []
+	in_progress: ['completed', 'waiting', 'cancelled']
 }
+
+const APPOINTMENT_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> =
+	{
+		requested: ['waiting', 'cancelled'],
+		waiting: ['in_progress', 'cancelled'],
+		in_progress: ['completed', 'waiting', 'cancelled']
+	}
 
 export abstract class BookingService {
 	private static async createBookingNotifications(
@@ -248,7 +264,7 @@ export abstract class BookingService {
 		return scheduledAt
 	}
 
-	private static async validateOpenHours(
+	public static async validateOpenHours(
 		organizationId: string,
 		scheduledAt: Date
 	): Promise<void> {
@@ -276,6 +292,7 @@ export abstract class BookingService {
 	}
 
 	private static validateStatusTransition(
+		type: string,
 		currentStatus: BookingStatus,
 		nextStatus: BookingStatus
 	): void {
@@ -286,7 +303,12 @@ export abstract class BookingService {
 			)
 		}
 
-		if (!STATUS_TRANSITIONS[currentStatus].includes(nextStatus)) {
+		const transitions =
+			type === 'appointment'
+				? APPOINTMENT_TRANSITIONS
+				: WALK_IN_TRANSITIONS
+
+		if (!transitions[currentStatus]?.includes(nextStatus)) {
 			throw new AppError(
 				`Cannot transition booking from ${currentStatus} to ${nextStatus}`,
 				'BAD_REQUEST'
@@ -297,15 +319,21 @@ export abstract class BookingService {
 	private static async checkSingleInProgress(
 		tx: DatabaseTransaction,
 		organizationId: string,
-		barberId: string | null,
+		handledByBarberId: string | null,
 		excludedBookingId: string
 	): Promise<void> {
-		if (!barberId) return
+		if (!handledByBarberId) return
 
 		const existingInProgress = await tx.query.booking.findFirst({
 			where: and(
 				eq(booking.organizationId, organizationId),
-				eq(booking.barberId, barberId),
+				or(
+					eq(booking.handledByBarberId, handledByBarberId),
+					and(
+						isNull(booking.handledByBarberId),
+						eq(booking.barberId, handledByBarberId)
+					)
+				),
 				eq(booking.status, 'in_progress'),
 				ne(booking.id, excludedBookingId)
 			)
@@ -327,6 +355,8 @@ export abstract class BookingService {
 		if (nextStatus === 'in_progress') {
 			return {
 				status: nextStatus,
+				handledByBarberId:
+					current.handledByBarberId ?? current.barberId,
 				startedAt: now,
 				completedAt: null,
 				cancelledAt: null,
@@ -367,7 +397,7 @@ export abstract class BookingService {
 	}
 
 	private static mapBarber(
-		barberRow: BookingReadRow['barber']
+		barberRow: (MemberRow & { user: UserRow }) | null
 	): BookingModel.BarberSummaryResponse | null {
 		if (!barberRow) return null
 
@@ -415,7 +445,8 @@ export abstract class BookingService {
 				createdAt: row.customer.createdAt,
 				updatedAt: row.customer.updatedAt
 			},
-			barber: BookingService.mapBarber(row.barber),
+			requestedBarber: BookingService.mapBarber(row.barber),
+			handledByBarber: BookingService.mapBarber(row.handledByBarber),
 			services: row.services.map((item) => ({
 				id: item.id,
 				serviceId: item.serviceId,
@@ -476,6 +507,11 @@ export abstract class BookingService {
 						user: true
 					}
 				},
+				handledByBarber: {
+					with: {
+						user: true
+					}
+				},
 				services: true
 			}
 		})
@@ -486,7 +522,9 @@ export abstract class BookingService {
 				const rightTime = (
 					right.scheduledAt ?? right.createdAt
 				).getTime()
-				return leftTime - rightTime
+				return query.sort === 'recently_added'
+					? rightTime - leftTime
+					: leftTime - rightTime
 			})
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
@@ -587,7 +625,7 @@ export abstract class BookingService {
 				organizationId,
 				referenceNumber,
 				type: input.type,
-				status: 'waiting',
+				status: input.type === 'appointment' ? 'requested' : 'waiting',
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
@@ -642,6 +680,11 @@ export abstract class BookingService {
 						user: true
 					}
 				},
+				handledByBarber: {
+					with: {
+						user: true
+					}
+				},
 				services: true
 			}
 		})
@@ -671,6 +714,7 @@ export abstract class BookingService {
 			}
 
 			BookingService.validateStatusTransition(
+				existing.type,
 				existing.status as BookingStatus,
 				input.status
 			)
@@ -679,7 +723,7 @@ export abstract class BookingService {
 				await BookingService.checkSingleInProgress(
 					tx,
 					organizationId,
-					existing.barberId,
+					existing.handledByBarberId ?? existing.barberId,
 					id
 				)
 			}
@@ -701,6 +745,131 @@ export abstract class BookingService {
 					)
 				)
 		})
+
+		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async acceptBooking(
+		organizationId: string,
+		id: string
+	): Promise<BookingModel.BookingDetailResponse> {
+		await db.transaction(async (tx) => {
+			const existing = await tx.query.booking.findFirst({
+				where: and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			})
+
+			if (!existing) {
+				throw new AppError('Booking not found', 'NOT_FOUND')
+			}
+
+			BookingService.validateStatusTransition(
+				existing.type,
+				existing.status as BookingStatus,
+				'waiting'
+			)
+
+			const now = new Date()
+			await tx
+				.update(booking)
+				.set({ status: 'waiting', updatedAt: now })
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
+				)
+		})
+
+		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async declineBooking(
+		organizationId: string,
+		id: string,
+		input: BookingModel.BookingDeclineInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		await db.transaction(async (tx) => {
+			const existing = await tx.query.booking.findFirst({
+				where: and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			})
+
+			if (!existing) {
+				throw new AppError('Booking not found', 'NOT_FOUND')
+			}
+
+			BookingService.validateStatusTransition(
+				existing.type,
+				existing.status as BookingStatus,
+				'cancelled'
+			)
+
+			const now = new Date()
+			await tx
+				.update(booking)
+				.set({
+					status: 'cancelled',
+					cancelledAt: now,
+					notes: input.reason,
+					updatedAt: now
+				})
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
+				)
+		})
+
+		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async reassignBooking(
+		organizationId: string,
+		id: string,
+		input: BookingModel.BookingReassignInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		const existing = await db.query.booking.findFirst({
+			where: and(
+				eq(booking.id, id),
+				eq(booking.organizationId, organizationId)
+			)
+		})
+
+		if (!existing) {
+			throw new AppError('Booking not found', 'NOT_FOUND')
+		}
+
+		if (
+			existing.status === 'completed' ||
+			existing.status === 'cancelled'
+		) {
+			throw new AppError(
+				'Cannot reassign a booking in terminal state',
+				'BAD_REQUEST'
+			)
+		}
+
+		await BookingService.validateBarberAssignment(
+			organizationId,
+			input.handledByMemberId
+		)
+
+		const now = new Date()
+		await db
+			.update(booking)
+			.set({ handledByBarberId: input.handledByMemberId, updatedAt: now })
+			.where(
+				and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			)
 
 		return BookingService.getBooking(organizationId, id)
 	}

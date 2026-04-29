@@ -39,11 +39,22 @@ export namespace CustomerManagementModel {
 	export type CustomerListItemResponse =
 		typeof CustomerListItemResponse.static
 
+	export const BookingTypeFilter = t.Union([
+		t.Literal('all'),
+		t.Literal('appointment'),
+		t.Literal('walk_in')
+	])
+	export type BookingTypeFilter = typeof BookingTypeFilter.static
+
 	export const CustomerDetailResponse = t.Composite([
 		CustomerListItemResponse,
 		t.Object({
 			notes: t.Nullable(t.String()),
-			createdAt: t.Date()
+			createdAt: t.Date(),
+			appointmentCount: t.Number(),
+			walkInCount: t.Number(),
+			completedCount: t.Number(),
+			cancelledCount: t.Number()
 		})
 	])
 	export type CustomerDetailResponse = typeof CustomerDetailResponse.static

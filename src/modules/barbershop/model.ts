@@ -7,6 +7,7 @@ export namespace BarbershopModel {
 		slug: t.String(),
 		description: t.Nullable(t.String()),
 		address: t.Nullable(t.String()),
+		logoUrl: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean()
 	})
 	export type BarbershopResponse = typeof BarbershopResponse.static
@@ -44,6 +45,7 @@ export namespace BarbershopModel {
 		slug: t.String(),
 		description: t.Nullable(t.String()),
 		address: t.Nullable(t.String()),
+		logoUrl: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean(),
 		role: t.String()
 	})
@@ -56,6 +58,16 @@ export namespace BarbershopModel {
 		orgId: t.String()
 	})
 	export type OrgIdParam = typeof OrgIdParam.static
+
+	export const LogoUploadInput = t.Object({
+		file: t.File()
+	})
+	export type LogoUploadInput = typeof LogoUploadInput.static
+
+	export const LogoUploadResponse = t.Object({
+		logoUrl: t.String()
+	})
+	export type LogoUploadResponse = typeof LogoUploadResponse.static
 
 	export const LeaveOrgResponse = t.Object({
 		message: t.String()

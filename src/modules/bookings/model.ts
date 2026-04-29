@@ -3,6 +3,7 @@ import { t } from 'elysia'
 export const BOOKING_TYPES = ['walk_in', 'appointment'] as const
 export const BOOKING_STATUSES = [
 	'pending',
+	'requested',
 	'waiting',
 	'in_progress',
 	'completed',
@@ -17,6 +18,7 @@ export const BookingTypeEnum = t.Union([
 
 export const BookingStatusEnum = t.Union([
 	t.Literal('pending'),
+	t.Literal('requested'),
 	t.Literal('waiting'),
 	t.Literal('in_progress'),
 	t.Literal('completed'),
@@ -26,6 +28,7 @@ export const BookingStatusEnum = t.Union([
 export const BookingListStatusEnum = t.Union([
 	t.Literal('all'),
 	t.Literal('pending'),
+	t.Literal('requested'),
 	t.Literal('waiting'),
 	t.Literal('in_progress'),
 	t.Literal('completed'),
@@ -111,11 +114,33 @@ export namespace BookingModel {
 	export type BookingStatusUpdateInput =
 		typeof BookingStatusUpdateInput.static
 
+	export const BookingDeclineInput = t.Object(
+		{
+			reason: t.String({ minLength: 1, maxLength: 500 })
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingDeclineInput = typeof BookingDeclineInput.static
+
+	export const BookingReassignInput = t.Object(
+		{
+			handledByMemberId: t.String({ minLength: 1 })
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingReassignInput = typeof BookingReassignInput.static
+
 	export const BookingListQuery = t.Object(
 		{
 			date: t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' }),
 			status: t.Optional(BookingListStatusEnum),
-			barberId: t.Optional(t.String({ minLength: 1 }))
+			barberId: t.Optional(t.String({ minLength: 1 })),
+			sort: t.Optional(
+				t.Union([
+					t.Literal('oldest_first'),
+					t.Literal('recently_added')
+				])
+			)
 		},
 		{ additionalProperties: false }
 	)
@@ -174,7 +199,8 @@ export namespace BookingModel {
 		type: BookingTypeEnum,
 		status: BookingStatusEnum,
 		customer: CustomerResponse,
-		barber: t.Nullable(BarberSummaryResponse),
+		requestedBarber: t.Nullable(BarberSummaryResponse),
+		handledByBarber: t.Nullable(BarberSummaryResponse),
 		services: t.Array(BookingServiceLineItemResponse),
 		scheduledAt: t.Nullable(t.Date()),
 		notes: t.Nullable(t.String()),

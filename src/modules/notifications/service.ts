@@ -10,6 +10,8 @@ import {
 	type ExpoPushMessage
 } from '../../lib/push'
 import { member } from '../auth/schema'
+import { BarberService } from '../barbers/service'
+import { BookingService } from '../bookings/service'
 import { NotificationModel } from './model'
 import {
 	notification,
@@ -50,10 +52,20 @@ export abstract class NotificationService {
 			referenceId: row.referenceId,
 			referenceType:
 				row.referenceType as NotificationListItem['referenceType'],
+			actionType: NotificationService.deriveActionType(row.type),
 			isRead: row.isRead,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt
 		}
+	}
+
+	private static deriveActionType(
+		type: string
+	): NotificationListItem['actionType'] {
+		if (type === 'appointment_requested')
+			return 'accept_decline_appointment'
+		if (type === 'barbershop_invitation') return 'accept_decline_invite'
+		return null
 	}
 
 	private static async dispatchPushNotifications(
@@ -371,6 +383,94 @@ export abstract class NotificationService {
 
 		return {
 			tokenRegistered: true
+		}
+	}
+
+	static async executeAcceptAction(
+		userId: string,
+		notificationId: string
+	): Promise<NotificationModel.NotificationActionResponse> {
+		const notif = await NotificationService.getOwnedNotification(
+			userId,
+			notificationId
+		)
+
+		if (!notif.referenceId) {
+			throw new AppError('Notification has no reference', 'BAD_REQUEST')
+		}
+
+		const referenceType = notif.referenceType
+
+		if (referenceType === 'invitation') {
+			await BarberService.acceptInvitation(userId, notif.referenceId)
+		} else if (
+			referenceType === 'booking' &&
+			notif.type === 'appointment_requested'
+		) {
+			await BookingService.acceptBooking(
+				notif.organizationId,
+				notif.referenceId
+			)
+		} else {
+			throw new AppError(
+				'Action not supported for this notification type',
+				'BAD_REQUEST'
+			)
+		}
+
+		return {
+			notificationId,
+			action: 'accepted',
+			referenceType: referenceType as 'booking' | 'invitation',
+			referenceId: notif.referenceId
+		}
+	}
+
+	static async executeDeclineAction(
+		userId: string,
+		notificationId: string,
+		reason?: string
+	): Promise<NotificationModel.NotificationActionResponse> {
+		const notif = await NotificationService.getOwnedNotification(
+			userId,
+			notificationId
+		)
+
+		if (!notif.referenceId) {
+			throw new AppError('Notification has no reference', 'BAD_REQUEST')
+		}
+
+		const referenceType = notif.referenceType
+
+		if (referenceType === 'invitation') {
+			await BarberService.declineInvitation(userId, notif.referenceId)
+		} else if (
+			referenceType === 'booking' &&
+			notif.type === 'appointment_requested'
+		) {
+			if (!reason) {
+				throw new AppError(
+					'reason is required to decline an appointment',
+					'BAD_REQUEST'
+				)
+			}
+			await BookingService.declineBooking(
+				notif.organizationId,
+				notif.referenceId,
+				{ reason }
+			)
+		} else {
+			throw new AppError(
+				'Action not supported for this notification type',
+				'BAD_REQUEST'
+			)
+		}
+
+		return {
+			notificationId,
+			action: 'declined',
+			referenceType: referenceType as 'booking' | 'invitation',
+			referenceId: notif.referenceId
 		}
 	}
 }

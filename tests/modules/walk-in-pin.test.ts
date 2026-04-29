@@ -469,3 +469,71 @@ describe('Walk-In PIN System', () => {
 		})
 	})
 })
+
+describe('Public Walk-In Form Data (F4)', () => {
+	let formDataOwner: OwnerContext
+	let formServiceId: string
+
+	beforeAll(async () => {
+		formDataOwner = await createOwnerWithOrg('form-data')
+		formServiceId = await createActiveService(formDataOwner.authCookie)
+	})
+
+	it('F4-01: GET /public/:slug/form-data returns services and barbers for valid slug', async () => {
+		const { status, data } = await (tClient as any).api.public[
+			formDataOwner.orgSlug
+		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
+
+		expect(status).toBe(200)
+		const body = (data as any)?.data
+		expect(Array.isArray(body?.services)).toBe(true)
+		expect(Array.isArray(body?.barbers)).toBe(true)
+		expect(
+			body?.services.some((s: { id: string }) => s.id === formServiceId)
+		).toBe(true)
+		expect(body?.services[0]).toMatchObject({
+			id: expect.any(String),
+			name: expect.any(String),
+			price: expect.any(Number),
+			duration: expect.any(Number)
+		})
+	})
+
+	it('F4-02: GET /public/:slug/form-data only includes active services', async () => {
+		const inactiveRes = await tClient.api.services.post(
+			{
+				name: `Inactive Svc ${Date.now()}`,
+				price: 30000,
+				duration: 15,
+				discount: 0,
+				description: null
+			},
+			{
+				fetch: {
+					headers: {
+						cookie: formDataOwner.authCookie,
+						origin: ORIGIN
+					}
+				}
+			}
+		)
+		const inactiveServiceId = (inactiveRes.data as any)?.data?.id
+
+		const { data } = await (tClient as any).api.public[
+			formDataOwner.orgSlug
+		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
+
+		const serviceIds = (data as any)?.data?.services.map(
+			(s: { id: string }) => s.id
+		)
+		expect(serviceIds).not.toContain(inactiveServiceId)
+	})
+
+	it('F4-03: GET /public/:slug/form-data returns 404 for unknown slug', async () => {
+		const { status } = await (tClient as any).api.public[
+			'no-such-slug-xyz'
+		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
+
+		expect(status).toBe(404)
+	})
+})

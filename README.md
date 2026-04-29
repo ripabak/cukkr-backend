@@ -126,7 +126,7 @@ This project uses the built-in `bun test` runner for testing. Tests are located 
 
 To run tests:
 ```bash
-bun test
+bun test --env-file=.env
 ```
 
 Example integration test for the health check endpoint (`tests/health-check.test.ts`):

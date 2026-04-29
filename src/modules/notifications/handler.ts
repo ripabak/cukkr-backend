@@ -104,3 +104,39 @@ export const notificationsHandler = new Elysia({
 			)
 		}
 	)
+	.post(
+		'/:id/actions/accept',
+		async ({ params: { id }, path, user }) => {
+			const data = await NotificationService.executeAcceptAction(
+				user.id,
+				id
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			params: NotificationModel.NotificationIdParam,
+			response: FormatResponseSchema(
+				NotificationModel.NotificationActionResponse
+			)
+		}
+	)
+	.post(
+		'/:id/actions/decline',
+		async ({ params: { id }, body, path, user }) => {
+			const data = await NotificationService.executeDeclineAction(
+				user.id,
+				id,
+				body.reason
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			params: NotificationModel.NotificationIdParam,
+			body: NotificationModel.NotificationDeclineActionInput,
+			response: FormatResponseSchema(
+				NotificationModel.NotificationActionResponse
+			)
+		}
+	)

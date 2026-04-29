@@ -82,7 +82,8 @@ export const customersHandler = new Elysia({
 			params: CustomerManagementModel.CustomerIdParam,
 			query: t.Object({
 				page: t.Optional(t.Numeric()),
-				limit: t.Optional(t.Numeric())
+				limit: t.Optional(t.Numeric()),
+				type: t.Optional(CustomerManagementModel.BookingTypeFilter)
 			}),
 			response: FormatResponseSchema(
 				t.Array(CustomerManagementModel.CustomerBookingItemResponse)

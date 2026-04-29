@@ -6,6 +6,8 @@ import {
 } from '../../core/format-response'
 import { authMiddleware } from '../../middleware/auth-middleware'
 import { BookingModel } from '../bookings/model'
+import { PublicModel } from '../public/model'
+import { PublicService } from '../public/service'
 import { WalkInPinModel } from './model'
 import { WalkInPinService } from './service'
 
@@ -50,6 +52,20 @@ export const publicWalkInHandler = new Elysia({
 	prefix: '/public/:slug',
 	tags: ['Public Walk-In']
 })
+	.get(
+		'/form-data',
+		async ({ params, path }) => {
+			const data = await PublicService.getWalkInFormData(params.slug)
+			return formatResponse({ path, data })
+		},
+		{
+			params: WalkInPinModel.SlugParam,
+			response: FormatResponseSchema(
+				PublicModel.Schemas.WalkInFormDataResponse
+			)
+		}
+	)
+
 	.post(
 		'/pin/validate',
 		async ({ params, body, path, request, server }) => {

@@ -164,7 +164,7 @@ describe('S-06: Password Change', () => {
 })
 
 // ---------------------------------------------------------------------------
-// S-07 — Profile Update
+// S-07 — Profile Update (via /api/me)
 // ---------------------------------------------------------------------------
 describe('S-07: Profile Update', () => {
 	let authCookie = ''
@@ -175,12 +175,12 @@ describe('S-07: Profile Update', () => {
 	})
 
 	it('should return 401 without authentication', async () => {
-		const res = await tClient.api.auth.profile.patch({ name: 'New Name' })
+		const res = await tClient.api.me.patch({ name: 'New Name' })
 		expect(res.status).toBe(401)
 	})
 
 	it('should update name', async () => {
-		const res = await tClient.api.auth.profile.patch(
+		const res = await tClient.api.me.patch(
 			{ name: 'Updated Name' },
 			{ fetch: { headers: { cookie: authCookie } } }
 		)
@@ -189,7 +189,7 @@ describe('S-07: Profile Update', () => {
 	})
 
 	it('should update bio', async () => {
-		const res = await tClient.api.auth.profile.patch(
+		const res = await tClient.api.me.patch(
 			{ bio: 'My bio text' },
 			{ fetch: { headers: { cookie: authCookie } } }
 		)
@@ -197,27 +197,13 @@ describe('S-07: Profile Update', () => {
 		expect((res.data as any)?.data?.bio).toBe('My bio text')
 	})
 
-	it('should update avatar', async () => {
-		const res = await tClient.api.auth.profile.patch(
-			{ avatar: 'https://example.com/avatar.png' },
+	it('should update name and bio at once', async () => {
+		const res = await tClient.api.me.patch(
+			{ name: 'Full Update', bio: 'Updated bio' },
 			{ fetch: { headers: { cookie: authCookie } } }
 		)
 		expect(res.status).toBe(200)
-		expect((res.data as any)?.data?.image).toBe(
-			'https://example.com/avatar.png'
-		)
-	})
-
-	it('should update all fields at once', async () => {
-		const res = await tClient.api.auth.profile.patch(
-			{
-				name: 'Full Update',
-				bio: 'Updated bio',
-				avatar: 'https://example.com/new.png'
-			},
-			{ fetch: { headers: { cookie: authCookie } } }
-		)
-		expect(res.status).toBe(200)
+		expect((res.data as any)?.data?.name).toBe('Full Update')
 	})
 })
 

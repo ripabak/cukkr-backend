@@ -11,6 +11,12 @@ export const NotificationReferenceTypeEnum = t.Union([
 	t.Literal('invitation')
 ])
 
+export const NotificationActionTypeEnum = t.Union([
+	t.Literal('accept_decline_appointment'),
+	t.Literal('accept_decline_invite'),
+	t.Null()
+])
+
 export namespace NotificationModel {
 	export const NotificationListQuery = t.Object({
 		page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -34,6 +40,7 @@ export namespace NotificationModel {
 		body: t.String(),
 		referenceId: t.Nullable(t.String()),
 		referenceType: t.Nullable(NotificationReferenceTypeEnum),
+		actionType: NotificationActionTypeEnum,
 		isRead: t.Boolean(),
 		createdAt: t.Date(),
 		updatedAt: t.Date()
@@ -75,4 +82,22 @@ export namespace NotificationModel {
 	})
 	export type NotificationRegisterPushTokenResponse =
 		typeof NotificationRegisterPushTokenResponse.static
+
+	export const NotificationActionResponse = t.Object({
+		notificationId: t.String(),
+		action: t.Union([t.Literal('accepted'), t.Literal('declined')]),
+		referenceType: NotificationReferenceTypeEnum,
+		referenceId: t.String()
+	})
+	export type NotificationActionResponse =
+		typeof NotificationActionResponse.static
+
+	export const NotificationDeclineActionInput = t.Object(
+		{
+			reason: t.Optional(t.String({ maxLength: 500 }))
+		},
+		{ additionalProperties: false }
+	)
+	export type NotificationDeclineActionInput =
+		typeof NotificationDeclineActionInput.static
 }

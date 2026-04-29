@@ -1,10 +1,14 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
+
+const nanoidSlug = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
+import { openHour } from '../../src/modules/open-hours/schema'
+import { service } from '../../src/modules/services/schema'
 import {
 	notification,
 	notificationPushToken
@@ -39,7 +43,7 @@ async function createUserWithOrg(suffix: string): Promise<UserContext> {
 	const orgRes = await (tClient as any).auth.api.organization.create.post(
 		{
 			name: `Notifications Org ${suffix}`,
-			slug: `notifications-${suffix}-${nanoid(6).toLowerCase()}`
+			slug: `notifications-${suffix}-${nanoidSlug()}`
 		},
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
@@ -118,6 +122,306 @@ async function requestJson(args: {
 		}
 	}
 }
+
+async function signUpUserOnly(args: {
+	name: string
+	emailPrefix: string
+}): Promise<{ cookie: string; userId: string; email: string }> {
+	const email = `${args.emailPrefix}_${Date.now()}_${nanoid(4)}@example.com`
+
+	const signUpRes = await (tClient as any).auth.api['sign-up'].email.post(
+		{ email, password: 'password123', name: args.name },
+		{ fetch: { headers: { origin: ORIGIN } } }
+	)
+	const cookie = signUpRes.response?.headers.get('set-cookie') ?? ''
+	const sessionRes = await (tClient as any).auth.api['get-session'].get({
+		headers: { cookie }
+	})
+	const createdUser = sessionRes.data?.user
+
+	if (!createdUser) {
+		throw new Error('Failed to create user in signUpUserOnly')
+	}
+
+	return { cookie, userId: createdUser.id, email }
+}
+
+describe('Notification Action Mutations', () => {
+	let ownerCtx: UserContext
+	let barber1: { cookie: string; userId: string; email: string }
+	let barber2: { cookie: string; userId: string; email: string }
+	let barber1InviteNotifId = ''
+	let barber2InviteNotifId = ''
+	let appointmentAcceptNotifId = ''
+	let appointmentDeclineNotifId = ''
+	let walkInNotifId = ''
+
+	beforeAll(async () => {
+		ownerCtx = await createUserWithOrg('action-owner')
+		barber1 = await signUpUserOnly({
+			name: 'Action Barber One',
+			emailPrefix: 'action_barber1'
+		})
+		barber2 = await signUpUserOnly({
+			name: 'Action Barber Two',
+			emailPrefix: 'action_barber2'
+		})
+
+		await db.insert(openHour).values(
+			Array.from({ length: 7 }, (_, dayOfWeek) => ({
+				id: nanoid(),
+				organizationId: ownerCtx.orgId,
+				dayOfWeek,
+				isOpen: true,
+				openTime: '08:00',
+				closeTime: '20:00'
+			}))
+		)
+
+		const svcId = nanoid()
+		await db.insert(service).values({
+			id: svcId,
+			organizationId: ownerCtx.orgId,
+			name: 'Action Service',
+			description: null,
+			price: 60000,
+			duration: 30,
+			discount: 0,
+			isActive: true,
+			isDefault: false
+		})
+
+		const invite1Res = await requestJson({
+			path: '/api/barbers/invite',
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: { email: barber1.email }
+		})
+		const invite1Id = invite1Res.data?.data?.id as string
+
+		const invite2Res = await requestJson({
+			path: '/api/barbers/invite',
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: { email: barber2.email }
+		})
+		const invite2Id = invite2Res.data?.data?.id as string
+
+		const n1 = await db.query.notification.findFirst({
+			where: and(
+				eq(notification.recipientUserId, barber1.userId),
+				eq(notification.referenceId, invite1Id)
+			)
+		})
+		barber1InviteNotifId = n1?.id ?? ''
+
+		const n2 = await db.query.notification.findFirst({
+			where: and(
+				eq(notification.recipientUserId, barber2.userId),
+				eq(notification.referenceId, invite2Id)
+			)
+		})
+		barber2InviteNotifId = n2?.id ?? ''
+
+		const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
+		const nowWib = new Date(new Date().getTime() + WIB_OFFSET_MS)
+		const scheduledAt = new Date(
+			Date.UTC(
+				nowWib.getUTCFullYear(),
+				nowWib.getUTCMonth(),
+				nowWib.getUTCDate() + 2,
+				11,
+				0
+			) - WIB_OFFSET_MS
+		)
+		const scheduledAtStr = scheduledAt.toISOString()
+
+		const booking1Res = await requestJson({
+			path: '/api/bookings',
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: {
+				type: 'appointment',
+				customerName: 'Action Accept Customer',
+				serviceIds: [svcId],
+				scheduledAt: scheduledAtStr
+			}
+		})
+		const booking1Id = booking1Res.data?.data?.id as string
+
+		const booking2Res = await requestJson({
+			path: '/api/bookings',
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: {
+				type: 'appointment',
+				customerName: 'Action Decline Customer',
+				serviceIds: [svcId],
+				scheduledAt: scheduledAtStr
+			}
+		})
+		const booking2Id = booking2Res.data?.data?.id as string
+
+		const an1 = await db.query.notification.findFirst({
+			where: and(
+				eq(notification.recipientUserId, ownerCtx.userId),
+				eq(notification.referenceId, booking1Id)
+			)
+		})
+		appointmentAcceptNotifId = an1?.id ?? ''
+
+		const an2 = await db.query.notification.findFirst({
+			where: and(
+				eq(notification.recipientUserId, ownerCtx.userId),
+				eq(notification.referenceId, booking2Id)
+			)
+		})
+		appointmentDeclineNotifId = an2?.id ?? ''
+
+		const booking3Res = await requestJson({
+			path: '/api/bookings',
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: {
+				type: 'walk_in',
+				customerName: 'Walk In Action Customer',
+				serviceIds: [svcId]
+			}
+		})
+		const booking3Id = booking3Res.data?.data?.id as string
+
+		const wn = await db.query.notification.findFirst({
+			where: and(
+				eq(notification.recipientUserId, ownerCtx.userId),
+				eq(notification.referenceId, booking3Id)
+			)
+		})
+		walkInNotifId = wn?.id ?? ''
+	})
+
+	it('actionType field is present in listed notifications', async () => {
+		const response = await requestJson({
+			path: '/api/notifications',
+			cookie: ownerCtx.cookie
+		})
+
+		expect(response.status).toBe(200)
+		const items = response.data.data as {
+			type: string
+			actionType: unknown
+		}[]
+		const appointmentItem = items.find(
+			(n) => n.type === 'appointment_requested'
+		)
+		const walkInItem = items.find((n) => n.type === 'walk_in_arrival')
+		expect(appointmentItem?.actionType).toBe('accept_decline_appointment')
+		expect(walkInItem?.actionType).toBeNull()
+	})
+
+	it('POST /:id/actions/accept accepts a barbershop invitation', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${barber1InviteNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: barber1.cookie
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('accepted')
+		expect(response.data.data?.referenceType).toBe('invitation')
+	})
+
+	it('POST /:id/actions/decline declines a barbershop invitation', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${barber2InviteNotifId}/actions/decline`,
+			method: 'POST',
+			cookie: barber2.cookie,
+			body: {}
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('declined')
+		expect(response.data.data?.referenceType).toBe('invitation')
+	})
+
+	it('POST /:id/actions/accept accepts an appointment (booking → waiting)', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${appointmentAcceptNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: ownerCtx.cookie
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('accepted')
+		expect(response.data.data?.referenceType).toBe('booking')
+
+		const bookingId = response.data.data?.referenceId as string
+		const bookingRes = await requestJson({
+			path: `/api/bookings/${bookingId}`,
+			cookie: ownerCtx.cookie
+		})
+		expect(bookingRes.data.data?.status).toBe('waiting')
+	})
+
+	it('POST /:id/actions/decline declines an appointment (booking → cancelled)', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${appointmentDeclineNotifId}/actions/decline`,
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: { reason: 'Fully booked that day' }
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('declined')
+		expect(response.data.data?.referenceType).toBe('booking')
+
+		const bookingId = response.data.data?.referenceId as string
+		const bookingRes = await requestJson({
+			path: `/api/bookings/${bookingId}`,
+			cookie: ownerCtx.cookie
+		})
+		expect(bookingRes.data.data?.status).toBe('cancelled')
+	})
+
+	it('POST /:id/actions/decline returns 400 when declining appointment without reason', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${appointmentDeclineNotifId}/actions/decline`,
+			method: 'POST',
+			cookie: ownerCtx.cookie,
+			body: {}
+		})
+
+		expect(response.status).toBe(400)
+	})
+
+	it('POST /:id/actions/accept returns 400 for walk_in_arrival type', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${walkInNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: ownerCtx.cookie
+		})
+
+		expect(response.status).toBe(400)
+	})
+
+	it("returns 404 when acting on another user's notification", async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${barber2InviteNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: ownerCtx.cookie
+		})
+
+		expect(response.status).toBe(404)
+	})
+
+	it('returns 401 when not authenticated', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${appointmentAcceptNotifId}/actions/accept`,
+			method: 'POST'
+		})
+
+		expect(response.status).toBe(401)
+	})
+})
 
 describe('Notifications Module Tests', () => {
 	let ownerA: UserContext
