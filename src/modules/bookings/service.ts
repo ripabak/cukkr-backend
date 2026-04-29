@@ -828,4 +828,49 @@ export abstract class BookingService {
 
 		return BookingService.getBooking(organizationId, id)
 	}
+
+	static async reassignBooking(
+		organizationId: string,
+		id: string,
+		input: BookingModel.BookingReassignInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		const existing = await db.query.booking.findFirst({
+			where: and(
+				eq(booking.id, id),
+				eq(booking.organizationId, organizationId)
+			)
+		})
+
+		if (!existing) {
+			throw new AppError('Booking not found', 'NOT_FOUND')
+		}
+
+		if (
+			existing.status === 'completed' ||
+			existing.status === 'cancelled'
+		) {
+			throw new AppError(
+				'Cannot reassign a booking in terminal state',
+				'BAD_REQUEST'
+			)
+		}
+
+		await BookingService.validateBarberAssignment(
+			organizationId,
+			input.handledByMemberId
+		)
+
+		const now = new Date()
+		await db
+			.update(booking)
+			.set({ handledByBarberId: input.handledByMemberId, updatedAt: now })
+			.where(
+				and(
+					eq(booking.id, id),
+					eq(booking.organizationId, organizationId)
+				)
+			)
+
+		return BookingService.getBooking(organizationId, id)
+	}
 }

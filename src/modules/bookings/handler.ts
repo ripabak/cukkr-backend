@@ -137,3 +137,25 @@ export const bookingsHandler = new Elysia({
 			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
 		}
 	)
+	.patch(
+		'/:id/reassign',
+		async ({ params: { id }, body, path, activeOrganizationId }) => {
+			const data = await BookingService.reassignBooking(
+				activeOrganizationId,
+				id,
+				body
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Booking reassigned successfully'
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: BookingModel.BookingIdParam,
+			body: BookingModel.BookingReassignInput,
+			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
+		}
+	)

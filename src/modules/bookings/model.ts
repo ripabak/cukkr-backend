@@ -122,6 +122,14 @@ export namespace BookingModel {
 	)
 	export type BookingDeclineInput = typeof BookingDeclineInput.static
 
+	export const BookingReassignInput = t.Object(
+		{
+			handledByMemberId: t.String({ minLength: 1 })
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingReassignInput = typeof BookingReassignInput.static
+
 	export const BookingListQuery = t.Object(
 		{
 			date: t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' }),

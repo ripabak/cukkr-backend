@@ -65,9 +65,9 @@ Do not start these items until all listed dependencies are implemented.
 
 | Feature | Depends On | PRD Generated | Implementation Plan Generated | Implemented |
 |---|---|---|---|---|
-| [Booking Take Over And Reassignment](./booking-take-over-and-reassignment/prd.md) | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail | [x] | [ ] | [ ] |
-| [Public Appointment Booking Flow](./public-appointment-booking-flow/prd.md) | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail; Booking Open Hours Only Validation; Public Barbershop Landing And Read Surface | [x] | [ ] | [ ] |
-| [Notification Action Mutations](./notification-action-mutations/prd.md) | Booking State Machine By Type; Invitation Actions Expiry And Removal Safety | [x] | [ ] | [ ] |
+| [Booking Take Over And Reassignment](./booking-take-over-and-reassignment/prd.md) | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail | [x] | [x] | [x] |
+| [Public Appointment Booking Flow](./public-appointment-booking-flow/prd.md) | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail; Booking Open Hours Only Validation; Public Barbershop Landing And Read Surface | [x] | [x] | [x] |
+| [Notification Action Mutations](./notification-action-mutations/prd.md) | Booking State Machine By Type; Invitation Actions Expiry And Removal Safety | [x] | [x] | [x] |
 
 ---
 
