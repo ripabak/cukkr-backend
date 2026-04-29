@@ -77,10 +77,10 @@ Run this phase after the relevant feature implementations are complete.
 
 | Validation Item | Depends On | Implemented |
 |---|---|---|
-| Cross-feature booking regression | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail; Booking Open Hours Only Validation; Booking Take Over And Reassignment; Public Appointment Booking Flow | [ ] |
-| Cross-feature invitation and notification regression | Invitation Actions Expiry And Removal Safety; Atomic Bulk Barber Invite; Notification Action Mutations | [ ] |
-| Cross-feature public surface regression | Public Barbershop Landing And Read Surface; Public Walk In Support Data; Public Appointment Booking Flow | [ ] |
-| Cross-feature media regression | Barbershop Logo Upload; Service Thumbnail Upload | [ ] |
+| Cross-feature booking regression | Booking State Machine By Type; Booking Requested Vs Handled Barber Detail; Booking Open Hours Only Validation; Booking Take Over And Reassignment; Public Appointment Booking Flow | [x] |
+| Cross-feature invitation and notification regression | Invitation Actions Expiry And Removal Safety; Atomic Bulk Barber Invite; Notification Action Mutations | [x] |
+| Cross-feature public surface regression | Public Barbershop Landing And Read Surface; Public Walk In Support Data; Public Appointment Booking Flow | [x] |
+| Cross-feature media regression | Barbershop Logo Upload; Service Thumbnail Upload | [x] |
 
 ---
 
