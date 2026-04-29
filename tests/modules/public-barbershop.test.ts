@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { treaty } from '@elysiajs/eden'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
+
+const nanoidSlug = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
@@ -11,7 +13,7 @@ const ORIGIN = 'http://localhost:3001'
 
 async function createPublicBarbershopContext(suffix: string) {
 	const email = `public_${suffix}_${Date.now()}@example.com`
-	const slug = `public-${suffix}-${nanoid(6).toLowerCase()}`
+	const slug = `public-${suffix}-${nanoidSlug()}`
 
 	const signUpRes = await (tClient as any).auth.api['sign-up'].email.post(
 		{ email, password: 'password123', name: 'Public Owner' },
@@ -92,7 +94,7 @@ describe('Public Barbershop API', () => {
 
 	it('GET /api/public/barbershop/:slug returns 404 for unknown slug', async () => {
 		const { status } = await tClient.api.public
-			.barbershop({ slug: `unknown-shop-${nanoid(8)}` })
+			.barbershop({ slug: `unknown-shop-${nanoidSlug()}` })
 			.get()
 
 		expect(status).toBe(404)

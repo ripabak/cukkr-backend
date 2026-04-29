@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
+
+const nanoidSlug = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
@@ -39,7 +41,7 @@ async function createUserWithOrg(suffix: string): Promise<UserContext> {
 	const orgRes = await (tClient as any).auth.api.organization.create.post(
 		{
 			name: `Notifications Org ${suffix}`,
-			slug: `notifications-${suffix}-${nanoid(6).toLowerCase()}`
+			slug: `notifications-${suffix}-${nanoidSlug()}`
 		},
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)

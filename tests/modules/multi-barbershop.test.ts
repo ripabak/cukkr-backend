@@ -1,6 +1,8 @@
 import { describe, expect, it, beforeAll } from 'bun:test'
 import { treaty } from '@elysiajs/eden'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
+
+const nanoidSlug = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
@@ -35,7 +37,7 @@ async function createUserWithOrg(suffix: string): Promise<{
 	userId: string
 }> {
 	const email = `test_mbs_${suffix}_${Date.now()}@example.com`
-	const orgSlug = `mbs-${suffix}-${nanoid(6).toLowerCase()}`
+	const orgSlug = `mbs-${suffix}-${nanoidSlug()}`
 
 	const signUpRes = await (tClient as any).auth.api['sign-up'].email.post(
 		{ email, password: 'password123', name: 'Test User' },
@@ -104,7 +106,7 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 
 	// T-01: POST /barbershop creates org, assigns owner role, returns org profile
 	it('T-01: POST /barbershop creates org, assigns owner role, returns org profile', async () => {
-		const slug = `t01-${nanoid(6).toLowerCase()}`
+		const slug = `t01-${nanoidSlug()}`
 		const { status, data } = await tClient.api.barbershop.post(
 			{ name: 'My Second Shop', slug },
 			{ fetch: { headers: { cookie: ownerCookie } } }
@@ -117,7 +119,7 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 
 	// T-02: POST /barbershop with duplicate slug returns 409 Conflict
 	it('T-02: POST /barbershop with duplicate slug returns 409 Conflict', async () => {
-		const slug = `t02-${nanoid(6).toLowerCase()}`
+		const slug = `t02-${nanoidSlug()}`
 		await tClient.api.barbershop.post(
 			{ name: 'Shop T02', slug },
 			{ fetch: { headers: { cookie: ownerCookie } } }
@@ -142,7 +144,7 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 	it('T-04: POST /barbershop without session returns 401 Unauthorized', async () => {
 		const { status } = await tClient.api.barbershop.post({
 			name: 'No Auth Shop',
-			slug: `t04-${nanoid(6).toLowerCase()}`
+			slug: `t04-${nanoidSlug()}`
 		})
 		expect(status).toBe(401)
 	})
@@ -150,7 +152,7 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 	// T-05: GET /barbershop/list returns all orgs (2 created, expect 2)
 	it('T-05: GET /barbershop/list returns all orgs for user', async () => {
 		const user = await createUserWithOrg('t05')
-		const slug2 = `t05-second-${nanoid(6).toLowerCase()}`
+		const slug2 = `t05-second-${nanoidSlug()}`
 		await tClient.api.barbershop.post(
 			{ name: 'Second Shop T05', slug: slug2 },
 			{ fetch: { headers: { cookie: user.authCookie } } }
@@ -270,7 +272,7 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 			)
 		}
 
-		const slugB = `t12-orgb-${nanoid(6).toLowerCase()}`
+		const slugB = `t12-orgb-${nanoidSlug()}`
 		const createRes = await tClient.api.barbershop.post(
 			{ name: 'Org B T12', slug: slugB },
 			{ fetch: { headers: { cookie: user.authCookie } } }
