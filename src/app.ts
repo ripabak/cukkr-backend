@@ -69,7 +69,7 @@ export const app = new Elysia()
 	// Response middleware
 	// .use(ResponseMiddleware)
 
-	.mount(auth.handler)
+	.mount('auth', auth.handler)
 
 	// Health Check
 	.get('/health-check', () => healthCheck())
