@@ -8,7 +8,7 @@ import { sendOtpEmail, sendEmail } from './mail'
 import { expo } from '@better-auth/expo'
 
 export const auth = betterAuth({
-	basePath: '/api',
+	basePath: '/api/auth',
 	database: drizzleAdapter(db, {
 		provider: 'pg',
 		schema: {
@@ -98,7 +98,7 @@ let _schema: ReturnType<typeof auth.api.generateOpenAPISchema>
 const getSchema = async () => (_schema ??= auth.api.generateOpenAPISchema())
 
 export const OpenAPI = {
-	getPaths: (prefix = '/auth/api') =>
+	getPaths: (prefix = '/api/auth') =>
 		getSchema().then(({ paths }) => {
 			const reference: typeof paths = Object.create(null)
 
