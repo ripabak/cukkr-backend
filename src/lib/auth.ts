@@ -5,6 +5,7 @@ import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { env } from './env'
 import { sendOtpEmail, sendEmail } from './mail'
+import { expo } from '@better-auth/expo'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -34,10 +35,15 @@ export const auth = betterAuth({
 				}
 			}
 		}),
-		organization()
+		organization(),
+		expo()
 	],
-	trustedOrigins: env.CORS_ORIGIN,
+	trustedOrigins: [
+		...env.CORS_ORIGIN,
 
+		// Expo cukkr frontend
+		'cukkrfrontend://'
+	],
 	rateLimit: {
 		enabled: env.NODE_ENV !== 'test',
 		window: 900,
