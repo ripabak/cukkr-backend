@@ -8,7 +8,6 @@ import { sendOtpEmail, sendEmail } from './mail'
 import { expo } from '@better-auth/expo'
 
 export const auth = betterAuth({
-	basePath: '/api/auth',
 	database: drizzleAdapter(db, {
 		provider: 'pg',
 		schema: {
