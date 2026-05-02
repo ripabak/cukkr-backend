@@ -10,6 +10,7 @@ RUN bun install --production --no-cache --ignore-scripts
 
 # Drizzle tidak membutuhkan proses "generate" client seperti Prisma.
 # Cukup copy folder src dan drizzle (jika perlu menjalankan file migrasi/konfigurasi dsb)
+COPY dist ./dist
 COPY src ./src
 COPY drizzle ./drizzle
 COPY drizzle.config.ts ./
