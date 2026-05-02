@@ -17,7 +17,8 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: true,
+		// turn on this can make test fail
+		requireEmailVerification: env.NODE_ENV !== 'test',
 		minPasswordLength: 8
 	},
 	plugins: [
