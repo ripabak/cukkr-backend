@@ -24,6 +24,7 @@ import {
 import { analyticsHandler } from './modules/analytics/handler'
 import { notificationsHandler } from './modules/notifications/handler'
 import { publicHandler } from './modules/public/handler'
+import { typeShareEdenElysia } from 'type-share-eden-elysia'
 
 export const app = new Elysia()
 	.use(
@@ -94,6 +95,15 @@ export const app = new Elysia()
 			.use(analyticsHandler)
 			.use(notificationsHandler)
 			.use(publicHandler)
+	)
+	.use(
+		typeShareEdenElysia({
+			autoGenerate: true,
+			verbose: env.NODE_ENV === 'development',
+			tsconfigPath: './tsconfig.declarations.json',
+			path: './dist/types/src/app.d.ts',
+			route: '/types/app.d.ts'
+		})
 	)
 
 export type App = typeof app
