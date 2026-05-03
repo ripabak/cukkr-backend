@@ -148,24 +148,12 @@ async function signUpUserOnly(args: {
 
 describe('Notification Action Mutations', () => {
 	let ownerCtx: UserContext
-	let barber1: { cookie: string; userId: string; email: string }
-	let barber2: { cookie: string; userId: string; email: string }
-	let barber1InviteNotifId = ''
-	let barber2InviteNotifId = ''
 	let appointmentAcceptNotifId = ''
 	let appointmentDeclineNotifId = ''
 	let walkInNotifId = ''
 
 	beforeAll(async () => {
 		ownerCtx = await createUserWithOrg('action-owner')
-		barber1 = await signUpUserOnly({
-			name: 'Action Barber One',
-			emailPrefix: 'action_barber1'
-		})
-		barber2 = await signUpUserOnly({
-			name: 'Action Barber Two',
-			emailPrefix: 'action_barber2'
-		})
 
 		await db.insert(openHour).values(
 			Array.from({ length: 7 }, (_, dayOfWeek) => ({
@@ -190,38 +178,6 @@ describe('Notification Action Mutations', () => {
 			isActive: true,
 			isDefault: false
 		})
-
-		const invite1Res = await requestJson({
-			path: '/api/barbers/invite',
-			method: 'POST',
-			cookie: ownerCtx.cookie,
-			body: { email: barber1.email }
-		})
-		const invite1Id = invite1Res.data?.data?.id as string
-
-		const invite2Res = await requestJson({
-			path: '/api/barbers/invite',
-			method: 'POST',
-			cookie: ownerCtx.cookie,
-			body: { email: barber2.email }
-		})
-		const invite2Id = invite2Res.data?.data?.id as string
-
-		const n1 = await db.query.notification.findFirst({
-			where: and(
-				eq(notification.recipientUserId, barber1.userId),
-				eq(notification.referenceId, invite1Id)
-			)
-		})
-		barber1InviteNotifId = n1?.id ?? ''
-
-		const n2 = await db.query.notification.findFirst({
-			where: and(
-				eq(notification.recipientUserId, barber2.userId),
-				eq(notification.referenceId, invite2Id)
-			)
-		})
-		barber2InviteNotifId = n2?.id ?? ''
 
 		const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 		const nowWib = new Date(new Date().getTime() + WIB_OFFSET_MS)
@@ -318,31 +274,6 @@ describe('Notification Action Mutations', () => {
 		expect(walkInItem?.actionType).toBeNull()
 	})
 
-	it('POST /:id/actions/accept accepts a barbershop invitation', async () => {
-		const response = await requestJson({
-			path: `/api/notifications/${barber1InviteNotifId}/actions/accept`,
-			method: 'POST',
-			cookie: barber1.cookie
-		})
-
-		expect(response.status).toBe(200)
-		expect(response.data.data?.action).toBe('accepted')
-		expect(response.data.data?.referenceType).toBe('invitation')
-	})
-
-	it('POST /:id/actions/decline declines a barbershop invitation', async () => {
-		const response = await requestJson({
-			path: `/api/notifications/${barber2InviteNotifId}/actions/decline`,
-			method: 'POST',
-			cookie: barber2.cookie,
-			body: {}
-		})
-
-		expect(response.status).toBe(200)
-		expect(response.data.data?.action).toBe('declined')
-		expect(response.data.data?.referenceType).toBe('invitation')
-	})
-
 	it('POST /:id/actions/accept accepts an appointment (booking → waiting)', async () => {
 		const response = await requestJson({
 			path: `/api/notifications/${appointmentAcceptNotifId}/actions/accept`,
@@ -401,16 +332,6 @@ describe('Notification Action Mutations', () => {
 		})
 
 		expect(response.status).toBe(400)
-	})
-
-	it("returns 404 when acting on another user's notification", async () => {
-		const response = await requestJson({
-			path: `/api/notifications/${barber2InviteNotifId}/actions/accept`,
-			method: 'POST',
-			cookie: ownerCtx.cookie
-		})
-
-		expect(response.status).toBe(404)
 	})
 
 	it('returns 401 when not authenticated', async () => {

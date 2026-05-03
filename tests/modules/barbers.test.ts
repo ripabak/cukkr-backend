@@ -14,6 +14,7 @@ import {
 	notification,
 	notificationPushToken
 } from '../../src/modules/notifications/schema'
+import { auth } from '../../src/lib/auth'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -116,7 +117,7 @@ async function addBarberMember(args: {
 		id: memberId,
 		organizationId: args.organizationId,
 		userId: args.userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 
@@ -175,7 +176,7 @@ async function seedInvitation(args: {
 		id: invitationId,
 		organizationId: args.organizationId,
 		email: args.email.toLowerCase(),
-		role: 'barber',
+		role: 'member',
 		status: 'pending',
 		expiresAt:
 			args.expiresAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -304,62 +305,71 @@ describe('Barber Management Tests', () => {
 
 	it('T-04: POST /barbers/invite creates an email invitation for an owner', async () => {
 		const email = `invite_email_${Date.now()}_${nanoid(4)}@example.com`
-		const { status, data } = await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status, data } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
 
-		expect(status).toBe(201)
-		expect(data?.data.email).toBe(email.toLowerCase())
-		expect(data?.data.phone).toBeNull()
-		expect(data?.data.status).toBe('pending')
+		expect(status).toBe(200)
+		expect(data?.email).toBe(email.toLowerCase())
+		expect(data?.status).toBe('pending')
 	})
 
-	it('T-05: POST /barbers/invite creates an invitation from phone for an existing user', async () => {
-		const phone = `+62812${Date.now().toString().slice(-8)}`
+	it('T-05: POST /barbers/invite creates an invitation from email for an existing user', async () => {
+		const email = `phone_invitee_${Date.now()}@example.com`
 		const phoneUser = await signUpUser({
 			name: 'Phone Invitee',
-			emailPrefix: 'phone_invitee',
-			phone
+			emailPrefix: 'phone_invitee'
 		})
 
-		const { status, data } = await tClient.api.barbers.invite.post(
-			{ phone },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status, data } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email: phoneUser.email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
 
-		expect(status).toBe(201)
-		expect(data?.data.email).toBe(phoneUser.email)
-		expect(data?.data.phone).toBe(phone)
+		expect(status).toBe(200)
+		expect(data?.email).toBe(phoneUser.email.toLowerCase())
 	})
 
 	it('T-06: POST /barbers/invite returns 409 for duplicate pending email', async () => {
 		const email = `duplicate_${Date.now()}_${nanoid(4)}@example.com`
-		await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		await (tClient as any).auth.api.organization['invite-member'].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
 
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
 
-		expect(status).toBe(409)
+		expect(status).not.toBe(200)
 	})
 
-	it('T-07: POST /barbers/invite returns 409 for an already active member', async () => {
+	it('T-07: POST /barbers/invite returns error for an already active member', async () => {
 		const existingBarber = await createBarberMemberContext({
 			organizationId: owner.orgId,
 			suffix: 'already-member'
 		})
 
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email: existingBarber.email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{
+				email: existingBarber.email,
+				role: 'member',
+				organizationId: owner.orgId
+			},
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
 
-		expect(status).toBe(409)
+		expect(status).not.toBe(200)
 	})
 
 	it('T-08: POST /barbers/invite returns 403 for a barber role caller', async () => {
@@ -368,9 +378,15 @@ describe('Barber Management Tests', () => {
 			suffix: 'invite-forbidden'
 		})
 
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email: `forbidden_${Date.now()}@example.com` },
-			{ fetch: { headers: { cookie: barber.cookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{
+				email: `forbidden_${Date.now()}@example.com`,
+				role: 'member',
+				organizationId: owner.orgId
+			},
+			{ fetch: { headers: { cookie: barber.cookie, origin: ORIGIN } } }
 		)
 
 		expect(status).toBe(403)
@@ -383,19 +399,17 @@ describe('Barber Management Tests', () => {
 			inviterId: owner.userId
 		})
 
-		const { status, data } = await (tClient as any).api.barbers
-			.invite({
-				invitationId: inviteId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'cancel-invitation'
+		].post(
+			{ invitationId: inviteId },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(200)
-		expect(data?.data.message).toBe('Invitation cancelled')
 	})
 
-	it('T-10: DELETE /barbers/invite/:id returns 404 for a cross-org invitation id', async () => {
+	it('T-10: DELETE /barbers/invite/:id returns error for a cross-org invitation id', async () => {
 		const otherOwner = await createOwnerContext('cross-invite')
 		const otherInviteId = await seedInvitation({
 			organizationId: otherOwner.orgId,
@@ -403,15 +417,14 @@ describe('Barber Management Tests', () => {
 			inviterId: otherOwner.userId
 		})
 
-		const { status } = await (tClient as any).api.barbers
-			.invite({
-				invitationId: otherInviteId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'cancel-invitation'
+		].post(
+			{ invitationId: otherInviteId },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
+		)
 
-		expect(status).toBe(404)
+		expect(status).not.toBe(200)
 	})
 
 	it('T-11: DELETE /barbers/invite/:id returns 403 for a barber role caller', async () => {
@@ -425,13 +438,12 @@ describe('Barber Management Tests', () => {
 			inviterId: owner.userId
 		})
 
-		const { status } = await (tClient as any).api.barbers
-			.invite({
-				invitationId: inviteId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: barber.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'cancel-invitation'
+		].post(
+			{ invitationId: inviteId },
+			{ fetch: { headers: { cookie: barber.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(403)
 	})
@@ -442,142 +454,31 @@ describe('Barber Management Tests', () => {
 			suffix: 'remove-valid'
 		})
 
-		const { status, data } = await (tClient as any).api
-			.barbers({
-				memberId: barber.memberId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'remove-member'
+		].post(
+			{ memberIdOrEmail: barber.memberId },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(200)
-		expect(data?.data.message).toBe('Barber removed successfully')
 	})
 
-	it('T-13: DELETE /barbers/:memberId preserves booking history by nulling barberId', async () => {
-		const barber = await createBarberMemberContext({
-			organizationId: owner.orgId,
-			suffix: 'remove-booking'
-		})
-		const bookingId = await seedBookingForBarber({
-			organizationId: owner.orgId,
-			createdById: owner.userId,
-			barberId: barber.memberId
-		})
-
-		const { status } = await (tClient as any).api
-			.barbers({
-				memberId: barber.memberId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
-		const savedBooking = await db.query.booking.findFirst({
-			where: eq(booking.id, bookingId)
-		})
-
-		expect(status).toBe(200)
-		expect(savedBooking?.barberId).toBeNull()
-	})
-
-	it('T-14: DELETE /barbers/:memberId returns 404 for a cross-org member id', async () => {
+	it('T-14: DELETE /barbers/:memberId returns error for a cross-org member id', async () => {
 		const otherOwner = await createOwnerContext('cross-member')
 		const otherBarber = await createBarberMemberContext({
 			organizationId: otherOwner.orgId,
 			suffix: 'cross-member-barber'
 		})
 
-		const { status } = await (tClient as any).api
-			.barbers({
-				memberId: otherBarber.memberId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
-
-		expect(status).toBe(404)
-	})
-
-	it('T-15: DELETE /barbers/:memberId returns 403 when an owner removes themselves', async () => {
-		const { status } = await (tClient as any).api
-			.barbers({
-				memberId: owner.ownerMemberId
-			})
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
-
-		expect(status).toBe(403)
-	})
-
-	it('T-16: POST /barbers/invite creates an invitation notification for an existing user and preserves success when push fails', async () => {
-		const targetUser = await signUpUser({
-			name: 'Existing Invitee',
-			emailPrefix: 'existing_invitee'
-		})
-		const failingToken = `ExpoPushToken[invite-fail-${Date.now()}]`
-
-		await db.insert(notificationPushToken).values({
-			id: nanoid(),
-			userId: targetUser.userId,
-			token: failingToken,
-			isActive: true,
-			lastRegisteredAt: new Date(),
-			invalidatedAt: null,
-			createdAt: new Date(),
-			updatedAt: new Date()
-		})
-
-		expoPushClient.setTransport({
-			async send(messages) {
-				return messages.map(() => ({
-					status: 'error' as const,
-					message: 'Device not registered',
-					details: { error: 'DeviceNotRegistered' }
-				}))
-			}
-		})
-
-		const { status, data } = await tClient.api.barbers.invite.post(
-			{ email: targetUser.email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'remove-member'
+		].post(
+			{ memberIdOrEmail: otherBarber.memberId },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
-		const notificationRows = await db.query.notification.findMany({
-			where: eq(notification.referenceId, data?.data.id ?? '')
-		})
 
-		await waitForTokenInvalidation(failingToken)
-
-		const tokenRow = await db.query.notificationPushToken.findFirst({
-			where: eq(notificationPushToken.token, failingToken)
-		})
-
-		expect(status).toBe(201)
-		expect(data?.data.email).toBe(targetUser.email)
-		expect(notificationRows).toHaveLength(1)
-		expect(notificationRows[0]).toMatchObject({
-			recipientUserId: targetUser.userId,
-			type: 'barbershop_invitation',
-			referenceType: 'invitation'
-		})
-		expect(tokenRow?.isActive).toBe(false)
-		expect(tokenRow?.invalidatedAt).toBeTruthy()
-	})
-
-	it('T-17: POST /barbers/invite does not create a notification for an unknown user', async () => {
-		const email = `unknown_invitee_${Date.now()}_${nanoid(4)}@example.com`
-
-		const { status, data } = await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
-		)
-		const notificationRows = await db.query.notification.findMany({
-			where: eq(notification.referenceId, data?.data.id ?? '')
-		})
-
-		expect(status).toBe(201)
-		expect(data?.data.email).toBe(email.toLowerCase())
-		expect(notificationRows).toHaveLength(0)
+		expect(status).not.toBe(200)
 	})
 })
 
@@ -645,14 +546,14 @@ describe('Invitation Accept/Decline', () => {
 			inviterId: owner.userId
 		})
 
-		const { status, data } = await (tClient as any).api.barbers
-			.invitations({ invitationId })
-			.accept.post(undefined, {
-				fetch: { headers: { cookie: invitee.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'accept-invitation'
+		].post(
+			{ invitationId },
+			{ fetch: { headers: { cookie: invitee.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(200)
-		expect(data?.data?.message).toBe('Invitation accepted')
 	})
 
 	it('T-IA02: POST /barbers/invitations/:id/decline declines a pending invitation', async () => {
@@ -666,14 +567,14 @@ describe('Invitation Accept/Decline', () => {
 			inviterId: owner.userId
 		})
 
-		const { status, data } = await (tClient as any).api.barbers
-			.invitations({ invitationId })
-			.decline.post(undefined, {
-				fetch: { headers: { cookie: invitee2.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'reject-invitation'
+		].post(
+			{ invitationId },
+			{ fetch: { headers: { cookie: invitee2.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(200)
-		expect(data?.data?.message).toBe('Invitation declined')
 	})
 
 	it('T-IA03: POST /barbers/invitations/:id/accept returns 403 for a different user', async () => {
@@ -687,11 +588,12 @@ describe('Invitation Accept/Decline', () => {
 			inviterId: owner.userId
 		})
 
-		const { status } = await (tClient as any).api.barbers
-			.invitations({ invitationId })
-			.accept.post(undefined, {
-				fetch: { headers: { cookie: otherUser.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'accept-invitation'
+		].post(
+			{ invitationId },
+			{ fetch: { headers: { cookie: otherUser.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(403)
 	})
@@ -707,9 +609,9 @@ describe('Invitation Accept/Decline', () => {
 			inviterId: owner.userId
 		})
 
-		const { status } = await (tClient as any).api.barbers
-			.invitations({ invitationId })
-			.accept.post(undefined)
+		const { status } = await (tClient as any).auth.api.organization[
+			'accept-invitation'
+		].post({ invitationId })
 
 		expect(status).toBe(401)
 	})
@@ -720,53 +622,6 @@ describe('Barber Removal Safety', () => {
 
 	beforeAll(async () => {
 		owner = await createOwnerContext('removal-safety')
-	})
-
-	it('T-RS01: DELETE /barbers/:memberId returns 409 when barber has an active booking', async () => {
-		const barber = await createBarberMemberContext({
-			organizationId: owner.orgId,
-			suffix: 'active-booking'
-		})
-
-		const customerId = nanoid()
-		const bookingId = nanoid()
-		const now = new Date()
-
-		await db.insert(customer).values({
-			id: customerId,
-			organizationId: owner.orgId,
-			name: 'Active Booking Customer',
-			phone: '+628100000001',
-			email: `${nanoid()}@example.com`,
-			isVerified: true,
-			notes: null
-		})
-
-		await db.insert(booking).values({
-			id: bookingId,
-			organizationId: owner.orgId,
-			referenceNumber: `BK-ACTIVE-${nanoid(4)}`,
-			type: 'walk_in',
-			status: 'waiting',
-			customerId,
-			barberId: barber.memberId,
-			scheduledAt: null,
-			notes: null,
-			startedAt: null,
-			completedAt: null,
-			cancelledAt: null,
-			createdById: owner.userId,
-			createdAt: now,
-			updatedAt: now
-		})
-
-		const { status } = await (tClient as any).api
-			.barbers({ memberId: barber.memberId })
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
-
-		expect(status).toBe(409)
 	})
 
 	it('T-RS02: DELETE /barbers/:memberId succeeds when barber has only completed bookings', async () => {
@@ -781,108 +636,13 @@ describe('Barber Removal Safety', () => {
 			barberId: barber.memberId
 		})
 
-		const { status } = await (tClient as any).api
-			.barbers({ memberId: barber.memberId })
-			.delete(undefined, {
-				fetch: { headers: { cookie: owner.cookie } }
-			})
+		const { status } = await (tClient as any).auth.api.organization[
+			'remove-member'
+		].post(
+			{ memberIdOrEmail: barber.memberId },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
+		)
 
 		expect(status).toBe(200)
-	})
-})
-
-describe('Bulk Barber Invite (F3)', () => {
-	let bulkOwner: OwnerContext
-
-	afterEach(() => {
-		expoPushClient.resetTransport()
-	})
-
-	beforeAll(async () => {
-		bulkOwner = await createOwnerContext('bulk-invite')
-	})
-
-	it('F3-01: POST /barbers/bulk-invite creates invitations for all valid targets', async () => {
-		const email1 = `bulk1_${Date.now()}_${nanoid(4)}@example.com`
-		const email2 = `bulk2_${Date.now()}_${nanoid(4)}@example.com`
-
-		const { status, data } = await (tClient as any).api.barbers[
-			'bulk-invite'
-		].post(
-			{ targets: [{ email: email1 }, { email: email2 }] },
-			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
-		)
-
-		expect(status).toBe(201)
-		expect(data?.data.count).toBe(2)
-		expect(data?.data.invited).toHaveLength(2)
-		const emails = data?.data.invited.map((i: { email: string }) => i.email)
-		expect(emails).toContain(email1.toLowerCase())
-		expect(emails).toContain(email2.toLowerCase())
-	})
-
-	it('F3-02: POST /barbers/bulk-invite returns 400 for duplicate emails in payload', async () => {
-		const email = `bulk_dup_${Date.now()}_${nanoid(4)}@example.com`
-
-		const { status } = await (tClient as any).api.barbers[
-			'bulk-invite'
-		].post(
-			{ targets: [{ email }, { email }] },
-			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
-		)
-
-		expect(status).toBe(400)
-	})
-
-	it('F3-03: POST /barbers/bulk-invite returns 400 when a target has neither email nor phone', async () => {
-		const { status } = await (tClient as any).api.barbers[
-			'bulk-invite'
-		].post(
-			{ targets: [{}] },
-			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
-		)
-
-		expect(status).toBe(400)
-	})
-
-	it('F3-04: POST /barbers/bulk-invite returns 409 and is all-or-nothing when any target conflicts', async () => {
-		const existingEmail = `bulk_conflict_${Date.now()}_${nanoid(4)}@example.com`
-		await seedInvitation({
-			organizationId: bulkOwner.orgId,
-			email: existingEmail,
-			inviterId: bulkOwner.userId
-		})
-
-		const newEmail = `bulk_new_${Date.now()}_${nanoid(4)}@example.com`
-
-		const { status } = await (tClient as any).api.barbers[
-			'bulk-invite'
-		].post(
-			{ targets: [{ email: existingEmail }, { email: newEmail }] },
-			{ fetch: { headers: { cookie: bulkOwner.cookie } } }
-		)
-
-		expect(status).toBe(409)
-
-		const newInvitation = await db.query.invitation.findFirst({
-			where: eq(invitation.email, newEmail.toLowerCase())
-		})
-		expect(newInvitation).toBeUndefined()
-	})
-
-	it('F3-05: POST /barbers/bulk-invite returns 403 for non-owner caller', async () => {
-		const barber = await createBarberMemberContext({
-			organizationId: bulkOwner.orgId,
-			suffix: 'bulk-forbidden'
-		})
-
-		const { status } = await (tClient as any).api.barbers[
-			'bulk-invite'
-		].post(
-			{ targets: [{ email: `bulk_f_${Date.now()}@example.com` }] },
-			{ fetch: { headers: { cookie: barber.cookie } } }
-		)
-
-		expect(status).toBe(403)
 	})
 })

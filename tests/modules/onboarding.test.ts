@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeAll } from 'bun:test'
 import { treaty } from '@elysiajs/eden'
 import { app } from '../../src/app'
+import { auth } from '../../src/lib/auth'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -187,52 +188,63 @@ describe('Barber Invite Tests', () => {
 
 	it('should invite a barber successfully (201)', async () => {
 		const email = `barber_${Date.now()}@example.com`
-		const { status, data } = await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status, data } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
-		expect(status).toBe(201)
-		expect(data?.data.email).toBe(email)
-		expect(data?.data.role).toBe('barber')
-		expect(data?.data.status).toBe('pending')
-		expect(data?.data.expiresAt).toBeDefined()
+		expect(status).toBe(200)
+		expect(data?.email).toBe(email)
+		expect(data?.role).toBe('member')
+		expect(data?.status).toBe('pending')
+		expect(data?.expiresAt).toBeDefined()
 	})
 
-	it('should return 409 when inviting the same email twice', async () => {
+	it('should return 400 when inviting the same email twice', async () => {
 		const email = `barber_dup_${Date.now()}@example.com`
-		await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		await (tClient as any).auth.api.organization['invite-member'].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email, role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
-		expect(status).toBe(409)
+		expect(status).toBe(400)
 	})
 
-	it('should return 422 for invalid email format', async () => {
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email: 'not-an-email' },
-			{ fetch: { headers: { cookie: owner.cookie } } }
+	it('should return 400 for invalid email format', async () => {
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email: 'not-an-email', role: 'member' },
+			{ fetch: { headers: { cookie: owner.cookie, origin: ORIGIN } } }
 		)
-		expect(status).toBe(422)
+		expect(status).toBe(400)
 	})
 
 	it('should return 401 without auth', async () => {
-		const { status } = await tClient.api.barbers.invite.post({
-			email: 'noauth@example.com'
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post({
+			email: 'noauth@example.com',
+			role: 'member'
 		})
 		expect(status).toBe(401)
 	})
 
-	it('should return 403 without active org', async () => {
+	it('should return 400 without active org', async () => {
 		const noOrgCookie = await getNoOrgCookie()
-		const { status } = await tClient.api.barbers.invite.post(
-			{ email: 'noorg@example.com' },
-			{ fetch: { headers: { cookie: noOrgCookie } } }
+		const { status } = await (tClient as any).auth.api.organization[
+			'invite-member'
+		].post(
+			{ email: 'noorg@example.com', role: 'member' },
+			{ fetch: { headers: { cookie: noOrgCookie, origin: ORIGIN } } }
 		)
-		expect(status).toBe(403)
+		expect(status).toBe(400)
 	})
 })
 
@@ -349,12 +361,14 @@ describe('Full Onboarding Wizard Flow', () => {
 		expect(patchRes.data?.data.slug).toBe(uniqueSlug)
 
 		// Step 2: Invite a barber
-		const inviteRes = await tClient.api.barbers.invite.post(
-			{ email: `wizard-barber-${Date.now()}@example.com` },
-			{ fetch: { headers: { cookie: owner.cookie } } }
-		)
-		expect(inviteRes.status).toBe(201)
-		expect(inviteRes.data?.data.role).toBe('barber')
+		const data = await auth.api.createInvitation({
+			body: {
+				email: `wizard-barber-${Date.now()}@example.com`,
+				role: 'member'
+			},
+			headers: { cookie: owner.cookie }
+		})
+		expect(data.role).toBe('member')
 
 		// Step 4: Create the first service
 		const serviceRes = await tClient.api.services.post(

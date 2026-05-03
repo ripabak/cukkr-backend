@@ -4,7 +4,7 @@ import { db } from '../../lib/database'
 import { invitation, member, user } from '../auth/schema'
 import { BarberModel } from './model'
 
-const BARBER_ROLE = 'barber'
+const BARBER_ROLE = 'member'
 
 type MemberWithUser = typeof member.$inferSelect & {
 	user: typeof user.$inferSelect
