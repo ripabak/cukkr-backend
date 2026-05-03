@@ -472,52 +472,6 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
     };
 } & {
     barbershop: {
-        list: {
-            get: {
-                body: {};
-                params: {};
-                query: {};
-                headers: {};
-                response: {
-                    200: {
-                        meta?: {
-                            limit: number;
-                            page: number;
-                            totalItems: number;
-                            totalPages: number;
-                            hasNext: boolean;
-                            hasPrev: boolean;
-                        } | undefined;
-                        message: string;
-                        data: {
-                            id: string;
-                            name: string;
-                            slug: string;
-                            role: string;
-                            description: string | null;
-                            address: string | null;
-                            logoUrl: string | null;
-                            onboardingCompleted: boolean;
-                        }[];
-                        status: string | number;
-                        path: string;
-                        timeStamp: string;
-                    };
-                    422: {
-                        type: "validation";
-                        on: string;
-                        summary?: string;
-                        message?: string;
-                        found?: unknown;
-                        property?: string;
-                        expected?: string;
-                    };
-                };
-            };
-        };
-    };
-} & {
-    barbershop: {
         settings: {
             patch: {
                 body: {

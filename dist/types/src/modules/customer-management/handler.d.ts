@@ -492,7 +492,7 @@ export declare const customersHandler: Elysia<"/customers", {
                         id: string;
                     };
                     query: {
-                        type?: "walk_in" | "appointment" | "all" | undefined;
+                        type?: "all" | "walk_in" | "appointment" | undefined;
                         limit?: number | undefined;
                         page?: number | undefined;
                     };

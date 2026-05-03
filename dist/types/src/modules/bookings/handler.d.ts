@@ -486,7 +486,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             params: {};
             query: {
                 sort?: "oldest_first" | "recently_added" | undefined;
-                status?: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | "all" | undefined;
+                status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                 barberId?: string | undefined;
                 date: string;
             };

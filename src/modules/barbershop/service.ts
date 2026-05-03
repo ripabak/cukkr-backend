@@ -11,9 +11,7 @@ import { storageClient } from '../../lib/storage'
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
 export abstract class BarbershopService {
-	private static async ensureSettingsRow(
-		organizationId: string
-	): Promise<void> {
+	static async ensureSettingsRow(organizationId: string): Promise<void> {
 		await db
 			.insert(barbershopSettings)
 			.values({
@@ -170,86 +168,6 @@ export abstract class BarbershopService {
 			.limit(1)
 
 		return { available: rows.length === 0 }
-	}
-
-	static async createBarbershop(
-		userId: string,
-		body: BarbershopModel.CreateBarbershopInput
-	): Promise<BarbershopModel.BarbershopResponse> {
-		await BarbershopService.validateAndCheckSlug(body.slug)
-
-		const orgId = nanoid()
-		const now = new Date()
-
-		await db.insert(organization).values({
-			id: orgId,
-			name: body.name,
-			slug: body.slug,
-			createdAt: now
-		})
-
-		await db.insert(member).values({
-			id: nanoid(),
-			organizationId: orgId,
-			userId,
-			role: 'owner',
-			createdAt: now
-		})
-
-		await BarbershopService.ensureSettingsRow(orgId)
-
-		if (body.description !== undefined || body.address !== undefined) {
-			const settingsUpdate: {
-				description?: string | null
-				address?: string | null
-			} = {}
-			if (body.description !== undefined)
-				settingsUpdate.description = body.description
-			if (body.address !== undefined)
-				settingsUpdate.address = body.address
-
-			await db
-				.update(barbershopSettings)
-				.set(settingsUpdate)
-				.where(eq(barbershopSettings.organizationId, orgId))
-		}
-
-		return BarbershopService.getSettings(orgId)
-	}
-
-	static async listBarbershops(
-		userId: string
-	): Promise<BarbershopModel.BarbershopListResponse> {
-		const rows = await db
-			.select({
-				id: organization.id,
-				name: organization.name,
-				slug: organization.slug,
-				description: barbershopSettings.description,
-				address: barbershopSettings.address,
-				logoUrl: barbershopSettings.logoUrl,
-				onboardingCompleted: barbershopSettings.onboardingCompleted,
-				role: member.role
-			})
-			.from(member)
-			.innerJoin(organization, eq(organization.id, member.organizationId))
-			.leftJoin(
-				barbershopSettings,
-				eq(barbershopSettings.organizationId, organization.id)
-			)
-			.where(eq(member.userId, userId))
-			.orderBy(organization.createdAt)
-
-		return rows.map((row) => ({
-			id: row.id,
-			name: row.name,
-			slug: row.slug,
-			description: row.description ?? null,
-			address: row.address ?? null,
-			logoUrl: row.logoUrl ?? null,
-			onboardingCompleted: row.onboardingCompleted ?? false,
-			role: row.role
-		}))
 	}
 
 	static async uploadLogo(
