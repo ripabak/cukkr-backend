@@ -56,6 +56,7 @@ export const barbersHandler = new Elysia({
 		}
 	)
 
+	// @deprecatedHandler using better auth invite instead.
 	.post(
 		'/invite',
 		async ({ body, path, user, activeOrganizationId, set }) => {
@@ -80,6 +81,7 @@ export const barbersHandler = new Elysia({
 		}
 	)
 
+	// @deprecatedHandler using better auth invite instead.
 	.delete(
 		'/invite/:invitationId',
 		async ({
@@ -108,6 +110,7 @@ export const barbersHandler = new Elysia({
 		}
 	)
 
+	// @deprecatedHandler using better auth invite instead.
 	.delete(
 		'/:memberId',
 		async ({ params: { memberId }, path, user, activeOrganizationId }) => {
@@ -131,6 +134,7 @@ export const barbersHandler = new Elysia({
 		}
 	)
 
+	// @deprecatedHandler using better auth invite instead.
 	.post(
 		'/invitations/:invitationId/accept',
 		async ({ params: { invitationId }, path, user }) => {
@@ -147,6 +151,7 @@ export const barbersHandler = new Elysia({
 		}
 	)
 
+	// @deprecatedHandler using better auth invite instead.
 	.post(
 		'/invitations/:invitationId/decline',
 		async ({ params: { invitationId }, path, user }) => {

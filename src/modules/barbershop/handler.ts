@@ -31,6 +31,7 @@ export const barbershopHandler = new Elysia({
 	)
 
 	// POST /barbershop — create a new barbershop organization
+	// @deprecatedHandler use organization better auth api instread
 	.post(
 		'/',
 		async ({ body, path, user, set }) => {
