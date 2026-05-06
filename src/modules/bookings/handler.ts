@@ -95,6 +95,25 @@ export const bookingsHandler = new Elysia({
 			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
 		}
 	)
+	.get(
+		'/active',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.listActiveBookings(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.ActiveBookingListQuery,
+			response: FormatResponseSchema(
+				t.Array(BookingModel.BookingSummaryResponse)
+			)
+		}
+	)
 	.post(
 		'/:id/accept',
 		async ({ params: { id }, path, activeOrganizationId }) => {

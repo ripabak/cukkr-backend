@@ -529,6 +529,72 @@ export abstract class BookingService {
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
 
+	static async listActiveBookings(
+		organizationId: string,
+		query: BookingModel.ActiveBookingListQuery
+	): Promise<BookingModel.BookingSummaryResponse[]> {
+		const { start, end } = BookingService.buildDayRange(query.date)
+
+		const dayCondition = or(
+			and(
+				eq(booking.type, 'appointment'),
+				isNotNull(booking.scheduledAt),
+				gte(booking.scheduledAt, start),
+				lt(booking.scheduledAt, end)
+			),
+			and(
+				eq(booking.type, 'walk_in'),
+				gte(booking.createdAt, start),
+				lt(booking.createdAt, end)
+			)
+		)
+
+		const conditions = [
+			eq(booking.organizationId, organizationId),
+			dayCondition
+		]
+
+		if (!query.status || query.status === 'all') {
+			conditions.push(inArray(booking.status, ['waiting', 'in_progress']))
+		} else {
+			conditions.push(eq(booking.status, query.status))
+		}
+
+		if (query.barberId) {
+			conditions.push(eq(booking.barberId, query.barberId))
+		}
+
+		const rows = await db.query.booking.findMany({
+			where: and(...conditions),
+			with: {
+				customer: true,
+				barber: {
+					with: {
+						user: true
+					}
+				},
+				handledByBarber: {
+					with: {
+						user: true
+					}
+				},
+				services: true
+			}
+		})
+
+		return rows
+			.sort((left, right) => {
+				const leftTime = (left.scheduledAt ?? left.createdAt).getTime()
+				const rightTime = (
+					right.scheduledAt ?? right.createdAt
+				).getTime()
+				return query.sort === 'recently_added'
+					? rightTime - leftTime
+					: leftTime - rightTime
+			})
+			.map((row) => BookingService.mapSummary(row as BookingReadRow))
+	}
+
 	static async createBooking(
 		organizationId: string,
 		createdById: string,

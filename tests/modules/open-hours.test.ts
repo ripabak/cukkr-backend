@@ -82,13 +82,13 @@ async function createOwnerWithOrg(suffix: string): Promise<AuthContext> {
 async function createBarberForOrg(
 	organizationId: string
 ): Promise<AuthContext> {
-	const { cookie, userId } = await signUpAndGetCookie('barber')
+	const { cookie, userId } = await signUpAndGetCookie('member')
 
 	await db.insert(member).values({
 		id: nanoid(),
 		organizationId,
 		userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 

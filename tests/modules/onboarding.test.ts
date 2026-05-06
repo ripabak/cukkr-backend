@@ -270,7 +270,7 @@ describe('Service Creation Tests', () => {
 		)
 		expect(status).toBe(201)
 		expect(data?.data.isDefault).toBe(false)
-		expect(data?.data.isActive).toBe(false)
+		expect(data?.data.isActive).toBe(true)
 		expect(data?.data.name).toBe('Haircut')
 		expect(data?.data.price).toBe(50000)
 	})
@@ -377,7 +377,7 @@ describe('Full Onboarding Wizard Flow', () => {
 		)
 		expect(serviceRes.status).toBe(201)
 		expect(serviceRes.data?.data.isDefault).toBe(false)
-		expect(serviceRes.data?.data.isActive).toBe(false)
+		expect(serviceRes.data?.data.isActive).toBe(true)
 
 		// Finish: Mark onboarding as complete
 		const completeRes = await tClient.api.barbershop.settings.patch(

@@ -105,7 +105,7 @@ async function addBarberMember(args: {
 		id: memberId,
 		organizationId: args.orgId,
 		userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 

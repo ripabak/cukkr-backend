@@ -146,6 +146,30 @@ export namespace BookingModel {
 	)
 	export type BookingListQuery = typeof BookingListQuery.static
 
+	export const ActiveBookingListStatusEnum = t.Union([
+		t.Literal('all'),
+		t.Literal('waiting'),
+		t.Literal('in_progress')
+	])
+	export type ActiveBookingListStatus =
+		typeof ActiveBookingListStatusEnum.static
+
+	export const ActiveBookingListQuery = t.Object(
+		{
+			date: t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' }),
+			status: t.Optional(ActiveBookingListStatusEnum),
+			barberId: t.Optional(t.String({ minLength: 1 })),
+			sort: t.Optional(
+				t.Union([
+					t.Literal('oldest_first'),
+					t.Literal('recently_added')
+				])
+			)
+		},
+		{ additionalProperties: false }
+	)
+	export type ActiveBookingListQuery = typeof ActiveBookingListQuery.static
+
 	export const BookingServiceLineItemResponse = t.Object({
 		id: t.String(),
 		serviceId: t.String(),

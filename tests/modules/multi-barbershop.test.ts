@@ -91,7 +91,7 @@ async function addBarberMember(
 		id: memberId,
 		organizationId,
 		userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 	return memberId

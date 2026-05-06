@@ -74,6 +74,15 @@ export declare namespace BookingModel {
         sort: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"oldest_first">, import("@sinclair/typebox").TLiteral<"recently_added">]>>;
     }>;
     type BookingListQuery = typeof BookingListQuery.static;
+    const ActiveBookingListStatusEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">]>;
+    type ActiveBookingListStatus = typeof ActiveBookingListStatusEnum.static;
+    const ActiveBookingListQuery: import("@sinclair/typebox").TObject<{
+        date: import("@sinclair/typebox").TString;
+        status: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">]>>;
+        barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        sort: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"oldest_first">, import("@sinclair/typebox").TLiteral<"recently_added">]>>;
+    }>;
+    type ActiveBookingListQuery = typeof ActiveBookingListQuery.static;
     const BookingServiceLineItemResponse: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         serviceId: import("@sinclair/typebox").TString;

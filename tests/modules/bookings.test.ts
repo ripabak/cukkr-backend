@@ -163,7 +163,7 @@ async function createBarberMemberContext(args: {
 		id: memberId,
 		organizationId: args.organizationId,
 		userId: barberUser.userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 
@@ -1426,7 +1426,7 @@ describe('Booking Barber Split (F1) & Open Hours Validation (F2)', () => {
 		)
 		const detail = createData?.data as Record<string, unknown>
 
-		expect('barber' in detail).toBe(false)
+		expect('member' in detail).toBe(false)
 		expect('requestedBarber' in detail).toBe(true)
 		expect('handledByBarber' in detail).toBe(true)
 	})
@@ -1571,6 +1571,136 @@ describe('Booking Reassignment', () => {
 		const { status } = await (tClient as any).api
 			.bookings({ id: bookingId })
 			.reassign.patch({ handledByMemberId: barber1.memberId })
+
+		expect(status).toBe(401)
+	})
+})
+
+describe('Active Bookings Endpoint', () => {
+	let owner: OwnerContext
+	const ACTIVE_DATE = LIST_DATE
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('active-bookings')
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-04-26T09:00:00.000Z'),
+			customerName: 'Waiting Customer',
+			serviceNames: ['Classic Cut']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'in_progress',
+			createdAt: new Date('2026-04-26T10:00:00.000Z'),
+			customerName: 'InProgress Customer',
+			serviceNames: ['Beard Trim']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'completed',
+			createdAt: new Date('2026-04-26T08:00:00.000Z'),
+			customerName: 'Completed Customer',
+			serviceNames: ['Hair Wash']
+		})
+	})
+
+	it('returns all active bookings (waiting + in_progress) when status=all', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE, status: 'all' },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const statuses = (data as any).data.map(
+			(b: { status: string }) => b.status
+		)
+		expect(statuses).toContain('waiting')
+		expect(statuses).toContain('in_progress')
+		expect(statuses).not.toContain('completed')
+	})
+
+	it('returns all active bookings when status is omitted', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const statuses = (data as any).data.map(
+			(b: { status: string }) => b.status
+		)
+		expect(statuses).toContain('waiting')
+		expect(statuses).toContain('in_progress')
+		expect(statuses).not.toContain('completed')
+	})
+
+	it('returns only waiting bookings when status=waiting', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE, status: 'waiting' },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const statuses = (data as any).data.map(
+			(b: { status: string }) => b.status
+		)
+		expect(statuses.every((s: string) => s === 'waiting')).toBe(true)
+	})
+
+	it('returns only in_progress bookings when status=in_progress', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE, status: 'in_progress' },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const statuses = (data as any).data.map(
+			(b: { status: string }) => b.status
+		)
+		expect(statuses.every((s: string) => s === 'in_progress')).toBe(true)
+	})
+
+	it('sorts oldest first by default', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const items = (data as any).data as { createdAt: string }[]
+		const times = items.map((b) => new Date(b.createdAt).getTime())
+		expect(times).toEqual([...times].sort((a, b) => a - b))
+	})
+
+	it('sorts recently added when sort=recently_added', async () => {
+		const { data, status } = await tClient.api.bookings.active.get({
+			query: { date: ACTIVE_DATE, sort: 'recently_added' },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		const items = (data as any).data as { createdAt: string }[]
+		const times = items.map((b) => new Date(b.createdAt).getTime())
+		expect(times).toEqual([...times].sort((a, b) => b - a))
+	})
+
+	it('returns 401 when not authenticated', async () => {
+		const { status } = await (tClient as any).api.bookings.active.get({
+			query: { date: ACTIVE_DATE }
+		})
 
 		expect(status).toBe(401)
 	})

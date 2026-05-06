@@ -340,7 +340,7 @@ export abstract class NotificationService {
 		const members = await db.query.member.findMany({
 			where: and(
 				eq(member.organizationId, organizationId),
-				inArray(member.role, ['owner', 'barber'])
+				inArray(member.role, ['owner', 'member'])
 			)
 		})
 

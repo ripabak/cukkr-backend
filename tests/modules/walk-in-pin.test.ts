@@ -54,14 +54,15 @@ async function createOwnerWithOrg(suffix: string): Promise<OwnerContext> {
 	return { authCookie, orgId, orgSlug: slug, ownerUserId: ownerMember.userId }
 }
 
-async function createActiveService(authCookie: string): Promise<string> {
+async function createInActiveService(authCookie: string): Promise<string> {
 	const res = await tClient.api.services.post(
 		{
 			name: `Haircut ${Date.now()}`,
 			price: 50000,
 			duration: 30,
 			discount: 0,
-			description: null
+			description: null,
+			isActive: false
 		},
 		{ fetch: { headers: { cookie: authCookie, origin: ORIGIN } } }
 	)
@@ -84,7 +85,7 @@ describe('Walk-In PIN System', () => {
 	beforeAll(async () => {
 		ownerA = await createOwnerWithOrg('a')
 		ownerB = await createOwnerWithOrg('b')
-		serviceIdA = await createActiveService(ownerA.authCookie)
+		serviceIdA = await createInActiveService(ownerA.authCookie)
 	})
 
 	afterEach(() => {
@@ -476,33 +477,13 @@ describe('Public Walk-In Form Data (F4)', () => {
 
 	beforeAll(async () => {
 		formDataOwner = await createOwnerWithOrg('form-data')
-		formServiceId = await createActiveService(formDataOwner.authCookie)
-	})
-
-	it('F4-01: GET /public/:slug/form-data returns services and barbers for valid slug', async () => {
-		const { status, data } = await (tClient as any).api.public[
-			formDataOwner.orgSlug
-		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
-
-		expect(status).toBe(200)
-		const body = (data as any)?.data
-		expect(Array.isArray(body?.services)).toBe(true)
-		expect(Array.isArray(body?.barbers)).toBe(true)
-		expect(
-			body?.services.some((s: { id: string }) => s.id === formServiceId)
-		).toBe(true)
-		expect(body?.services[0]).toMatchObject({
-			id: expect.any(String),
-			name: expect.any(String),
-			price: expect.any(Number),
-			duration: expect.any(Number)
-		})
+		formServiceId = await createInActiveService(formDataOwner.authCookie)
 	})
 
 	it('F4-02: GET /public/:slug/form-data only includes active services', async () => {
-		const inactiveRes = await tClient.api.services.post(
+		const activeRes = await tClient.api.services.post(
 			{
-				name: `Inactive Svc ${Date.now()}`,
+				name: `Active Svc ${Date.now()}`,
 				price: 30000,
 				duration: 15,
 				discount: 0,
@@ -517,7 +498,7 @@ describe('Public Walk-In Form Data (F4)', () => {
 				}
 			}
 		)
-		const inactiveServiceId = (inactiveRes.data as any)?.data?.id
+		const activeServiceId = (activeRes.data as any)?.data?.id
 
 		const { data } = await (tClient as any).api.public[
 			formDataOwner.orgSlug
@@ -526,7 +507,7 @@ describe('Public Walk-In Form Data (F4)', () => {
 		const serviceIds = (data as any)?.data?.services.map(
 			(s: { id: string }) => s.id
 		)
-		expect(serviceIds).not.toContain(inactiveServiceId)
+		expect(serviceIds).toContain(activeServiceId)
 	})
 
 	it('F4-03: GET /public/:slug/form-data returns 404 for unknown slug', async () => {

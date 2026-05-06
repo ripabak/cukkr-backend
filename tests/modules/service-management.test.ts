@@ -147,7 +147,7 @@ describe('Service Management Tests', () => {
 		expect(data?.data.price).toBe(75000)
 		expect(data?.data.duration).toBe(30)
 		expect(data?.data.discount).toBe(0)
-		expect(data?.data.isActive).toBe(false)
+		expect(data?.data.isActive).toBe(true)
 		expect(data?.data.isDefault).toBe(false)
 		serviceIdA = data?.data.id ?? ''
 		inactiveServiceId = serviceIdA
@@ -327,7 +327,7 @@ describe('Service Management Tests', () => {
 
 	// ── Toggle active ─────────────────────────────────────────────────────────
 
-	it('T-25: PATCH /services/:id/toggle-active flips inactive → active', async () => {
+	it('T-25: PATCH /services/:id/toggle-active flips active → inactive', async () => {
 		const { status, data } = await (tClient as any).api.services[
 			inactiveServiceId
 		]['toggle-active'].patch(
@@ -335,7 +335,7 @@ describe('Service Management Tests', () => {
 			{ fetch: { headers: { cookie: authCookieA } } }
 		)
 		expect(status).toBe(200)
-		expect(data?.data.isActive).toBe(true)
+		expect(data?.data.isActive).toBe(false)
 	})
 
 	it('T-26: PATCH /services/:id/toggle-active flips active → inactive (and clears default)', async () => {
@@ -351,7 +351,7 @@ describe('Service Management Tests', () => {
 			{ fetch: { headers: { cookie: authCookieA } } }
 		)
 		expect(status).toBe(200)
-		expect(data?.data.isActive).toBe(false)
+		expect(data?.data.isActive).toBe(true)
 		expect(data?.data.isDefault).toBe(false)
 	})
 
@@ -370,13 +370,23 @@ describe('Service Management Tests', () => {
 	it('T-28: PATCH /services/:id/set-default sets active service as default and clears previous', async () => {
 		// Create and activate two services
 		const s1Res = await tClient.api.services.post(
-			{ name: 'Default Candidate 1', price: 60000, duration: 30 },
+			{
+				name: 'Default Candidate 1',
+				price: 60000,
+				duration: 30,
+				isActive: false
+			},
 			{ fetch: { headers: { cookie: authCookieA } } }
 		)
 		const s1Id = s1Res.data?.data?.id ?? ''
 
 		const s2Res = await tClient.api.services.post(
-			{ name: 'Default Candidate 2', price: 70000, duration: 40 },
+			{
+				name: 'Default Candidate 2',
+				price: 70000,
+				duration: 40,
+				isActive: false
+			},
 			{ fetch: { headers: { cookie: authCookieA } } }
 		)
 		const s2Id = s2Res.data?.data?.id ?? ''
@@ -417,7 +427,12 @@ describe('Service Management Tests', () => {
 	it('T-29: PATCH /services/:id/set-default returns 400 for inactive service', async () => {
 		// Create a new inactive service and try to set it as default
 		const sRes = await tClient.api.services.post(
-			{ name: 'Inactive Default Attempt', price: 30000, duration: 15 },
+			{
+				name: 'Inactive Default Attempt',
+				price: 30000,
+				duration: 15,
+				isActive: false
+			},
 			{ fetch: { headers: { cookie: authCookieA } } }
 		)
 		const inactId = sRes.data?.data?.id ?? ''
