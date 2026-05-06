@@ -19,7 +19,7 @@ export const barbersHandler = new Elysia({
 		async ({ query, path, activeOrganizationId }) => {
 			const data = await BarberService.listBarbers(
 				activeOrganizationId,
-				query.search
+				query
 			)
 
 			return formatResponse({ path, data })

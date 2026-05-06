@@ -14,7 +14,8 @@ export namespace ServiceModel {
 		description: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
 		price: t.Integer({ minimum: 0 }),
 		duration: t.Integer({ minimum: 1 }),
-		discount: t.Optional(t.Integer({ minimum: 0, maximum: 100 }))
+		discount: t.Optional(t.Integer({ minimum: 0, maximum: 100 })),
+		isActive: t.Optional(t.Boolean())
 	})
 	export type ServiceCreateInput = typeof ServiceCreateInput.static
 

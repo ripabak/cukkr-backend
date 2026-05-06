@@ -386,6 +386,7 @@ export declare const barbersHandler: Elysia<"/barbers", {
             params: {};
             query: {
                 search?: string | undefined;
+                status?: "pending" | "active" | undefined;
             };
             headers: {};
             response: {

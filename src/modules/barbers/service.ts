@@ -29,26 +29,36 @@ export abstract class BarberService {
 
 	static async listBarbers(
 		organizationId: string,
-		search?: string
+		query: BarberModel.BarberListQuery
 	): Promise<BarberModel.BarberListItem[]> {
-		const activeMembers = await db.query.member.findMany({
-			where: and(
-				eq(member.organizationId, organizationId),
-				eq(member.role, BARBER_ROLE)
-			),
-			with: {
-				user: true
-			}
-		})
+		const { search, status } = query
 
-		const pendingInvitations = await db.query.invitation.findMany({
-			where: and(
-				eq(invitation.organizationId, organizationId),
-				eq(invitation.status, 'pending'),
-				gte(invitation.expiresAt, new Date())
-			),
-			orderBy: desc(invitation.createdAt)
-		})
+		// Skip active members query when filtering for pending only
+		const activeMembers =
+			status === 'pending'
+				? []
+				: await db.query.member.findMany({
+						where: and(
+							eq(member.organizationId, organizationId),
+							eq(member.role, BARBER_ROLE)
+						),
+						with: {
+							user: true
+						}
+					})
+
+		// Skip invitations query when filtering for active only
+		const pendingInvitations =
+			status === 'active'
+				? []
+				: await db.query.invitation.findMany({
+						where: and(
+							eq(invitation.organizationId, organizationId),
+							eq(invitation.status, 'pending'),
+							gte(invitation.expiresAt, new Date())
+						),
+						orderBy: desc(invitation.createdAt)
+					})
 
 		const invitationEmails = [
 			...new Set(
@@ -66,12 +76,12 @@ export abstract class BarberService {
 			invitedUsers.map((row) => [row.email.toLowerCase(), row])
 		)
 
-		const activeItems = activeMembers
+		let activeItems = activeMembers
 			.map((row) => BarberService.toBarberListItem(row as MemberWithUser))
 			.sort((left, right) => left.name.localeCompare(right.name))
 
-		const pendingItems: BarberModel.BarberListItem[] =
-			pendingInvitations.map((row) => {
+		let pendingItems: BarberModel.BarberListItem[] = pendingInvitations.map(
+			(row) => {
 				const invitedUser =
 					invitedUserByEmail.get(row.email.toLowerCase()) ?? null
 
@@ -88,21 +98,21 @@ export abstract class BarberService {
 					expiresAt: row.expiresAt,
 					expired: false
 				}
-			})
+			}
+		)
 
 		if (search) {
 			const lowerSearch = search.toLowerCase()
-			const matchActive = activeItems.filter(
+			activeItems = activeItems.filter(
 				(item) =>
 					item.name.toLowerCase().includes(lowerSearch) ||
 					item.email.toLowerCase().includes(lowerSearch)
 			)
-			const matchPending = pendingItems.filter(
+			pendingItems = pendingItems.filter(
 				(item) =>
 					item.name.toLowerCase().includes(lowerSearch) ||
 					item.email.toLowerCase().includes(lowerSearch)
 			)
-			return [...matchActive, ...matchPending]
 		}
 
 		return [...activeItems, ...pendingItems]

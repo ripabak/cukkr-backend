@@ -40,6 +40,7 @@ export declare namespace BarberModel {
     type MemberIdParam = typeof MemberIdParam.static;
     const BarberListQuery: import("@sinclair/typebox").TObject<{
         search: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        status: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"active">, import("@sinclair/typebox").TLiteral<"pending">]>>;
     }>;
     type BarberListQuery = typeof BarberListQuery.static;
     const InvitationActionResponse: import("@sinclair/typebox").TObject<{

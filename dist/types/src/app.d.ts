@@ -746,6 +746,7 @@ export declare const app: Elysia<"", {
                 params: {};
                 query: {
                     search?: string | undefined;
+                    status?: "pending" | "active" | undefined;
                 };
                 headers: {};
                 response: {
@@ -798,6 +799,7 @@ export declare const app: Elysia<"", {
                 body: {
                     description?: string | null | undefined;
                     discount?: number | undefined;
+                    isActive?: boolean | undefined;
                     duration: number;
                     name: string;
                     price: number;

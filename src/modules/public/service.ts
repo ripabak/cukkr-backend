@@ -53,7 +53,7 @@ export abstract class PublicService {
 			db.query.member.findMany({
 				where: and(
 					eq(member.organizationId, org.id),
-					eq(member.role, 'barber')
+					eq(member.role, 'member')
 				),
 				with: { user: true }
 			})
@@ -113,7 +113,7 @@ export abstract class PublicService {
 			db.query.member.findMany({
 				where: and(
 					eq(member.organizationId, org.id),
-					eq(member.role, 'barber')
+					eq(member.role, 'member')
 				),
 				with: { user: true }
 			})

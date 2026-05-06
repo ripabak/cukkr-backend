@@ -60,7 +60,8 @@ export namespace BarberModel {
 
 	export const BarberListQuery = t.Object(
 		{
-			search: t.Optional(t.String({ minLength: 1 }))
+			search: t.Optional(t.String({ minLength: 1 })),
+			status: t.Optional(BarberListStatus)
 		},
 		{ additionalProperties: false }
 	)

@@ -385,6 +385,7 @@ export declare const servicesHandler: Elysia<"/services", {
             body: {
                 description?: string | null | undefined;
                 discount?: number | undefined;
+                isActive?: boolean | undefined;
                 duration: number;
                 name: string;
                 price: number;

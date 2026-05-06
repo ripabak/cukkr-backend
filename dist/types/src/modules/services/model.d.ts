@@ -6,6 +6,7 @@ export declare namespace ServiceModel {
         price: import("@sinclair/typebox").TInteger;
         duration: import("@sinclair/typebox").TInteger;
         discount: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TInteger>;
+        isActive: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TBoolean>;
     }>;
     type ServiceCreateInput = typeof ServiceCreateInput.static;
     const ServiceUpdateInput: import("@sinclair/typebox").TObject<{
