@@ -1322,6 +1322,54 @@ export declare const app: Elysia<"", {
         };
     } & {
         bookings: {
+            summary: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {
+                        dateFrom?: string | undefined;
+                        dateTo?: string | undefined;
+                    };
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                appointment: number;
+                                waiting: number;
+                                dateFrom: string;
+                                dateTo: string;
+                                total: number;
+                                walkIn: number;
+                                inProgress: number;
+                            };
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        bookings: {
             get: {
                 body: {};
                 params: {};

@@ -38,6 +38,25 @@ export const bookingsHandler = new Elysia({
 		}
 	)
 	.get(
+		'/summary',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.getHomeSummary(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.BookingHomeSummaryQuery,
+			response: FormatResponseSchema(
+				BookingModel.BookingHomeSummaryResponse
+			)
+		}
+	)
+	.get(
 		'/',
 		async ({ query, path, activeOrganizationId }) => {
 			const data = await BookingService.listBookings(

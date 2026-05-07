@@ -939,4 +939,80 @@ export abstract class BookingService {
 
 		return BookingService.getBooking(organizationId, id)
 	}
+
+	static async getHomeSummary(
+		organizationId: string,
+		query: BookingModel.BookingHomeSummaryQuery
+	): Promise<BookingModel.BookingHomeSummaryResponse> {
+		const today = new Date()
+		const wibToday = BookingService.toWibDate(today)
+		const year = wibToday.getUTCFullYear()
+		const month = String(wibToday.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(wibToday.getUTCDate()).padStart(2, '0')
+		const defaultDate = `${year}-${month}-${day}`
+
+		const dateFrom = query.dateFrom ?? defaultDate
+		const dateTo = query.dateTo ?? defaultDate
+
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
+			)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom)
+		const { end } = BookingService.buildDayRange(dateTo)
+
+		const rangeCondition = or(
+			and(
+				eq(booking.type, 'appointment'),
+				isNotNull(booking.scheduledAt),
+				gte(booking.scheduledAt, start),
+				lt(booking.scheduledAt, end)
+			),
+			and(
+				eq(booking.type, 'walk_in'),
+				gte(booking.createdAt, start),
+				lt(booking.createdAt, end)
+			)
+		)
+
+		const rows = await db
+			.select({
+				type: booking.type,
+				status: booking.status
+			})
+			.from(booking)
+			.where(
+				and(
+					eq(booking.organizationId, organizationId),
+					rangeCondition,
+					sql`${booking.status} NOT IN ('cancelled')`
+				)
+			)
+
+		let walkIn = 0
+		let appointment = 0
+		let inProgress = 0
+		let waiting = 0
+
+		for (const row of rows) {
+			if (row.type === 'walk_in') walkIn++
+			else if (row.type === 'appointment') appointment++
+
+			if (row.status === 'in_progress') inProgress++
+			else if (row.status === 'waiting') waiting++
+		}
+
+		return {
+			dateFrom,
+			dateTo,
+			total: rows.length,
+			walkIn,
+			appointment,
+			inProgress,
+			waiting
+		}
+	}
 }
