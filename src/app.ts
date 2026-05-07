@@ -44,7 +44,7 @@ export const app = new Elysia()
 	)
 	.use(
 		rateLimit({
-			max: 100,
+			max: 200,
 			skip: () => env.NODE_ENV === 'test'
 		})
 	)
