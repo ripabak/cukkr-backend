@@ -4,7 +4,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/main.ts",
-    "build": "bunx tsc --noEmit && bun run types:generate && bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./.output/server ./src/main.ts",
+    "build": "bunx tsc --noEmit && bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./.output/server ./src/main.ts",
     "start": "./.output/server",
     "types:generate": "tsc -p tsconfig.declarations.json",
     "types:check": "curl -s http://localhost:3000/types/app.d.ts | head -20",
