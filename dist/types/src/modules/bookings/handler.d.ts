@@ -187,7 +187,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                     ipAddress?: string | null | undefined | undefined;
                     userAgent?: string | null | undefined | undefined;
                     activeOrganizationId?: string | null | undefined;
-                    activeTeamId?: string | null | undefined;
                 } | undefined;
             }) => Promise<{
                 user: {
@@ -368,7 +367,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                     ipAddress?: string | null | undefined | undefined;
                     userAgent?: string | null | undefined | undefined;
                     activeOrganizationId?: string | null | undefined;
-                    activeTeamId?: string | null | undefined;
                 } | undefined;
             }) => Promise<{
                 activeOrganizationId: string;
@@ -1121,7 +1119,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             ipAddress?: string | null | undefined | undefined;
             userAgent?: string | null | undefined | undefined;
             activeOrganizationId?: string | null | undefined;
-            activeTeamId?: string | null | undefined;
         } | undefined;
     };
     resolve: {};
@@ -1149,7 +1146,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             ipAddress?: string | null | undefined | undefined;
             userAgent?: string | null | undefined | undefined;
             activeOrganizationId?: string | null | undefined;
-            activeTeamId?: string | null | undefined;
         } | undefined;
     }>;
 }>;

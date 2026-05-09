@@ -11,7 +11,7 @@ const envSchema = z.object({
 
 	BETTER_AUTH_SECRET: z.string().min(1),
 
-	BETTER_AUTH_URL: z.string().url(),
+	BETTER_AUTH_URL: z.url(),
 
 	STORAGE_ENDPOINT: z.string().url().optional(),
 	STORAGE_BUCKET: z.string().min(1).optional(),
@@ -22,6 +22,8 @@ const envSchema = z.object({
 		.string()
 		.optional()
 		.transform((val) => (val ? val.split(',').map((u) => u.trim()) : [])),
+
+	CLIENT_URL: z.url(),
 
 	// SMTP Configuration
 	SMTP_HOST: z.string().optional(),

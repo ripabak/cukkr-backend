@@ -4,7 +4,7 @@ import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { env } from './env'
-import { sendOtpEmail, sendEmail } from './mail'
+import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { expo } from '@better-auth/expo'
 
 export const auth = betterAuth({
@@ -36,7 +36,18 @@ export const auth = betterAuth({
 				}
 			}
 		}),
-		organization(),
+		organization({
+			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
+			async sendInvitationEmail(data) {
+				const inviteLink = `${env.CLIENT_URL}/accept-invitation/${data.id}`
+				sendOrganizationInvitation({
+					to: data.email,
+					inviterName: data.inviter.user.name,
+					organizationName: data.organization.name,
+					inviteUrl: inviteLink
+				})
+			}
+		}),
 		expo()
 	],
 	trustedOrigins: [
