@@ -66,9 +66,9 @@ export const auth = betterAuth({
 			: [])
 	],
 	rateLimit: {
-		enabled: env.NODE_ENV !== 'test',
+		enabled: env.NODE_ENV === 'production',
 		window: 900,
-		max: 50
+		max: 100
 	},
 
 	user: {
