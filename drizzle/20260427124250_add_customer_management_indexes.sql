@@ -1,2 +1,0 @@
-CREATE INDEX "booking_organizationId_customerId_createdAt_idx" ON "booking" USING btree ("organization_id","customer_id","created_at");--> statement-breakpoint
-CREATE INDEX "customer_organizationId_name_idx" ON "customer" USING btree ("organization_id","name");

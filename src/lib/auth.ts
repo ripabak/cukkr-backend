@@ -21,6 +21,9 @@ export const auth = betterAuth({
 		requireEmailVerification: env.NODE_ENV !== 'test',
 		minPasswordLength: 8
 	},
+	emailVerification: {
+		autoSignInAfterVerification: true
+	},
 	plugins: [
 		openAPI(),
 		emailOTP({
