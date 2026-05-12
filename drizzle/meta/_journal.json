@@ -92,6 +92,13 @@
       "when": 1777400585695,
       "tag": "20260428182305_add-handled-by-barber-id-to-booking",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1747097858000,
+      "tag": "20260512235738_refactor_walk_in_pin_single_per_org",
+      "breakpoints": true
     }
   ]
 }

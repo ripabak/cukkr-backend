@@ -35,16 +35,16 @@ export const walkInPinHandler = new Elysia({
 	)
 
 	.get(
-		'/active-count',
+		'/current',
 		async ({ path, activeOrganizationId }) => {
 			const data =
-				await WalkInPinService.getActivePinCount(activeOrganizationId)
+				await WalkInPinService.getCurrentPin(activeOrganizationId)
 			return formatResponse({ path, data })
 		},
 		{
 			requireAuth: true,
 			requireOrganization: true,
-			response: FormatResponseSchema(WalkInPinModel.ActiveCountResponse)
+			response: FormatResponseSchema(WalkInPinModel.CurrentPinResponse)
 		}
 	)
 

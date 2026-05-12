@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
-import { and, count, eq, gt, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -12,8 +12,7 @@ import { ipFailureGuard } from '../../utils/ip-failure-guard'
 import { WalkInPinModel } from './model'
 import { walkInPin } from './schema'
 
-const ACTIVE_PIN_LIMIT = 10
-const PIN_EXPIRY_MS = 30 * 60 * 1000
+const consumedTokens = new Set<string>()
 
 function getHmacKey(): Uint8Array {
 	return new TextEncoder().encode(env.WALK_IN_TOKEN_SECRET)
@@ -37,66 +36,33 @@ export abstract class WalkInPinService {
 		organizationId: string,
 		userId: string
 	): Promise<WalkInPinModel.GeneratePinResponse> {
-		const now = new Date()
-
-		const [activeRow] = await db
-			.select({ value: count() })
-			.from(walkInPin)
-			.where(
-				and(
-					eq(walkInPin.organizationId, organizationId),
-					eq(walkInPin.isUsed, false),
-					gt(walkInPin.expiresAt, now)
-				)
-			)
-
-		const activeCount = Number(activeRow?.value ?? 0)
-
-		if (activeCount >= ACTIVE_PIN_LIMIT) {
-			throw new AppError(
-				'Active PIN limit reached (10). Wait for existing PINs to expire or be used.',
-				'TOO_MANY_REQUESTS'
-			)
-		}
-
 		const rawValue = crypto.getRandomValues(new Uint16Array(1))[0]
 		const pin = String(rawValue % 10000).padStart(4, '0')
-		const pinHash = await Bun.password.hash(pin, {
-			algorithm: 'bcrypt',
-			cost: 10
-		})
-		const expiresAt = new Date(Date.now() + PIN_EXPIRY_MS)
 
-		await db.insert(walkInPin).values({
-			id: nanoid(),
-			organizationId,
-			generatedByUserId: userId,
-			pinHash,
-			isUsed: false,
-			expiresAt,
-			createdAt: now
-		})
+		await db
+			.insert(walkInPin)
+			.values({
+				organizationId,
+				pin,
+				updatedByUserId: userId,
+				updatedAt: new Date()
+			})
+			.onConflictDoUpdate({
+				target: walkInPin.organizationId,
+				set: { pin, updatedByUserId: userId, updatedAt: new Date() }
+			})
 
-		return { pin, expiresAt, activeCount: activeCount + 1 }
+		return { pin }
 	}
 
-	static async getActivePinCount(
+	static async getCurrentPin(
 		organizationId: string
-	): Promise<WalkInPinModel.ActiveCountResponse> {
-		const now = new Date()
+	): Promise<WalkInPinModel.CurrentPinResponse> {
+		const record = await db.query.walkInPin.findFirst({
+			where: eq(walkInPin.organizationId, organizationId)
+		})
 
-		const [row] = await db
-			.select({ value: count() })
-			.from(walkInPin)
-			.where(
-				and(
-					eq(walkInPin.organizationId, organizationId),
-					eq(walkInPin.isUsed, false),
-					gt(walkInPin.expiresAt, now)
-				)
-			)
-
-		return { activeCount: Number(row?.value ?? 0), limit: ACTIVE_PIN_LIMIT }
+		return { pin: record?.pin ?? null }
 	}
 
 	static async validatePin(
@@ -111,45 +77,23 @@ export abstract class WalkInPinService {
 			)
 		}
 
-		const now = new Date()
-
-		const activePins = await db.query.walkInPin.findMany({
-			where: and(
-				eq(walkInPin.organizationId, organizationId),
-				eq(walkInPin.isUsed, false),
-				gt(walkInPin.expiresAt, now)
-			)
+		const record = await db.query.walkInPin.findFirst({
+			where: eq(walkInPin.organizationId, organizationId)
 		})
 
-		let matchedRow: (typeof activePins)[0] | null = null
-
-		for (const row of activePins) {
-			const isMatch = await Bun.password.verify(pin, row.pinHash)
-			if (isMatch) {
-				matchedRow = row
-				break
-			}
-		}
-
-		if (!matchedRow) {
+		if (!record || record.pin !== pin) {
 			ipFailureGuard.recordFailure(ip)
-			throw new AppError('Invalid or expired PIN', 'BAD_REQUEST')
+			throw new AppError('Invalid PIN', 'BAD_REQUEST')
 		}
 
-		await db
-			.update(walkInPin)
-			.set({ isUsed: true, usedAt: new Date() })
-			.where(
-				and(
-					eq(walkInPin.id, matchedRow.id),
-					eq(walkInPin.isUsed, false)
-				)
-			)
-
+		const jti = nanoid()
 		const key = getHmacKey()
-		const validationToken = await new SignJWT({ org: organizationId })
+		const validationToken = await new SignJWT({
+			org: organizationId,
+			uid: record.updatedByUserId
+		})
 			.setProtectedHeader({ alg: 'HS256' })
-			.setSubject(matchedRow.id)
+			.setJti(jti)
 			.setIssuedAt()
 			.setExpirationTime('15m')
 			.sign(key)
@@ -164,13 +108,15 @@ export abstract class WalkInPinService {
 	): Promise<BookingModel.BookingDetailResponse> {
 		const key = getHmacKey()
 
-		let pinId: string
+		let jti: string
 		let tokenOrgId: string
+		let userId: string
 
 		try {
 			const { payload } = await jwtVerify(token, key)
-			pinId = payload.sub as string
+			jti = payload.jti as string
 			tokenOrgId = payload.org as string
+			userId = payload.uid as string
 		} catch {
 			throw new AppError('Unauthorized', 'UNAUTHORIZED')
 		}
@@ -179,46 +125,20 @@ export abstract class WalkInPinService {
 			throw new AppError('Unauthorized', 'UNAUTHORIZED')
 		}
 
-		const pinRecord = await db.query.walkInPin.findFirst({
-			where: eq(walkInPin.id, pinId)
-		})
-
-		if (
-			!pinRecord ||
-			!pinRecord.isUsed ||
-			pinRecord.tokenConsumedAt !== null
-		) {
+		if (consumedTokens.has(jti)) {
 			throw new AppError('Unauthorized', 'UNAUTHORIZED')
 		}
 
-		let booking: BookingModel.BookingDetailResponse | undefined
+		consumedTokens.add(jti)
 
-		await db.transaction(async (tx) => {
-			booking = await BookingService.createBooking(
-				organizationId,
-				pinRecord.generatedByUserId,
-				{
-					type: 'walk_in',
-					customerName: input.customerName,
-					customerPhone: input.customerPhone,
-					customerEmail: input.customerEmail,
-					serviceIds: input.serviceIds,
-					barberId: input.barberId,
-					notes: input.notes
-				}
-			)
-
-			await tx
-				.update(walkInPin)
-				.set({ tokenConsumedAt: new Date() })
-				.where(
-					and(
-						eq(walkInPin.id, pinRecord.id),
-						isNull(walkInPin.tokenConsumedAt)
-					)
-				)
+		return BookingService.createBooking(organizationId, userId, {
+			type: 'walk_in',
+			customerName: input.customerName,
+			customerPhone: input.customerPhone,
+			customerEmail: input.customerEmail,
+			serviceIds: input.serviceIds,
+			barberId: input.barberId,
+			notes: input.notes
 		})
-
-		return booking!
 	}
 }

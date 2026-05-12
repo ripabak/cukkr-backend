@@ -54,7 +54,7 @@ async function createOwnerWithOrg(suffix: string): Promise<OwnerContext> {
 	return { authCookie, orgId, orgSlug: slug, ownerUserId: ownerMember.userId }
 }
 
-async function createInActiveService(authCookie: string): Promise<string> {
+async function createActiveService(authCookie: string): Promise<string> {
 	const res = await tClient.api.services.post(
 		{
 			name: `Haircut ${Date.now()}`,
@@ -68,7 +68,6 @@ async function createInActiveService(authCookie: string): Promise<string> {
 	)
 	const serviceId: string = (res.data as any)?.data?.id ?? ''
 
-	// Services default to isActive: false — toggle to active
 	await (tClient as any).api.services[serviceId]['toggle-active'].patch(
 		{},
 		{ fetch: { headers: { cookie: authCookie, origin: ORIGIN } } }
@@ -85,7 +84,7 @@ describe('Walk-In PIN System', () => {
 	beforeAll(async () => {
 		ownerA = await createOwnerWithOrg('a')
 		ownerB = await createOwnerWithOrg('b')
-		serviceIdA = await createInActiveService(ownerA.authCookie)
+		serviceIdA = await createActiveService(ownerA.authCookie)
 	})
 
 	afterEach(() => {
@@ -93,12 +92,10 @@ describe('Walk-In PIN System', () => {
 	})
 
 	// -------------------------------------------------------------------------
-	// AC-01, AC-02: PIN Generation
+	// PIN Generation
 	// -------------------------------------------------------------------------
-	describe('PIN Generation (AC-01, AC-02)', () => {
-		it('AC-01: authenticated owner generates a 4-digit PIN with expiresAt ~30 min', async () => {
-			const before = Date.now()
-
+	describe('PIN Generation', () => {
+		it('generate returns a 4-digit PIN', async () => {
 			const res = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -109,40 +106,14 @@ describe('Walk-In PIN System', () => {
 			)
 
 			expect(res.status).toBe(200)
-			const body = res.data as any
-			const pin: string = body?.data?.pin
-			const expiresAt: string = body?.data?.expiresAt
-
+			const pin: string = (res.data as any)?.data?.pin
 			expect(typeof pin).toBe('string')
 			expect(pin).toHaveLength(4)
 			expect(/^\d{4}$/.test(pin)).toBe(true)
-
-			const expiresMs = new Date(expiresAt).getTime()
-			const expectedMs = before + 30 * 60 * 1000
-			expect(Math.abs(expiresMs - expectedMs)).toBeLessThan(5000)
 		})
 
-		it('AC-02: returns 429 when 10 active PINs already exist', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
-			for (let i = 0; i < 10; i++) {
-				const r = await tClient.api.pin.generate.post(
-					{},
-					{
-						fetch: {
-							headers: {
-								cookie: ownerA.authCookie,
-								origin: ORIGIN
-							}
-						}
-					}
-				)
-				expect(r.status).toBe(200)
-			}
-
-			const res = await tClient.api.pin.generate.post(
+		it('generate overwrites previous PIN', async () => {
+			const first = await tClient.api.pin.generate.post(
 				{},
 				{
 					fetch: {
@@ -150,38 +121,67 @@ describe('Walk-In PIN System', () => {
 					}
 				}
 			)
-			expect(res.status).toBe(429)
+			const firstPin: string = (first.data as any)?.data?.pin
+
+			const second = await tClient.api.pin.generate.post(
+				{},
+				{
+					fetch: {
+						headers: { cookie: ownerA.authCookie, origin: ORIGIN }
+					}
+				}
+			)
+			const secondPin: string = (second.data as any)?.data?.pin
+
+			const record = await db.query.walkInPin.findFirst({
+				where: eq(walkInPin.organizationId, ownerA.orgId)
+			})
+
+			expect(record?.pin).toBe(secondPin)
+			// old PIN no longer valid (unless by coincidence they match)
+			if (firstPin !== secondPin) {
+				const validateOld = await (tClient as any).api.public[
+					ownerA.orgSlug
+				].pin.validate.post(
+					{ pin: firstPin },
+					{ fetch: { headers: { origin: ORIGIN } } }
+				)
+				expect(validateOld.status).toBe(400)
+			}
 		})
 	})
 
 	// -------------------------------------------------------------------------
-	// AC-10: active-count has no `pin` field
+	// GET /current
 	// -------------------------------------------------------------------------
-	describe('Active Count (AC-10)', () => {
-		it('AC-10: GET /api/pin/active-count response has no pin field', async () => {
-			const res = await tClient.api.pin['active-count'].get({
+	describe('GET /pin/current', () => {
+		it('returns current PIN after generate', async () => {
+			const genRes = await tClient.api.pin.generate.post(
+				{},
+				{
+					fetch: {
+						headers: { cookie: ownerA.authCookie, origin: ORIGIN }
+					}
+				}
+			)
+			const generatedPin: string = (genRes.data as any)?.data?.pin
+
+			const currentRes = await tClient.api.pin.current.get({
 				fetch: {
 					headers: { cookie: ownerA.authCookie, origin: ORIGIN }
 				}
 			})
 
-			expect(res.status).toBe(200)
-			const body = res.data as any
-			expect(body?.data?.pin).toBeUndefined()
-			expect(typeof body?.data?.activeCount).toBe('number')
-			expect(body?.data?.limit).toBe(10)
+			expect(currentRes.status).toBe(200)
+			expect((currentRes.data as any)?.data?.pin).toBe(generatedPin)
 		})
 	})
 
 	// -------------------------------------------------------------------------
-	// AC-03 through AC-09: PIN Validation
+	// PIN Validation
 	// -------------------------------------------------------------------------
-	describe('PIN Validation (AC-03 through AC-09)', () => {
-		it('AC-03: valid PIN → 200 with validationToken', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+	describe('PIN Validation', () => {
+		it('valid PIN returns validationToken', async () => {
 			const genRes = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -205,41 +205,7 @@ describe('Walk-In PIN System', () => {
 			expect(token.length).toBeGreaterThan(10)
 		})
 
-		it('AC-04: expired PIN → 400', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
-			const expiredPin = '1234'
-			const hash = await Bun.password.hash(expiredPin, {
-				algorithm: 'bcrypt',
-				cost: 10
-			})
-			await db.insert(walkInPin).values({
-				id: `test-expired-${Date.now()}`,
-				organizationId: ownerA.orgId,
-				generatedByUserId: ownerA.ownerUserId,
-				pinHash: hash,
-				isUsed: false,
-				expiresAt: new Date(Date.now() - 1000),
-				createdAt: new Date()
-			})
-
-			const res = await (tClient as any).api.public[
-				ownerA.orgSlug
-			].pin.validate.post(
-				{ pin: expiredPin },
-				{ fetch: { headers: { origin: ORIGIN } } }
-			)
-
-			expect(res.status).toBe(400)
-		})
-
-		it('AC-05: already-used PIN → 400', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+		it('same PIN can be validated multiple times (reusable)', async () => {
 			const genRes = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -250,26 +216,18 @@ describe('Walk-In PIN System', () => {
 			)
 			const pin: string = (genRes.data as any)?.data?.pin
 
-			await (tClient as any).api.public[ownerA.orgSlug].pin.validate.post(
-				{ pin },
-				{ fetch: { headers: { origin: ORIGIN } } }
-			)
-
-			const res = await (tClient as any).api.public[
-				ownerA.orgSlug
-			].pin.validate.post(
-				{ pin },
-				{ fetch: { headers: { origin: ORIGIN } } }
-			)
-
-			expect(res.status).toBe(400)
+			for (let i = 0; i < 3; i++) {
+				const res = await (tClient as any).api.public[
+					ownerA.orgSlug
+				].pin.validate.post(
+					{ pin },
+					{ fetch: { headers: { origin: ORIGIN } } }
+				)
+				expect(res.status).toBe(200)
+			}
 		})
 
-		it('AC-06: wrong PIN → 400', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+		it('wrong PIN returns 400', async () => {
 			await tClient.api.pin.generate.post(
 				{},
 				{
@@ -289,11 +247,7 @@ describe('Walk-In PIN System', () => {
 			expect(res.status).toBe(400)
 		})
 
-		it('AC-07: 6th attempt after 5 failures → 429', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+		it('6th attempt after 5 failures returns 429', async () => {
 			await tClient.api.pin.generate.post(
 				{},
 				{
@@ -315,10 +269,7 @@ describe('Walk-In PIN System', () => {
 				{ pin: '0000' },
 				{
 					fetch: {
-						headers: {
-							origin: ORIGIN,
-							'x-forwarded-for': testIp
-						}
+						headers: { origin: ORIGIN, 'x-forwarded-for': testIp }
 					}
 				}
 			)
@@ -326,11 +277,7 @@ describe('Walk-In PIN System', () => {
 			expect(res.status).toBe(429)
 		})
 
-		it('AC-09: PIN from org A cannot be validated at org B slug', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+		it('PIN from org A cannot be validated at org B slug', async () => {
 			const genRes = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -353,10 +300,10 @@ describe('Walk-In PIN System', () => {
 	})
 
 	// -------------------------------------------------------------------------
-	// AC-08, AC-11, AC-12: Walk-In Booking
+	// Walk-In Booking
 	// -------------------------------------------------------------------------
-	describe('Walk-In Booking (AC-08, AC-11, AC-12)', () => {
-		it('AC-11: missing/no token → 401', async () => {
+	describe('Walk-In Booking', () => {
+		it('missing/invalid token returns 401', async () => {
 			const res = await (tClient as any).api.public[ownerA.orgSlug][
 				'walk-in'
 			].post(
@@ -371,11 +318,7 @@ describe('Walk-In PIN System', () => {
 			expect(res.status).toBe(401)
 		})
 
-		it('AC-08: valid token creates booking; re-using the consumed PIN returns 400', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
-
+		it('valid token creates walk-in booking', async () => {
 			const genRes = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -392,7 +335,6 @@ describe('Walk-In PIN System', () => {
 				{ pin },
 				{ fetch: { headers: { origin: ORIGIN } } }
 			)
-			expect(validateRes.status).toBe(200)
 			const validationToken: string =
 				validateRes.data?.data?.validationToken
 
@@ -406,25 +348,50 @@ describe('Walk-In PIN System', () => {
 				},
 				{ fetch: { headers: { origin: ORIGIN } } }
 			)
+
 			expect(bookingRes.status).toBe(201)
 			const booking = bookingRes.data?.data
 			expect(booking?.id).toBeDefined()
 			expect(booking?.type).toBe('walk_in')
-
-			const reuseRes = await (tClient as any).api.public[
-				ownerA.orgSlug
-			].pin.validate.post(
-				{ pin },
-				{ fetch: { headers: { origin: ORIGIN } } }
-			)
-			expect(reuseRes.status).toBe(400)
 		})
 
-		it('AC-12: same validationToken used twice → second attempt 401', async () => {
-			await db
-				.delete(walkInPin)
-				.where(eq(walkInPin.organizationId, ownerA.orgId))
+		it('multiple customers can book using the same PIN (different tokens)', async () => {
+			const genRes = await tClient.api.pin.generate.post(
+				{},
+				{
+					fetch: {
+						headers: { cookie: ownerA.authCookie, origin: ORIGIN }
+					}
+				}
+			)
+			const pin: string = (genRes.data as any)?.data?.pin
 
+			for (let i = 0; i < 3; i++) {
+				const validateRes = await (tClient as any).api.public[
+					ownerA.orgSlug
+				].pin.validate.post(
+					{ pin },
+					{ fetch: { headers: { origin: ORIGIN } } }
+				)
+				const validationToken: string =
+					validateRes.data?.data?.validationToken
+
+				const bookingRes = await (tClient as any).api.public[
+					ownerA.orgSlug
+				]['walk-in'].post(
+					{
+						validationToken,
+						customerName: `Customer ${i + 1}`,
+						serviceIds: [serviceIdA]
+					},
+					{ fetch: { headers: { origin: ORIGIN } } }
+				)
+
+				expect(bookingRes.status).toBe(201)
+			}
+		})
+
+		it('same validationToken used twice returns 401 on second attempt', async () => {
 			const genRes = await tClient.api.pin.generate.post(
 				{},
 				{
@@ -477,7 +444,7 @@ describe('Public Walk-In Form Data (F4)', () => {
 
 	beforeAll(async () => {
 		formDataOwner = await createOwnerWithOrg('form-data')
-		formServiceId = await createInActiveService(formDataOwner.authCookie)
+		formServiceId = await createActiveService(formDataOwner.authCookie)
 	})
 
 	it('F4-02: GET /public/:slug/form-data only includes active services', async () => {
