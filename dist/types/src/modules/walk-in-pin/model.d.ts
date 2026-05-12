@@ -1,15 +1,12 @@
 export declare namespace WalkInPinModel {
     const GeneratePinResponse: import("@sinclair/typebox").TObject<{
         pin: import("@sinclair/typebox").TString;
-        expiresAt: import("@sinclair/typebox").TDate;
-        activeCount: import("@sinclair/typebox").TNumber;
     }>;
     type GeneratePinResponse = typeof GeneratePinResponse.static;
-    const ActiveCountResponse: import("@sinclair/typebox").TObject<{
-        activeCount: import("@sinclair/typebox").TNumber;
-        limit: import("@sinclair/typebox").TNumber;
+    const CurrentPinResponse: import("@sinclair/typebox").TObject<{
+        pin: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>;
-    type ActiveCountResponse = typeof ActiveCountResponse.static;
+    type CurrentPinResponse = typeof CurrentPinResponse.static;
     const ValidatePinBody: import("@sinclair/typebox").TObject<{
         pin: import("@sinclair/typebox").TString;
     }>;

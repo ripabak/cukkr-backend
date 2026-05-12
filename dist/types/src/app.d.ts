@@ -2497,9 +2497,7 @@ export declare const app: Elysia<"", {
                             } | undefined;
                             message: string;
                             data: {
-                                expiresAt: Date;
                                 pin: string;
-                                activeCount: number;
                             };
                             status: string | number;
                             path: string;
@@ -2520,7 +2518,7 @@ export declare const app: Elysia<"", {
         };
     } & {
         pin: {
-            "active-count": {
+            current: {
                 get: {
                     body: {};
                     params: {};
@@ -2538,8 +2536,7 @@ export declare const app: Elysia<"", {
                             } | undefined;
                             message: string;
                             data: {
-                                limit: number;
-                                activeCount: number;
+                                pin: string | null;
                             };
                             status: string | number;
                             path: string;
