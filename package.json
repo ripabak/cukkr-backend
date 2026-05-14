@@ -11,7 +11,8 @@
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed": "bun scripts/seed.ts"
   },
   "lint-staged": {
     "*.ts": [
