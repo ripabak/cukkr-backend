@@ -527,6 +527,63 @@ export declare const bookingsHandler: Elysia<"/bookings", {
     };
 } & {
     bookings: {
+        requests: {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    barberId?: string | undefined;
+                    dateFrom?: string | undefined;
+                    dateTo?: string | undefined;
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            type: "walk_in" | "appointment";
+                            id: string;
+                            createdAt: Date;
+                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            referenceNumber: string;
+                            scheduledAt: Date | null;
+                            barber: {
+                                name: string;
+                                email: string;
+                                userId: string;
+                                role: string;
+                                memberId: string;
+                            } | null;
+                            customerName: string;
+                            serviceNames: string[];
+                        }[];
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    bookings: {
         get: {
             body: {};
             params: {};
@@ -753,64 +810,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             property?: string;
                             expected?: string;
                         };
-                    };
-                };
-            };
-        };
-    };
-} & {
-    bookings: {
-        active: {
-            get: {
-                body: {};
-                params: {};
-                query: {
-                    sort?: "oldest_first" | "recently_added" | undefined;
-                    status?: "all" | "waiting" | "in_progress" | undefined;
-                    barberId?: string | undefined;
-                    date: string;
-                };
-                headers: {};
-                response: {
-                    200: {
-                        meta?: {
-                            limit: number;
-                            page: number;
-                            totalItems: number;
-                            totalPages: number;
-                            hasNext: boolean;
-                            hasPrev: boolean;
-                        } | undefined;
-                        message: string;
-                        data: {
-                            type: "walk_in" | "appointment";
-                            id: string;
-                            createdAt: Date;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
-                            referenceNumber: string;
-                            scheduledAt: Date | null;
-                            barber: {
-                                name: string;
-                                email: string;
-                                userId: string;
-                                role: string;
-                                memberId: string;
-                            } | null;
-                            customerName: string;
-                            serviceNames: string[];
-                        }[];
-                        status: string | number;
-                        path: string;
-                        timeStamp: string;
-                    };
-                    422: {
-                        type: "validation";
-                        on: string;
-                        summary?: string;
-                        message?: string;
-                        found?: unknown;
-                        property?: string;
-                        expected?: string;
                     };
                 };
             };

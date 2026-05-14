@@ -529,36 +529,38 @@ export abstract class BookingService {
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
 
-	static async listActiveBookings(
+	static async listRequestedBookings(
 		organizationId: string,
-		query: BookingModel.ActiveBookingListQuery
+		query: BookingModel.BookingRequestListQuery
 	): Promise<BookingModel.BookingSummaryResponse[]> {
-		const { start, end } = BookingService.buildDayRange(query.date)
+		const today = new Date().toISOString().slice(0, 10)
+		const dateFrom = query.dateFrom ?? today
+		const dateTo =
+			query.dateTo ??
+			(() => {
+				const d = new Date(`${dateFrom}T00:00:00.000Z`)
+				d.setUTCDate(d.getUTCDate() + 6)
+				return d.toISOString().slice(0, 10)
+			})()
 
-		const dayCondition = or(
-			and(
-				eq(booking.type, 'appointment'),
-				isNotNull(booking.scheduledAt),
-				gte(booking.scheduledAt, start),
-				lt(booking.scheduledAt, end)
-			),
-			and(
-				eq(booking.type, 'walk_in'),
-				gte(booking.createdAt, start),
-				lt(booking.createdAt, end)
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
 			)
-		)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom)
+		const { end } = BookingService.buildDayRange(dateTo)
 
 		const conditions = [
 			eq(booking.organizationId, organizationId),
-			dayCondition
+			eq(booking.status, 'requested'),
+			eq(booking.type, 'appointment'),
+			isNotNull(booking.scheduledAt),
+			gte(booking.scheduledAt, start),
+			lt(booking.scheduledAt, end)
 		]
-
-		if (!query.status || query.status === 'all') {
-			conditions.push(inArray(booking.status, ['waiting', 'in_progress']))
-		} else {
-			conditions.push(eq(booking.status, query.status))
-		}
 
 		if (query.barberId) {
 			conditions.push(eq(booking.barberId, query.barberId))
@@ -568,30 +570,18 @@ export abstract class BookingService {
 			where: and(...conditions),
 			with: {
 				customer: true,
-				barber: {
-					with: {
-						user: true
-					}
-				},
-				handledByBarber: {
-					with: {
-						user: true
-					}
-				},
+				barber: { with: { user: true } },
+				handledByBarber: { with: { user: true } },
 				services: true
 			}
 		})
 
 		return rows
-			.sort((left, right) => {
-				const leftTime = (left.scheduledAt ?? left.createdAt).getTime()
-				const rightTime = (
-					right.scheduledAt ?? right.createdAt
-				).getTime()
-				return query.sort === 'recently_added'
-					? rightTime - leftTime
-					: leftTime - rightTime
-			})
+			.sort(
+				(a, b) =>
+					(a.scheduledAt ?? a.createdAt).getTime() -
+					(b.scheduledAt ?? b.createdAt).getTime()
+			)
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
 

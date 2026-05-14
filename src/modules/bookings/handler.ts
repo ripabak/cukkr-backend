@@ -57,6 +57,25 @@ export const bookingsHandler = new Elysia({
 		}
 	)
 	.get(
+		'/requests',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.listRequestedBookings(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.BookingRequestListQuery,
+			response: FormatResponseSchema(
+				t.Array(BookingModel.BookingSummaryResponse)
+			)
+		}
+	)
+	.get(
 		'/',
 		async ({ query, path, activeOrganizationId }) => {
 			const data = await BookingService.listBookings(
@@ -112,25 +131,6 @@ export const bookingsHandler = new Elysia({
 			params: BookingModel.BookingIdParam,
 			body: BookingModel.BookingStatusUpdateInput,
 			response: FormatResponseSchema(BookingModel.BookingDetailResponse)
-		}
-	)
-	.get(
-		'/active',
-		async ({ query, path, activeOrganizationId }) => {
-			const data = await BookingService.listActiveBookings(
-				activeOrganizationId,
-				query
-			)
-
-			return formatResponse({ path, data })
-		},
-		{
-			requireAuth: true,
-			requireOrganization: true,
-			query: BookingModel.ActiveBookingListQuery,
-			response: FormatResponseSchema(
-				t.Array(BookingModel.BookingSummaryResponse)
-			)
 		}
 	)
 	.post(
