@@ -288,6 +288,10 @@ async function resolveUser(
 				console.log('  ✅ Login berhasil via server')
 				return data.user.id
 			}
+			console.error(
+				'  ❌ Verifikasi gagal: respons server tidak mengandung user id.'
+			)
+			process.exit(1)
 		} else {
 			const err = (await res.json().catch(() => ({}))) as {
 				message?: string
@@ -297,25 +301,12 @@ async function resolveUser(
 			process.exit(1)
 		}
 	} catch {
-		console.warn(
-			`  ⚠️  Server tidak bisa dihubungi (${authUrl}). Mencari user di database...`
-		)
-	}
-
-	// Fallback: cari user di DB berdasarkan email
-	const found = await db.query.user.findFirst({
-		where: eq(user.email, email)
-	})
-	if (!found) {
 		console.error(
-			`  ❌ User dengan email "${email}" tidak ditemukan di database.`
+			`  ❌ Server tidak bisa dihubungi (${authUrl}). Verifikasi user dibatalkan.`
 		)
+		console.error('      Jalankan server terlebih dahulu, lalu coba lagi.')
 		process.exit(1)
 	}
-
-	console.log(`  ✅ User ditemukan di DB: ${found.name}`)
-	console.warn('  ⚠️  Password tidak diverifikasi (server tidak berjalan)')
-	return found.id
 }
 
 // ─── Seed Barbershop ──────────────────────────────────────────────────────────
