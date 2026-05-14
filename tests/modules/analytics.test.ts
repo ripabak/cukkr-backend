@@ -503,8 +503,8 @@ describe('Analytics - Highlights', () => {
 		await db.delete(service).where(eq(service.organizationId, orgId))
 	})
 
-	// T-16: topService returns correct service with count and revenue
-	it('T-16: highlights.topService returns the most booked service with correct count and revenue', async () => {
+	// T-16: topService ranked by revenue primary (not count)
+	it('T-16: highlights.topService returns the highest-revenue service, not just most bookings', async () => {
 		const { data } = await tClient.api.analytics.get({
 			query: { range: 'week' },
 			fetch: { headers: { cookie: authCookie } }
@@ -517,7 +517,7 @@ describe('Analytics - Highlights', () => {
 		expect(topService?.revenue).toBe(150_000)
 	})
 
-	// T-17: topBarber returns the member who handled the most bookings
+	// T-17: topBarber ranked by revenue primary (not count)
 	it('T-17: highlights.topBarber returns correct barber id, name, count and revenue', async () => {
 		const { data } = await tClient.api.analytics.get({
 			query: { range: 'week' },
@@ -540,5 +540,119 @@ describe('Analytics - Highlights', () => {
 		})
 		expect(data?.data.highlights.topBarber).toBeNull()
 		expect(data?.data.highlights.topService).toBeNull()
+	})
+
+	// T-19: topBarber adalah yang revenue tertinggi, bukan yang paling banyak booking
+	it('T-19: topBarber prefers higher revenue over higher booking count', async () => {
+		const ctx = await createOwnerWithOrg('topbarberrev')
+		const ts = new Date(
+			startOfDayWib(new Date()).getTime() - 2 * 24 * 60 * 60 * 1000
+		)
+		const custId = await seedCustomer(ctx.orgId)
+		const svcId = await seedService(ctx.orgId)
+
+		// Barber A (owner): 3 booking × 30k = 90k (count lebih banyak)
+		for (let i = 0; i < 3; i++) {
+			await seedBooking({
+				organizationId: ctx.orgId,
+				customerId: custId,
+				createdById: ctx.ownerUserId,
+				serviceId: svcId,
+				type: 'walk_in',
+				status: 'completed',
+				completedAt: ts,
+				price: 30_000,
+				handledByBarberId: ctx.ownerMemberId
+			})
+		}
+
+		// Buat user kedua untuk Barber B di org yang sama
+		const ctxB = await createOwnerWithOrg('topbarberrevb')
+		const barberBMemberId = nanoid()
+		await db.insert(member).values({
+			id: barberBMemberId,
+			organizationId: ctx.orgId,
+			userId: ctxB.ownerUserId,
+			role: 'member',
+			createdAt: new Date()
+		})
+
+		// Barber B: 1 booking × 200k = 200k (revenue lebih tinggi, count lebih sedikit)
+		await seedBooking({
+			organizationId: ctx.orgId,
+			customerId: custId,
+			createdById: ctx.ownerUserId,
+			serviceId: svcId,
+			type: 'walk_in',
+			status: 'completed',
+			completedAt: ts,
+			price: 200_000,
+			handledByBarberId: barberBMemberId
+		})
+
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: ctx.authCookie } }
+		})
+
+		// Barber B (1 × 200k = 200k) harus menang atas Barber A (3 × 30k = 90k)
+		expect(data?.data.highlights.topBarber?.id).toBe(barberBMemberId)
+		expect(data?.data.highlights.topBarber?.revenue).toBe(200_000)
+		expect(data?.data.highlights.topBarber?.count).toBe(1)
+
+		await db.delete(booking).where(eq(booking.organizationId, ctx.orgId))
+		await db.delete(customer).where(eq(customer.organizationId, ctx.orgId))
+		await db.delete(service).where(eq(service.organizationId, ctx.orgId))
+	})
+
+	// T-20: topService adalah yang revenue tertinggi, bukan yang paling banyak booking
+	it('T-20: topService prefers higher revenue over higher booking count', async () => {
+		const ctx = await createOwnerWithOrg('topservicerev')
+		const ts = new Date(
+			startOfDayWib(new Date()).getTime() - 2 * 24 * 60 * 60 * 1000
+		)
+		const custId = await seedCustomer(ctx.orgId)
+
+		// Service A: di-book 3x × 30k = 90k (count lebih banyak)
+		const svcIdA = await seedService(ctx.orgId)
+		for (let i = 0; i < 3; i++) {
+			await seedBooking({
+				organizationId: ctx.orgId,
+				customerId: custId,
+				createdById: ctx.ownerUserId,
+				serviceId: svcIdA,
+				type: 'walk_in',
+				status: 'completed',
+				completedAt: ts,
+				price: 30_000
+			})
+		}
+
+		// Service B: di-book 1x × 200k = 200k (revenue lebih tinggi)
+		const svcIdB = await seedService(ctx.orgId)
+		await seedBooking({
+			organizationId: ctx.orgId,
+			customerId: custId,
+			createdById: ctx.ownerUserId,
+			serviceId: svcIdB,
+			type: 'walk_in',
+			status: 'completed',
+			completedAt: ts,
+			price: 200_000
+		})
+
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: ctx.authCookie } }
+		})
+
+		// Service B (1 × 200k) harus menang atas Service A (3 × 30k = 90k)
+		expect(data?.data.highlights.topService?.id).toBe(svcIdB)
+		expect(data?.data.highlights.topService?.revenue).toBe(200_000)
+		expect(data?.data.highlights.topService?.count).toBe(1)
+
+		await db.delete(booking).where(eq(booking.organizationId, ctx.orgId))
+		await db.delete(customer).where(eq(customer.organizationId, ctx.orgId))
+		await db.delete(service).where(eq(service.organizationId, ctx.orgId))
 	})
 })

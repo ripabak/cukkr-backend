@@ -74,7 +74,7 @@ export abstract class ServiceAnalyticsService {
 				windows.previousStart,
 				windows.previousEnd
 			),
-			// Chart: top services by booking count in current period (label=service name, value=count)
+			// Chart: top services by revenue then count in current period
 			db
 				.select({
 					serviceName: bookingService.serviceName,
@@ -91,7 +91,10 @@ export abstract class ServiceAnalyticsService {
 					)
 				)
 				.groupBy(bookingService.serviceId, bookingService.serviceName)
-				.orderBy(sql`COUNT(${bookingService.id}) DESC`)
+				.orderBy(
+					sql`COALESCE(SUM(${bookingService.price}), 0) DESC`,
+					sql`COUNT(${bookingService.id}) DESC`
+				)
 		])
 
 		const chart: ChartPoint[] = serviceChart.map((r) => ({
@@ -145,7 +148,10 @@ export abstract class ServiceAnalyticsService {
 				.innerJoin(service, eq(service.id, bookingService.serviceId))
 				.where(periodWhere)
 				.groupBy(bookingService.serviceId, service.name)
-				.orderBy(sql`COUNT(${bookingService.id}) DESC`)
+				.orderBy(
+					sql`COALESCE(SUM(${bookingService.price}), 0) DESC`,
+					sql`COUNT(${bookingService.id}) DESC`
+				)
 				.limit(pagination.take)
 				.offset(pagination.skip),
 			db

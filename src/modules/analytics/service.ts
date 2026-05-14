@@ -107,8 +107,8 @@ export abstract class AnalyticsService {
 			)
 			.groupBy(booking.handledByBarberId)
 			.orderBy(
-				sql`COUNT(DISTINCT ${booking.id}) DESC`,
-				sql`COALESCE(SUM(${bookingService.price}), 0) DESC`
+				sql`COALESCE(SUM(${bookingService.price}), 0) DESC`,
+				sql`COUNT(DISTINCT ${booking.id}) DESC`
 			)
 			.limit(1)
 
@@ -155,8 +155,8 @@ export abstract class AnalyticsService {
 			)
 			.groupBy(bookingService.serviceId)
 			.orderBy(
-				sql`COUNT(${bookingService.id}) DESC`,
-				sql`COALESCE(SUM(${bookingService.price}), 0) DESC`
+				sql`COALESCE(SUM(${bookingService.price}), 0) DESC`,
+				sql`COUNT(${bookingService.id}) DESC`
 			)
 			.limit(1)
 
