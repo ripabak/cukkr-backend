@@ -61,7 +61,12 @@ async function createOwnerWithOrg(suffix: string) {
 	if (!ownerMember)
 		throw new Error('Owner member not found for analytics test')
 
-	return { authCookie, orgId, ownerUserId: ownerMember.userId }
+	return {
+		authCookie,
+		orgId,
+		ownerUserId: ownerMember.userId,
+		ownerMemberId: ownerMember.id
+	}
 }
 
 async function seedCustomer(organizationId: string): Promise<string> {
@@ -103,6 +108,7 @@ interface SeedBookingArgs {
 	status: 'completed' | 'pending' | 'cancelled'
 	completedAt: Date | null
 	price: number
+	handledByBarberId?: string | null
 }
 
 async function seedBooking(args: SeedBookingArgs): Promise<string> {
@@ -115,6 +121,7 @@ async function seedBooking(args: SeedBookingArgs): Promise<string> {
 		status: args.status,
 		customerId: args.customerId,
 		barberId: null,
+		handledByBarberId: args.handledByBarberId ?? null,
 		scheduledAt: null,
 		notes: null,
 		startedAt: null,
@@ -149,14 +156,12 @@ describe('Analytics Module', () => {
 	const now = new Date()
 	const todayStart = startOfDayWib(now)
 
-	// Timestamps for seeding
 	const currentWeekTs = new Date(
 		todayStart.getTime() - 2 * 24 * 60 * 60 * 1000
 	)
 	const previousWeekTs = new Date(
 		todayStart.getTime() - 9 * 24 * 60 * 60 * 1000
 	)
-	// Used in T-3 (scoped inside the test itself via this shared now)
 	const current24hTs = new Date(now.getTime() - 2 * 60 * 60 * 1000)
 
 	beforeAll(async () => {
@@ -252,7 +257,7 @@ describe('Analytics Module', () => {
 		expect(status).toBe(403)
 	})
 
-	// T-8: Invalid range returns 400/422
+	// T-8: Invalid range returns 422
 	it('T-8: returns 422 for invalid range value', async () => {
 		const { status } = await (tClient as any).api.analytics.get({
 			query: { range: 'forever' },
@@ -328,18 +333,17 @@ describe('Analytics Module', () => {
 		expect(data?.data.stats.appointments.current).toBe(1)
 	})
 
-	// T-5: Exactly 7 chart buckets for week range
+	// T-5: Exactly 7 chart buckets for week range with correct shape
 	it('T-5: returns exactly 7 chart buckets for range=week', async () => {
 		const { data } = await tClient.api.analytics.get({
 			query: { range: 'week' },
 			fetch: { headers: { cookie: authCookie } }
 		})
-		expect(data?.data.chart.sales).toHaveLength(7)
-		expect(data?.data.chart.bookings).toHaveLength(7)
-		const bucket = data?.data.chart.sales[0]
+		expect(data?.data.chart.revenue).toHaveLength(7)
+		expect(data?.data.chart.customers).toHaveLength(7)
+		const bucket = data?.data.chart.revenue[0]
 		expect(bucket).toHaveProperty('label')
-		expect(bucket).toHaveProperty('sales')
-		expect(bucket).toHaveProperty('bookings')
+		expect(bucket).toHaveProperty('value')
 	})
 
 	// T-6: Non-completed bookings excluded
@@ -386,8 +390,8 @@ describe('Analytics Module', () => {
 			query: { range: '24h' },
 			fetch: { headers: { cookie: authCookie } }
 		})
-		expect(data?.data.chart.sales).toHaveLength(24)
-		expect(data?.data.chart.bookings).toHaveLength(24)
+		expect(data?.data.chart.revenue).toHaveLength(24)
+		expect(data?.data.chart.customers).toHaveLength(24)
 	})
 
 	// T-13: 6m returns exactly 6 chart buckets
@@ -396,8 +400,8 @@ describe('Analytics Module', () => {
 			query: { range: '6m' },
 			fetch: { headers: { cookie: authCookie } }
 		})
-		expect(data?.data.chart.sales).toHaveLength(6)
-		expect(data?.data.chart.bookings).toHaveLength(6)
+		expect(data?.data.chart.revenue).toHaveLength(6)
+		expect(data?.data.chart.customers).toHaveLength(6)
 	})
 
 	// T-14: 1y returns exactly 12 chart buckets
@@ -406,7 +410,135 @@ describe('Analytics Module', () => {
 			query: { range: '1y' },
 			fetch: { headers: { cookie: authCookie } }
 		})
-		expect(data?.data.chart.sales).toHaveLength(12)
-		expect(data?.data.chart.bookings).toHaveLength(12)
+		expect(data?.data.chart.revenue).toHaveLength(12)
+		expect(data?.data.chart.customers).toHaveLength(12)
+	})
+
+	// T-15: totalCustomers counts distinct customers
+	it('T-15: totalCustomers counts distinct customers not bookings', async () => {
+		const ctx = await createOwnerWithOrg('customers')
+		const svcId = await seedService(ctx.orgId)
+		const custId1 = await seedCustomer(ctx.orgId)
+		const custId2 = await seedCustomer(ctx.orgId)
+		const ts = new Date(
+			startOfDayWib(new Date()).getTime() - 2 * 24 * 60 * 60 * 1000
+		)
+
+		// 2 bookings, 2 distinct customers
+		await seedBooking({
+			organizationId: ctx.orgId,
+			customerId: custId1,
+			createdById: ctx.ownerUserId,
+			serviceId: svcId,
+			type: 'walk_in',
+			status: 'completed',
+			completedAt: ts,
+			price: 10_000
+		})
+		await seedBooking({
+			organizationId: ctx.orgId,
+			customerId: custId2,
+			createdById: ctx.ownerUserId,
+			serviceId: svcId,
+			type: 'walk_in',
+			status: 'completed',
+			completedAt: ts,
+			price: 10_000
+		})
+
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: ctx.authCookie } }
+		})
+		expect(data?.data.stats.totalCustomers.current).toBe(2)
+
+		await db.delete(booking).where(eq(booking.organizationId, ctx.orgId))
+		await db.delete(customer).where(eq(customer.organizationId, ctx.orgId))
+		await db.delete(service).where(eq(service.organizationId, ctx.orgId))
+	})
+})
+
+describe('Analytics - Highlights', () => {
+	let authCookie = ''
+	let orgId = ''
+	let ownerUserId = ''
+	let ownerMemberId = ''
+	let customerId = ''
+	let serviceId = ''
+
+	const now = new Date()
+	const currentWeekTs = new Date(
+		startOfDayWib(now).getTime() - 2 * 24 * 60 * 60 * 1000
+	)
+
+	beforeAll(async () => {
+		const ctx = await createOwnerWithOrg('highlights')
+		authCookie = ctx.authCookie
+		orgId = ctx.orgId
+		ownerUserId = ctx.ownerUserId
+		ownerMemberId = ctx.ownerMemberId
+
+		customerId = await seedCustomer(orgId)
+		serviceId = await seedService(orgId)
+
+		// 3 completed bookings handled by the owner member (top barber)
+		for (let i = 0; i < 3; i++) {
+			await seedBooking({
+				organizationId: orgId,
+				customerId,
+				createdById: ownerUserId,
+				serviceId,
+				type: 'walk_in',
+				status: 'completed',
+				completedAt: currentWeekTs,
+				price: 50_000,
+				handledByBarberId: ownerMemberId
+			})
+		}
+	})
+
+	afterAll(async () => {
+		await db.delete(booking).where(eq(booking.organizationId, orgId))
+		await db.delete(customer).where(eq(customer.organizationId, orgId))
+		await db.delete(service).where(eq(service.organizationId, orgId))
+	})
+
+	// T-16: topService returns correct service with count and revenue
+	it('T-16: highlights.topService returns the most booked service with correct count and revenue', async () => {
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: authCookie } }
+		})
+		const topService = data?.data.highlights.topService
+		expect(topService).not.toBeNull()
+		expect(topService?.id).toBe(serviceId)
+		expect(topService?.name).toBe('Analytics Test Service')
+		expect(topService?.count).toBe(3)
+		expect(topService?.revenue).toBe(150_000)
+	})
+
+	// T-17: topBarber returns the member who handled the most bookings
+	it('T-17: highlights.topBarber returns correct barber id, name, count and revenue', async () => {
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: authCookie } }
+		})
+		const topBarber = data?.data.highlights.topBarber
+		expect(topBarber).not.toBeNull()
+		expect(topBarber?.id).toBe(ownerMemberId)
+		expect(topBarber?.name).toBe('Analytics Owner')
+		expect(topBarber?.count).toBe(3)
+		expect(topBarber?.revenue).toBe(150_000)
+	})
+
+	// T-18: highlights are null when no completed bookings exist
+	it('T-18: highlights.topBarber and topService are null when org has no completed bookings', async () => {
+		const ctx = await createOwnerWithOrg('nohighlights')
+		const { data } = await tClient.api.analytics.get({
+			query: { range: 'week' },
+			fetch: { headers: { cookie: ctx.authCookie } }
+		})
+		expect(data?.data.highlights.topBarber).toBeNull()
+		expect(data?.data.highlights.topService).toBeNull()
 	})
 })

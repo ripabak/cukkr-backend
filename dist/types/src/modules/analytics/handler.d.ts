@@ -406,6 +406,12 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                                 change: number | null;
                                 direction: "up" | "down" | "neutral";
                             };
+                            totalCustomers: {
+                                current: number;
+                                previous: number;
+                                change: number | null;
+                                direction: "up" | "down" | "neutral";
+                            };
                             totalSales: {
                                 current: number;
                                 previous: number;
@@ -426,16 +432,30 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                             };
                         };
                         chart: {
-                            bookings: {
-                                bookings: number;
+                            customers: {
+                                value: number;
                                 label: string;
-                                sales: number;
                             }[];
-                            sales: {
-                                bookings: number;
+                            revenue: {
+                                value: number;
                                 label: string;
-                                sales: number;
                             }[];
+                        };
+                        highlights: {
+                            topBarber: {
+                                id: string;
+                                name: string;
+                                imageUrl: string | null;
+                                count: number;
+                                revenue: number;
+                            } | null;
+                            topService: {
+                                id: string;
+                                name: string;
+                                imageUrl: string | null;
+                                count: number;
+                                revenue: number;
+                            } | null;
                         };
                     };
                     status: string | number;
@@ -450,6 +470,451 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     found?: unknown;
                     property?: string;
                     expected?: string;
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        revenue: {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    range: "24h" | "week" | "month" | "6m" | "1y";
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            stats: {
+                                totalBookings: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                avgRevenuePerBooking: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                avgTime: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                            };
+                            chart: {
+                                value: number;
+                                label: string;
+                            }[];
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        revenue: {
+            bookings: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {
+                        type?: "all" | "walk_in" | "appointment" | undefined;
+                        limit?: number | undefined;
+                        page?: number | undefined;
+                        range: "24h" | "week" | "month" | "6m" | "1y";
+                    };
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                type: "walk_in" | "appointment";
+                                customerId: string;
+                                completedAt: string;
+                                bookingId: string;
+                                services: string[];
+                                customerName: string;
+                                revenue: number;
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        customers: {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    range: "24h" | "week" | "month" | "6m" | "1y";
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            stats: {
+                                totalCustomers: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                totalWalkIn: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                totalAppointment: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                totalNew: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                totalReturn: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                            };
+                            chart: {
+                                value: number;
+                                label: string;
+                            }[];
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        customers: {
+            list: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {
+                        status?: "return" | "all" | "new" | undefined;
+                        limit?: number | undefined;
+                        page?: number | undefined;
+                        range: "24h" | "week" | "month" | "6m" | "1y";
+                    };
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                status: "return" | "new";
+                                customerId: string;
+                                customerName: string;
+                                totalVisits: number;
+                                lastVisitDate: string | null;
+                                totalRevenue: number;
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        barbers: {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    range: "24h" | "week" | "month" | "6m" | "1y";
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            chart: {
+                                value: number;
+                                barberId: string;
+                                barberName: string;
+                            }[];
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        barbers: {
+            list: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {
+                        range: "24h" | "week" | "month" | "6m" | "1y";
+                    };
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                name: string;
+                                imageUrl: string | null;
+                                barberId: string;
+                                totalCustomers: number;
+                                totalRevenue: number;
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        services: {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    range: "24h" | "week" | "month" | "6m" | "1y";
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            stats: {
+                                totalBookings: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                                totalRevenue: {
+                                    current: number;
+                                    previous: number;
+                                    change: number | null;
+                                    direction: "up" | "down" | "neutral";
+                                };
+                            };
+                            chart: {
+                                value: number;
+                                label: string;
+                            }[];
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    analytics: {
+        services: {
+            list: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {
+                        limit?: number | undefined;
+                        page?: number | undefined;
+                        range: "24h" | "week" | "month" | "6m" | "1y";
+                    };
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                serviceId: string;
+                                serviceName: string;
+                                totalBookings: number;
+                                revenue: number;
+                                percentage: number;
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
                 };
             };
         };
