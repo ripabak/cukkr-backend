@@ -64,21 +64,31 @@ async function queryCustomerPeriodAgg(
 	let totalReturn = 0
 
 	if (customerIds.length > 0) {
-		const prevRows = await db
-			.select({ customerId: booking.customerId })
+		// Customer = "new" jika kunjungan pertama mereka (MIN completedAt) ada di
+		// periode ini. Customer = "return" jika kunjungan pertama mereka sebelum
+		// periode ini — berapapun jumlah kunjungan mereka di periode ini.
+		const firstVisitRows = await db
+			.select({
+				customerId: booking.customerId,
+				firstVisitAt: sql<string>`MIN(${booking.completedAt})`
+			})
 			.from(booking)
 			.where(
 				and(
 					eq(booking.organizationId, organizationId),
 					eq(booking.status, 'completed'),
-					lt(booking.completedAt, periodStart),
 					inArray(booking.customerId, customerIds)
 				)
 			)
 			.groupBy(booking.customerId)
 
-		totalReturn = prevRows.length
-		totalNew = customerIds.length - totalReturn
+		for (const row of firstVisitRows) {
+			if (new Date(row.firstVisitAt) < periodStart) {
+				totalReturn++
+			} else {
+				totalNew++
+			}
+		}
 	}
 
 	const row = statsRows[0]
