@@ -640,6 +640,90 @@ export declare const bookingsHandler: Elysia<"/bookings", {
     };
 } & {
     bookings: {
+        "in-progress": {
+            get: {
+                body: {};
+                params: {};
+                query: {};
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            type: "walk_in" | "appointment";
+                            id: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            organizationId: string;
+                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            customer: {
+                                id: string;
+                                name: string;
+                                email: string | null;
+                                phone: string | null;
+                                createdAt: Date;
+                                updatedAt: Date;
+                                isVerified: boolean;
+                                notes: string | null;
+                            };
+                            notes: string | null;
+                            referenceNumber: string;
+                            scheduledAt: Date | null;
+                            startedAt: Date | null;
+                            completedAt: Date | null;
+                            cancelledAt: Date | null;
+                            createdById: string;
+                            handledByBarber: {
+                                name: string;
+                                email: string;
+                                userId: string;
+                                role: string;
+                                memberId: string;
+                            } | null;
+                            services: {
+                                duration: number;
+                                id: string;
+                                price: number;
+                                discount: number;
+                                serviceId: string;
+                                serviceName: string;
+                                originalPrice: number;
+                            }[];
+                            requestedBarber: {
+                                name: string;
+                                email: string;
+                                userId: string;
+                                role: string;
+                                memberId: string;
+                            } | null;
+                        } | null;
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    bookings: {
         ":id": {
             get: {
                 body: {};

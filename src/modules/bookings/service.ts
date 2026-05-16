@@ -350,13 +350,16 @@ export abstract class BookingService {
 	private static buildStatusUpdate(
 		current: BookingRow,
 		nextStatus: BookingStatus,
-		now: Date
+		now: Date,
+		actorMemberId?: string | null
 	): Partial<BookingRow> {
 		if (nextStatus === 'in_progress') {
 			return {
 				status: nextStatus,
 				handledByBarberId:
-					current.handledByBarberId ?? current.barberId,
+					actorMemberId ??
+					current.handledByBarberId ??
+					current.barberId,
 				startedAt: now,
 				completedAt: null,
 				cancelledAt: null,
@@ -752,18 +755,61 @@ export abstract class BookingService {
 		return BookingService.mapDetail(row as BookingReadRow)
 	}
 
+	static async getInProgressBooking(
+		organizationId: string,
+		userId: string
+	): Promise<BookingModel.BookingDetailResponse | null> {
+		const actorMember = await db.query.member.findFirst({
+			where: and(
+				eq(member.userId, userId),
+				eq(member.organizationId, organizationId)
+			)
+		})
+
+		if (!actorMember || !ASSIGNABLE_MEMBER_ROLES.has(actorMember.role)) {
+			return null
+		}
+
+		const row = await db.query.booking.findFirst({
+			where: and(
+				eq(booking.organizationId, organizationId),
+				or(
+					eq(booking.handledByBarberId, actorMember.id),
+					and(
+						isNull(booking.handledByBarberId),
+						eq(booking.barberId, actorMember.id)
+					)
+				),
+				eq(booking.status, 'in_progress')
+			),
+			with: {
+				customer: true,
+				barber: { with: { user: true } },
+				handledByBarber: { with: { user: true } },
+				services: true
+			}
+		})
+
+		return row ? BookingService.mapDetail(row as BookingReadRow) : null
+	}
+
 	static async updateBookingStatus(
 		organizationId: string,
 		id: string,
-		input: BookingModel.BookingStatusUpdateInput
+		input: BookingModel.BookingStatusUpdateInput,
+		userId: string
 	): Promise<BookingModel.BookingDetailResponse> {
 		await db.transaction(async (tx) => {
-			const existing = await tx.query.booking.findFirst({
-				where: and(
-					eq(booking.id, id),
-					eq(booking.organizationId, organizationId)
+			const [existing] = await tx
+				.select()
+				.from(booking)
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
 				)
-			})
+				.for('update')
 
 			if (!existing) {
 				throw new AppError('Booking not found', 'NOT_FOUND')
@@ -775,11 +821,28 @@ export abstract class BookingService {
 				input.status
 			)
 
+			let actorMemberId: string | null = null
 			if (input.status === 'in_progress') {
+				const actorMember = await tx.query.member.findFirst({
+					where: and(
+						eq(member.userId, userId),
+						eq(member.organizationId, organizationId)
+					)
+				})
+
+				if (
+					actorMember &&
+					ASSIGNABLE_MEMBER_ROLES.has(actorMember.role)
+				) {
+					actorMemberId = actorMember.id
+				}
+
 				await BookingService.checkSingleInProgress(
 					tx,
 					organizationId,
-					existing.handledByBarberId ?? existing.barberId,
+					actorMemberId ??
+						existing.handledByBarberId ??
+						existing.barberId,
 					id
 				)
 			}
@@ -791,7 +854,8 @@ export abstract class BookingService {
 					BookingService.buildStatusUpdate(
 						existing,
 						input.status,
-						now
+						now,
+						actorMemberId
 					)
 				)
 				.where(

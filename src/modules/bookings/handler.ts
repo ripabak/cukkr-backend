@@ -95,6 +95,23 @@ export const bookingsHandler = new Elysia({
 		}
 	)
 	.get(
+		'/in-progress',
+		async ({ path, activeOrganizationId, user }) => {
+			const data = await BookingService.getInProgressBooking(
+				activeOrganizationId,
+				user.id
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			response: FormatResponseSchema(
+				t.Nullable(BookingModel.BookingDetailResponse)
+			)
+		}
+	)
+	.get(
 		'/:id',
 		async ({ params: { id }, path, activeOrganizationId }) => {
 			const data = await BookingService.getBooking(
@@ -112,11 +129,12 @@ export const bookingsHandler = new Elysia({
 	)
 	.patch(
 		'/:id/status',
-		async ({ params: { id }, body, path, activeOrganizationId }) => {
+		async ({ params: { id }, body, path, activeOrganizationId, user }) => {
 			const data = await BookingService.updateBookingStatus(
 				activeOrganizationId,
 				id,
-				body
+				body,
+				user.id
 			)
 
 			return formatResponse({
