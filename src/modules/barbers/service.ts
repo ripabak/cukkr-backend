@@ -38,10 +38,7 @@ export abstract class BarberService {
 			status === 'pending'
 				? []
 				: await db.query.member.findMany({
-						where: and(
-							eq(member.organizationId, organizationId),
-							eq(member.role, BARBER_ROLE)
-						),
+						where: and(eq(member.organizationId, organizationId)),
 						with: {
 							user: true
 						}
