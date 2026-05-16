@@ -7,8 +7,17 @@ export declare namespace BarbershopModel {
         address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
+        timezone: import("@sinclair/typebox").TString;
     }>;
     type BarbershopResponse = typeof BarbershopResponse.static;
+    const TimezoneInput: import("@sinclair/typebox").TObject<{
+        timezone: import("@sinclair/typebox").TString;
+    }>;
+    type TimezoneInput = typeof TimezoneInput.static;
+    const TimezoneResponse: import("@sinclair/typebox").TObject<{
+        timezone: import("@sinclair/typebox").TString;
+    }>;
+    type TimezoneResponse = typeof TimezoneResponse.static;
     const BarbershopSettingsInput: import("@sinclair/typebox").TObject<{
         name: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
         description: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;

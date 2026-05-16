@@ -490,6 +490,7 @@ export declare const app: Elysia<"", {
                             address: string | null;
                             logoUrl: string | null;
                             onboardingCompleted: boolean;
+                            timezone: string;
                         };
                         status: string | number;
                         path: string;
@@ -538,6 +539,7 @@ export declare const app: Elysia<"", {
                             address: string | null;
                             logoUrl: string | null;
                             onboardingCompleted: boolean;
+                            timezone: string;
                         };
                         status: string | number;
                         path: string;
@@ -588,6 +590,7 @@ export declare const app: Elysia<"", {
                                 address: string | null;
                                 logoUrl: string | null;
                                 onboardingCompleted: boolean;
+                                timezone: string;
                             };
                             status: string | number;
                             path: string;
@@ -644,6 +647,47 @@ export declare const app: Elysia<"", {
                                 property?: string;
                                 expected?: string;
                             };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        barbershop: {
+            timezone: {
+                patch: {
+                    body: {
+                        timezone: string;
+                    };
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                timezone: string;
+                            };
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
                         };
                     };
                 };
