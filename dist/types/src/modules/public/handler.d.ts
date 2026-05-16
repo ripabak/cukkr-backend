@@ -127,69 +127,6 @@ export declare const publicHandler: Elysia<"/public", {
             };
         };
     };
-} & {
-    public: {
-        barbershop: {
-            ":slug": {
-                appointment: {
-                    post: {
-                        body: {
-                            notes?: string | null | undefined;
-                            barberId?: string | null | undefined;
-                            customerPhone?: string | null | undefined;
-                            customerEmail?: string | null | undefined;
-                            scheduledAt: string;
-                            customerName: string;
-                            serviceIds: string[];
-                        };
-                        params: {
-                            slug: string;
-                        };
-                        query: unknown;
-                        headers: unknown;
-                        response: {
-                            200: {
-                                meta?: {
-                                    limit: number;
-                                    page: number;
-                                    totalItems: number;
-                                    totalPages: number;
-                                    hasNext: boolean;
-                                    hasPrev: boolean;
-                                } | undefined;
-                                message: string;
-                                data: {
-                                    type: "appointment";
-                                    id: string;
-                                    status: "requested";
-                                    referenceNumber: string;
-                                    scheduledAt: Date;
-                                    customerName: string;
-                                    serviceNames: string[];
-                                    requestedBarber: {
-                                        name: string;
-                                        memberId: string;
-                                    } | null;
-                                };
-                                status: string | number;
-                                path: string;
-                                timeStamp: string;
-                            };
-                            422: {
-                                type: "validation";
-                                on: string;
-                                summary?: string;
-                                message?: string;
-                                found?: unknown;
-                                property?: string;
-                                expected?: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
 }, {
     derive: {};
     resolve: {};

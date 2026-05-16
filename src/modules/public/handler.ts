@@ -38,22 +38,3 @@ export const publicHandler = new Elysia({
 			)
 		}
 	)
-	.post(
-		'/barbershop/:slug/appointment',
-		async ({ params: { slug }, body, path, set }) => {
-			const data = await PublicService.createPublicAppointment(slug, body)
-			set.status = 201
-			return formatResponse({
-				path,
-				data,
-				message: 'Appointment created successfully'
-			})
-		},
-		{
-			params: PublicModel.Schemas.PublicSlugParam,
-			body: PublicModel.Schemas.PublicAppointmentCreateInput,
-			response: FormatResponseSchema(
-				PublicModel.Schemas.PublicAppointmentCreatedResponse
-			)
-		}
-	)

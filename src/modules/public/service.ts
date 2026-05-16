@@ -192,7 +192,7 @@ export abstract class PublicService {
 			)
 		}
 
-		const detail = await BookingService.createBooking(
+		const detail = await BookingService.createAppointmentRequest(
 			org.id,
 			ownerMember.userId,
 			{ type: 'appointment', ...input }
@@ -202,7 +202,7 @@ export abstract class PublicService {
 			id: detail.id,
 			referenceNumber: detail.referenceNumber,
 			type: 'appointment',
-			status: 'requested',
+			status: detail.status as 'requested',
 			scheduledAt: detail.scheduledAt!,
 			customerName: detail.customer.name,
 			serviceNames: detail.services.map((s) => s.serviceName),

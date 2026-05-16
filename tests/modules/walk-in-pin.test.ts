@@ -140,7 +140,7 @@ describe('Walk-In PIN System', () => {
 			expect(record?.pin).toBe(secondPin)
 			// old PIN no longer valid (unless by coincidence they match)
 			if (firstPin !== secondPin) {
-				const validateOld = await (tClient as any).api.public[
+				const validateOld = await (tClient as any).api.public.booking[
 					ownerA.orgSlug
 				].pin.validate.post(
 					{ pin: firstPin },
@@ -192,7 +192,7 @@ describe('Walk-In PIN System', () => {
 			)
 			const pin: string = (genRes.data as any)?.data?.pin
 
-			const validateRes = await (tClient as any).api.public[
+			const validateRes = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			].pin.validate.post(
 				{ pin },
@@ -217,7 +217,7 @@ describe('Walk-In PIN System', () => {
 			const pin: string = (genRes.data as any)?.data?.pin
 
 			for (let i = 0; i < 3; i++) {
-				const res = await (tClient as any).api.public[
+				const res = await (tClient as any).api.public.booking[
 					ownerA.orgSlug
 				].pin.validate.post(
 					{ pin },
@@ -237,7 +237,7 @@ describe('Walk-In PIN System', () => {
 				}
 			)
 
-			const res = await (tClient as any).api.public[
+			const res = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			].pin.validate.post(
 				{ pin: '0000' },
@@ -263,7 +263,7 @@ describe('Walk-In PIN System', () => {
 				ipFailureGuard.recordFailure(testIp)
 			}
 
-			const res = await (tClient as any).api.public[
+			const res = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			].pin.validate.post(
 				{ pin: '0000' },
@@ -288,7 +288,7 @@ describe('Walk-In PIN System', () => {
 			)
 			const pin: string = (genRes.data as any)?.data?.pin
 
-			const res = await (tClient as any).api.public[
+			const res = await (tClient as any).api.public.booking[
 				ownerB.orgSlug
 			].pin.validate.post(
 				{ pin },
@@ -304,9 +304,9 @@ describe('Walk-In PIN System', () => {
 	// -------------------------------------------------------------------------
 	describe('Walk-In Booking', () => {
 		it('missing/invalid token returns 401', async () => {
-			const res = await (tClient as any).api.public[ownerA.orgSlug][
-				'walk-in'
-			].post(
+			const res = await (tClient as any).api.public.booking[
+				ownerA.orgSlug
+			]['walk-in'].post(
 				{
 					validationToken: 'invalid.token.here',
 					customerName: 'Test Customer',
@@ -329,7 +329,7 @@ describe('Walk-In PIN System', () => {
 			)
 			const pin: string = (genRes.data as any)?.data?.pin
 
-			const validateRes = await (tClient as any).api.public[
+			const validateRes = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			].pin.validate.post(
 				{ pin },
@@ -338,7 +338,7 @@ describe('Walk-In PIN System', () => {
 			const validationToken: string =
 				validateRes.data?.data?.validationToken
 
-			const bookingRes = await (tClient as any).api.public[
+			const bookingRes = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			]['walk-in'].post(
 				{
@@ -367,7 +367,7 @@ describe('Walk-In PIN System', () => {
 			const pin: string = (genRes.data as any)?.data?.pin
 
 			for (let i = 0; i < 3; i++) {
-				const validateRes = await (tClient as any).api.public[
+				const validateRes = await (tClient as any).api.public.booking[
 					ownerA.orgSlug
 				].pin.validate.post(
 					{ pin },
@@ -376,7 +376,7 @@ describe('Walk-In PIN System', () => {
 				const validationToken: string =
 					validateRes.data?.data?.validationToken
 
-				const bookingRes = await (tClient as any).api.public[
+				const bookingRes = await (tClient as any).api.public.booking[
 					ownerA.orgSlug
 				]['walk-in'].post(
 					{
@@ -402,7 +402,7 @@ describe('Walk-In PIN System', () => {
 			)
 			const pin: string = (genRes.data as any)?.data?.pin
 
-			const validateRes = await (tClient as any).api.public[
+			const validateRes = await (tClient as any).api.public.booking[
 				ownerA.orgSlug
 			].pin.validate.post(
 				{ pin },
@@ -411,9 +411,9 @@ describe('Walk-In PIN System', () => {
 			const validationToken: string =
 				validateRes.data?.data?.validationToken
 
-			const first = await (tClient as any).api.public[ownerA.orgSlug][
-				'walk-in'
-			].post(
+			const first = await (tClient as any).api.public.booking[
+				ownerA.orgSlug
+			]['walk-in'].post(
 				{
 					validationToken,
 					customerName: 'Replay Customer',
@@ -423,9 +423,9 @@ describe('Walk-In PIN System', () => {
 			)
 			expect(first.status).toBe(201)
 
-			const second = await (tClient as any).api.public[ownerA.orgSlug][
-				'walk-in'
-			].post(
+			const second = await (tClient as any).api.public.booking[
+				ownerA.orgSlug
+			]['walk-in'].post(
 				{
 					validationToken,
 					customerName: 'Replay Customer',
@@ -447,7 +447,7 @@ describe('Public Walk-In Form Data (F4)', () => {
 		formServiceId = await createActiveService(formDataOwner.authCookie)
 	})
 
-	it('F4-02: GET /public/:slug/form-data only includes active services', async () => {
+	it('F4-02: GET /public/booking/:slug/form-data only includes active services', async () => {
 		const activeRes = await tClient.api.services.post(
 			{
 				name: `Active Svc ${Date.now()}`,
@@ -467,7 +467,7 @@ describe('Public Walk-In Form Data (F4)', () => {
 		)
 		const activeServiceId = (activeRes.data as any)?.data?.id
 
-		const { data } = await (tClient as any).api.public[
+		const { data } = await (tClient as any).api.public.booking[
 			formDataOwner.orgSlug
 		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
 
@@ -477,8 +477,8 @@ describe('Public Walk-In Form Data (F4)', () => {
 		expect(serviceIds).toContain(activeServiceId)
 	})
 
-	it('F4-03: GET /public/:slug/form-data returns 404 for unknown slug', async () => {
-		const { status } = await (tClient as any).api.public[
+	it('F4-03: GET /public/booking/:slug/form-data returns 404 for unknown slug', async () => {
+		const { status } = await (tClient as any).api.public.booking[
 			'no-such-slug-xyz'
 		]['form-data'].get({ fetch: { headers: { origin: ORIGIN } } })
 

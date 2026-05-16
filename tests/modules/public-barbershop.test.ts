@@ -219,13 +219,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('POST /appointment creates an appointment and returns 201', async () => {
 		const scheduledAt = getFutureWibIso(1, 11, 0)
 
-		const response = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Public Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const response = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Public Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 
 		expect(response.status).toBe(201)
 		const appt = (response.data as any)?.data
@@ -239,13 +239,14 @@ describe('Public Appointment Booking Flow', () => {
 	it('POST /appointment returns 404 for unknown slug', async () => {
 		const scheduledAt = getFutureWibIso(1, 11, 0)
 
-		const response = await (tClient as any).api.public
-			.barbershop({ slug: `unknown-${nanoidSlug()}` })
-			.appointment.post({
-				customerName: 'Ghost Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const unknownSlug = `unknown-${nanoidSlug()}`
+		const response = await (tClient as any).api.public.booking[
+			unknownSlug
+		].appointment.post({
+			customerName: 'Ghost Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 
 		expect(response.status).toBe(404)
 	})
@@ -253,13 +254,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('POST /appointment returns 400 when scheduledAt is in the past', async () => {
 		const pastAt = new Date(Date.now() - 60 * 60 * 1000).toISOString()
 
-		const response = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Past Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt: pastAt
-			})
+		const response = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Past Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt: pastAt
+		})
 
 		expect(response.status).toBe(400)
 	})
@@ -267,13 +268,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('POST /appointment returns 400 when outside open hours', async () => {
 		const earlyAt = getFutureWibIso(1, 7, 0)
 
-		const response = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Early Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt: earlyAt
-			})
+		const response = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Early Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt: earlyAt
+		})
 
 		expect(response.status).toBe(400)
 	})
@@ -281,13 +282,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('POST /appointment returns 400 for invalid serviceId', async () => {
 		const scheduledAt = getFutureWibIso(1, 11, 0)
 
-		const response = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Bad Service Customer',
-				serviceIds: [nanoid()],
-				scheduledAt
-			})
+		const response = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Bad Service Customer',
+			serviceIds: [nanoid()],
+			scheduledAt
+		})
 
 		expect(response.status).toBe(400)
 	})
@@ -295,13 +296,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('created appointment can be accepted by owner (→ waiting)', async () => {
 		const scheduledAt = getFutureWibIso(2, 11, 0)
 
-		const createRes = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Accept Lifecycle Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const createRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Accept Lifecycle Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 		expect(createRes.status).toBe(201)
 		const bookingId = (createRes.data as any)?.data?.id as string
 
@@ -318,13 +319,13 @@ describe('Public Appointment Booking Flow', () => {
 	it('created appointment can be declined by owner (→ cancelled)', async () => {
 		const scheduledAt = getFutureWibIso(2, 12, 0)
 
-		const createRes = await (tClient as any).api.public
-			.barbershop({ slug: apptSlug })
-			.appointment.post({
-				customerName: 'Decline Lifecycle Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const createRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Decline Lifecycle Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 		expect(createRes.status).toBe(201)
 		const bookingId = (createRes.data as any)?.data?.id as string
 

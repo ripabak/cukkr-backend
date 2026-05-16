@@ -588,10 +588,11 @@ export abstract class BookingService {
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
 
-	static async createBooking(
+	private static async doCreateBooking(
 		organizationId: string,
 		createdById: string,
-		input: BookingModel.BookingCreateInput
+		input: BookingModel.BookingCreateInput,
+		status: BookingStatus
 	): Promise<BookingModel.BookingDetailResponse> {
 		const scheduledAt = await BookingService.validateScheduledAt(
 			organizationId,
@@ -684,7 +685,7 @@ export abstract class BookingService {
 				organizationId,
 				referenceNumber,
 				type: input.type,
-				status: input.type === 'appointment' ? 'requested' : 'waiting',
+				status,
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
@@ -721,6 +722,32 @@ export abstract class BookingService {
 		await BookingService.createBookingNotifications(bookingDetail)
 
 		return bookingDetail
+	}
+
+	static async createBooking(
+		organizationId: string,
+		createdById: string,
+		input: BookingModel.BookingCreateInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		return BookingService.doCreateBooking(
+			organizationId,
+			createdById,
+			input,
+			'waiting'
+		)
+	}
+
+	static async createAppointmentRequest(
+		organizationId: string,
+		createdById: string,
+		input: BookingModel.AppointmentBookingCreateInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		return BookingService.doCreateBooking(
+			organizationId,
+			createdById,
+			input,
+			'requested'
+		)
 	}
 
 	static async getBooking(

@@ -443,13 +443,13 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 	it('public appointment → accept → start → complete succeeds end-to-end', async () => {
 		const scheduledAt = getFutureWibIso(1, 11, 0)
 
-		const createRes = await (tClient as any).api.public
-			.barbershop({ slug: ownerCtx.slug })
-			.appointment.post({
-				customerName: 'Lifecycle Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const createRes = await (tClient as any).api.public.booking[
+			ownerCtx.slug
+		].appointment.post({
+			customerName: 'Lifecycle Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 		expect(createRes.status).toBe(201)
 		const bookingId: string = (createRes.data as any)?.data?.id
 		expect((createRes.data as any)?.data?.status).toBe('requested')
@@ -485,13 +485,13 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 	it('public appointment → decline transitions booking to cancelled', async () => {
 		const scheduledAt = getFutureWibIso(2, 10, 0)
 
-		const createRes = await (tClient as any).api.public
-			.barbershop({ slug: ownerCtx.slug })
-			.appointment.post({
-				customerName: 'Decline Lifecycle Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt
-			})
+		const createRes = await (tClient as any).api.public.booking[
+			ownerCtx.slug
+		].appointment.post({
+			customerName: 'Decline Lifecycle Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
 		expect(createRes.status).toBe(201)
 		const bookingId: string = (createRes.data as any)?.data?.id
 
@@ -560,14 +560,14 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 		})
 		const scheduledAt = getFutureWibIso(3, 11, 0)
 
-		const createRes = await (tClient as any).api.public
-			.barbershop({ slug: ownerCtx.slug })
-			.appointment.post({
-				customerName: 'Barber Split Customer',
-				serviceIds: [activeServiceId],
-				scheduledAt,
-				barberId: barber.memberId
-			})
+		const createRes = await (tClient as any).api.public.booking[
+			ownerCtx.slug
+		].appointment.post({
+			customerName: 'Barber Split Customer',
+			serviceIds: [activeServiceId],
+			scheduledAt,
+			barberId: barber.memberId
+		})
 		expect(createRes.status).toBe(201)
 		const bookingId: string = (createRes.data as any)?.data?.id
 
@@ -664,9 +664,9 @@ describe('Cross-Feature Public Surface Regression', () => {
 			(landingRes.data as any)?.data?.services as { id: string }[]
 		).map((s) => s.id)
 
-		const formDataRes = await (tClient as any).api.public[ownerCtx.slug][
-			'form-data'
-		].get()
+		const formDataRes = await (tClient as any).api.public.booking[
+			ownerCtx.slug
+		]['form-data'].get()
 		expect(formDataRes.status).toBe(200)
 		const formServiceIds = (
 			(formDataRes.data as any)?.data?.services as { id: string }[]
@@ -711,13 +711,13 @@ describe('Cross-Feature Public Surface Regression', () => {
 		)
 
 		const scheduledAt = getFutureWibIso(1, 11, 0)
-		const res = await (tClient as any).api.public
-			.barbershop({ slug: ownerCtx.slug })
-			.appointment.post({
-				customerName: 'Cross-Org Customer',
-				serviceIds: [otherSvcId],
-				scheduledAt
-			})
+		const res = await (tClient as any).api.public.booking[
+			ownerCtx.slug
+		].appointment.post({
+			customerName: 'Cross-Org Customer',
+			serviceIds: [otherSvcId],
+			scheduledAt
+		})
 
 		expect(res.status).toBe(400)
 	})

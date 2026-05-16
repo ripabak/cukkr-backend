@@ -13,6 +13,7 @@ import {
 	notification,
 	notificationPushToken
 } from '../../src/modules/notifications/schema'
+import { booking } from '../../src/modules/bookings/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -217,6 +218,15 @@ describe('Notification Action Mutations', () => {
 			}
 		})
 		const booking2Id = booking2Res.data?.data?.id as string
+
+		await db
+			.update(booking)
+			.set({ status: 'requested' })
+			.where(eq(booking.id, booking1Id))
+		await db
+			.update(booking)
+			.set({ status: 'requested' })
+			.where(eq(booking.id, booking2Id))
 
 		const an1 = await db.query.notification.findFirst({
 			where: and(

@@ -17,13 +17,11 @@ import { customersHandler } from './modules/customer-management/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 import { userProfileHandler } from './modules/user-profile/handler'
-import {
-	walkInPinHandler,
-	publicWalkInHandler
-} from './modules/walk-in-pin/handler'
+import { walkInPinHandler } from './modules/walk-in-pin/handler'
 import { analyticsHandler } from './modules/analytics/handler'
 import { notificationsHandler } from './modules/notifications/handler'
 import { publicHandler } from './modules/public/handler'
+import { publicBookingHandler } from './modules/public-booking/handler'
 import { typeShareEdenElysia } from 'type-share-eden-elysia'
 
 export const app = new Elysia()
@@ -91,10 +89,10 @@ export const app = new Elysia()
 			.use(openHoursHandler)
 			.use(userProfileHandler)
 			.use(walkInPinHandler)
-			.use(publicWalkInHandler)
 			.use(analyticsHandler)
 			.use(notificationsHandler)
 			.use(publicHandler)
+			.use(publicBookingHandler)
 	)
 	.use(
 		typeShareEdenElysia({

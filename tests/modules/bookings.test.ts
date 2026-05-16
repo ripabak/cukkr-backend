@@ -666,7 +666,7 @@ describe('Booking Creation Endpoints', () => {
 		)
 
 		expect(status).toBe(201)
-		expect(data?.data.status).toBe('requested')
+		expect(data?.data.status).toBe('waiting')
 		expect(data?.data.scheduledAt).toBeDefined()
 		expect(data?.data.customer.email).toBe('booked@example.com')
 	})
