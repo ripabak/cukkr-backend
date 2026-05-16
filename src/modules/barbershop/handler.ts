@@ -108,6 +108,25 @@ export const barbershopHandler = new Elysia({
 		}
 	)
 
+	// PATCH /barbershop/timezone — update org timezone
+	.patch(
+		'/timezone',
+		async ({ body, path, user, activeOrganizationId }) => {
+			const data = await BarbershopService.updateTimezone(
+				activeOrganizationId,
+				user.id,
+				body.timezone
+			)
+			return formatResponse({ path, data, message: 'Timezone updated' })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			body: BarbershopModel.TimezoneInput,
+			response: FormatResponseSchema(BarbershopModel.TimezoneResponse)
+		}
+	)
+
 	// POST /barbershop/logo — upload barbershop logo
 	.post(
 		'/logo',
