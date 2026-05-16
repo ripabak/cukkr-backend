@@ -1,6 +1,5 @@
 import { AnalyticsModel } from './model';
 export type AnalyticsRange = AnalyticsModel.AnalyticsRange;
-export declare const WIB_OFFSET_MS: number;
 export interface BucketDef {
     label: string;
     start: Date;
@@ -13,5 +12,4 @@ export interface TimeWindows {
     previousEnd: Date;
     buckets: BucketDef[];
 }
-export declare function toWib(date: Date): Date;
-export declare function buildTimeWindows(range: AnalyticsRange, now: Date): TimeWindows;
+export declare function buildTimeWindows(range: AnalyticsRange, now: Date, timezone: string): TimeWindows;

@@ -1,6 +1,7 @@
 import { and, eq, gte, isNotNull, lt, sql } from 'drizzle-orm'
 
 import { db } from '../../lib/database'
+import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { member } from '../auth/schema'
 import { booking, bookingService } from '../bookings/schema'
 import { service } from '../services/schema'
@@ -212,7 +213,8 @@ export abstract class AnalyticsService {
 			cache.delete(cacheKey)
 		}
 
-		const windows = buildTimeWindows(range, new Date())
+		const timezone = await fetchOrgTimezone(organizationId)
+		const windows = buildTimeWindows(range, new Date(), timezone)
 
 		const [currentAgg, previousAgg, chartBuckets, topBarber, topService] =
 			await Promise.all([

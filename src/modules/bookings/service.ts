@@ -14,6 +14,13 @@ import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
+import {
+	getDateKey,
+	getDayOfWeek,
+	getTimeString,
+	toLocalDate
+} from '../../lib/timezone'
+import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { NotificationService } from '../notifications/service'
 import { member, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
@@ -43,7 +50,6 @@ type BookingReadRow = BookingRow & {
 	services: BookingServiceRow[]
 }
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
 const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'member'])
@@ -93,31 +99,6 @@ export abstract class BookingService {
 			referenceId: bookingDetail.id,
 			referenceType: 'booking'
 		})
-	}
-
-	private static toWibDate(date: Date): Date {
-		return new Date(date.getTime() + WIB_OFFSET_MS)
-	}
-
-	private static getWibDateKey(date: Date): string {
-		const wibDate = BookingService.toWibDate(date)
-		const year = wibDate.getUTCFullYear()
-		const month = String(wibDate.getUTCMonth() + 1).padStart(2, '0')
-		const day = String(wibDate.getUTCDate()).padStart(2, '0')
-
-		return `${year}${month}${day}`
-	}
-
-	private static getWibDayOfWeek(date: Date): number {
-		return BookingService.toWibDate(date).getUTCDay()
-	}
-
-	private static getWibTime(date: Date): string {
-		const wibDate = BookingService.toWibDate(date)
-		const hours = String(wibDate.getUTCHours()).padStart(2, '0')
-		const minutes = String(wibDate.getUTCMinutes()).padStart(2, '0')
-
-		return `${hours}:${minutes}`
 	}
 
 	private static buildDayRange(date: string): {
@@ -231,7 +212,8 @@ export abstract class BookingService {
 
 	private static async validateScheduledAt(
 		organizationId: string,
-		input: BookingCreateInput
+		input: BookingCreateInput,
+		timezone: string
 	): Promise<Date | null> {
 		if (input.type === 'walk_in') {
 			if (input.scheduledAt) {
@@ -252,22 +234,27 @@ export abstract class BookingService {
 			)
 		}
 
-		await BookingService.validateOpenHours(organizationId, scheduledAt)
+		await BookingService.validateOpenHours(
+			organizationId,
+			scheduledAt,
+			timezone
+		)
 
 		return scheduledAt
 	}
 
 	public static async validateOpenHours(
 		organizationId: string,
-		scheduledAt: Date
+		scheduledAt: Date,
+		timezone?: string
 	): Promise<void> {
+		const tz = timezone ?? (await fetchOrgTimezone(organizationId))
 		const schedule =
 			await OpenHoursService.getWeeklyScheduleForOrganization(
 				organizationId
 			)
-		const daySchedule =
-			schedule[BookingService.getWibDayOfWeek(scheduledAt)]
-		const timeValue = BookingService.getWibTime(scheduledAt)
+		const daySchedule = schedule[getDayOfWeek(scheduledAt, tz)]
+		const timeValue = getTimeString(scheduledAt, tz)
 
 		if (
 			!daySchedule ||
@@ -587,9 +574,11 @@ export abstract class BookingService {
 		input: BookingModel.BookingCreateInput,
 		status: BookingStatus
 	): Promise<BookingModel.BookingDetailResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
 		const scheduledAt = await BookingService.validateScheduledAt(
 			organizationId,
-			input
+			input,
+			timezone
 		)
 		const selectedServices = await BookingService.validateServices(
 			organizationId,
@@ -647,7 +636,7 @@ export abstract class BookingService {
 						.returning()
 				)[0]
 
-			const bookingDate = BookingService.getWibDateKey(now)
+			const bookingDate = getDateKey(now, timezone)
 			const [counterRow] = await tx
 				.insert(bookingDailyCounter)
 				.values({
@@ -1018,11 +1007,12 @@ export abstract class BookingService {
 		organizationId: string,
 		query: BookingModel.BookingHomeSummaryQuery
 	): Promise<BookingModel.BookingHomeSummaryResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
 		const today = new Date()
-		const wibToday = BookingService.toWibDate(today)
-		const year = wibToday.getUTCFullYear()
-		const month = String(wibToday.getUTCMonth() + 1).padStart(2, '0')
-		const day = String(wibToday.getUTCDate()).padStart(2, '0')
+		const localToday = toLocalDate(today, timezone)
+		const year = localToday.getUTCFullYear()
+		const month = String(localToday.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(localToday.getUTCDate()).padStart(2, '0')
 		const defaultDate = `${year}-${month}-${day}`
 
 		const dateFrom = query.dateFrom ?? defaultDate

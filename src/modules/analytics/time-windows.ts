@@ -1,9 +1,13 @@
 import { AppError } from '../../core/error'
+import {
+	getDayOfWeek,
+	startOfDay,
+	startOfMonth,
+	toLocalDate
+} from '../../lib/timezone'
 import { AnalyticsModel } from './model'
 
 export type AnalyticsRange = AnalyticsModel.AnalyticsRange
-
-export const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 
 export interface BucketDef {
 	label: string
@@ -35,29 +39,10 @@ const MONTH_NAMES = [
 ]
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export function toWib(date: Date): Date {
-	return new Date(date.getTime() + WIB_OFFSET_MS)
-}
-
-function startOfDayWib(date: Date): Date {
-	const wib = toWib(date)
-	const utc = Date.UTC(
-		wib.getUTCFullYear(),
-		wib.getUTCMonth(),
-		wib.getUTCDate()
-	)
-	return new Date(utc - WIB_OFFSET_MS)
-}
-
-function startOfMonthWib(date: Date): Date {
-	const wib = toWib(date)
-	const utc = Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), 1)
-	return new Date(utc - WIB_OFFSET_MS)
-}
-
 export function buildTimeWindows(
 	range: AnalyticsRange,
-	now: Date
+	now: Date,
+	timezone: string
 ): TimeWindows {
 	switch (range) {
 		case '24h': {
@@ -69,7 +54,9 @@ export function buildTimeWindows(
 			for (let i = 23; i >= 0; i--) {
 				const start = new Date(now.getTime() - (i + 1) * 60 * 60 * 1000)
 				const end = new Date(now.getTime() - i * 60 * 60 * 1000)
-				const hour = String(toWib(start).getUTCHours()).padStart(2, '0')
+				const hour = String(
+					toLocalDate(start, timezone).getUTCHours()
+				).padStart(2, '0')
 				buckets.push({ label: `${hour}:00`, start, end })
 			}
 			return {
@@ -82,7 +69,7 @@ export function buildTimeWindows(
 		}
 
 		case 'week': {
-			const todayStart = startOfDayWib(now)
+			const todayStart = startOfDay(now, timezone)
 			const currentStart = new Date(
 				todayStart.getTime() - 6 * 24 * 60 * 60 * 1000
 			)
@@ -99,7 +86,7 @@ export function buildTimeWindows(
 					currentStart.getTime() + i * 24 * 60 * 60 * 1000
 				)
 				const end = new Date(start.getTime() + 24 * 60 * 60 * 1000)
-				const label = DAY_NAMES[toWib(start).getUTCDay()]
+				const label = DAY_NAMES[getDayOfWeek(start, timezone)]
 				buckets.push({ label, start, end })
 			}
 			return {
@@ -112,26 +99,41 @@ export function buildTimeWindows(
 		}
 
 		case 'month': {
-			const currentStart = startOfMonthWib(now)
-			const wibNow = toWib(now)
-			const currentEnd = new Date(
-				Date.UTC(wibNow.getUTCFullYear(), wibNow.getUTCMonth() + 1, 1) -
-					WIB_OFFSET_MS
+			const currentStart = startOfMonth(now, timezone)
+			const localNow = toLocalDate(now, timezone)
+			const currentEnd = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() + 1,
+						1
+					)
+				),
+				timezone
 			)
-			const previousStart = new Date(
-				Date.UTC(wibNow.getUTCFullYear(), wibNow.getUTCMonth() - 1, 1) -
-					WIB_OFFSET_MS
+			const previousStart = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() - 1,
+						1
+					)
+				),
+				timezone
 			)
 			const previousEnd = currentStart
 			const buckets: BucketDef[] = []
-			const wibCurrent = toWib(currentStart)
-			const year = wibCurrent.getUTCFullYear()
-			const month = wibCurrent.getUTCMonth()
+			const localCurrent = toLocalDate(currentStart, timezone)
+			const year = localCurrent.getUTCFullYear()
+			const month = localCurrent.getUTCMonth()
 			const daysInMonth = new Date(
 				Date.UTC(year, month + 1, 0)
 			).getUTCDate()
 			for (let d = 1; d <= daysInMonth; d++) {
-				const start = new Date(Date.UTC(year, month, d) - WIB_OFFSET_MS)
+				const start = startOfDay(
+					new Date(Date.UTC(year, month, d)),
+					timezone
+				)
 				const end = new Date(start.getTime() + 24 * 60 * 60 * 1000)
 				buckets.push({ label: String(d).padStart(2, '0'), start, end })
 			}
@@ -145,35 +147,51 @@ export function buildTimeWindows(
 		}
 
 		case '6m': {
-			const wibNow = toWib(now)
-			const currentStart = new Date(
-				Date.UTC(wibNow.getUTCFullYear(), wibNow.getUTCMonth() - 6, 1) -
-					WIB_OFFSET_MS
+			const localNow = toLocalDate(now, timezone)
+			const currentStart = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() - 6,
+						1
+					)
+				),
+				timezone
 			)
-			const previousStart = new Date(
-				Date.UTC(
-					wibNow.getUTCFullYear(),
-					wibNow.getUTCMonth() - 12,
-					1
-				) - WIB_OFFSET_MS
+			const previousStart = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() - 12,
+						1
+					)
+				),
+				timezone
 			)
 			const buckets: BucketDef[] = []
 			for (let i = 5; i >= 0; i--) {
-				const start = new Date(
-					Date.UTC(
-						wibNow.getUTCFullYear(),
-						wibNow.getUTCMonth() - i,
-						1
-					) - WIB_OFFSET_MS
+				const start = startOfMonth(
+					new Date(
+						Date.UTC(
+							localNow.getUTCFullYear(),
+							localNow.getUTCMonth() - i,
+							1
+						)
+					),
+					timezone
 				)
-				const end = new Date(
-					Date.UTC(
-						wibNow.getUTCFullYear(),
-						wibNow.getUTCMonth() - i + 1,
-						1
-					) - WIB_OFFSET_MS
+				const end = startOfMonth(
+					new Date(
+						Date.UTC(
+							localNow.getUTCFullYear(),
+							localNow.getUTCMonth() - i + 1,
+							1
+						)
+					),
+					timezone
 				)
-				const label = MONTH_NAMES[toWib(start).getUTCMonth()]
+				const label =
+					MONTH_NAMES[toLocalDate(start, timezone).getUTCMonth()]
 				buckets.push({ label, start, end })
 			}
 			return {
@@ -186,38 +204,51 @@ export function buildTimeWindows(
 		}
 
 		case '1y': {
-			const wibNow = toWib(now)
-			const currentStart = new Date(
-				Date.UTC(
-					wibNow.getUTCFullYear(),
-					wibNow.getUTCMonth() - 12,
-					1
-				) - WIB_OFFSET_MS
+			const localNow = toLocalDate(now, timezone)
+			const currentStart = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() - 12,
+						1
+					)
+				),
+				timezone
 			)
-			const previousStart = new Date(
-				Date.UTC(
-					wibNow.getUTCFullYear(),
-					wibNow.getUTCMonth() - 24,
-					1
-				) - WIB_OFFSET_MS
+			const previousStart = startOfMonth(
+				new Date(
+					Date.UTC(
+						localNow.getUTCFullYear(),
+						localNow.getUTCMonth() - 24,
+						1
+					)
+				),
+				timezone
 			)
 			const buckets: BucketDef[] = []
 			for (let i = 11; i >= 0; i--) {
-				const start = new Date(
-					Date.UTC(
-						wibNow.getUTCFullYear(),
-						wibNow.getUTCMonth() - i,
-						1
-					) - WIB_OFFSET_MS
+				const start = startOfMonth(
+					new Date(
+						Date.UTC(
+							localNow.getUTCFullYear(),
+							localNow.getUTCMonth() - i,
+							1
+						)
+					),
+					timezone
 				)
-				const end = new Date(
-					Date.UTC(
-						wibNow.getUTCFullYear(),
-						wibNow.getUTCMonth() - i + 1,
-						1
-					) - WIB_OFFSET_MS
+				const end = startOfMonth(
+					new Date(
+						Date.UTC(
+							localNow.getUTCFullYear(),
+							localNow.getUTCMonth() - i + 1,
+							1
+						)
+					),
+					timezone
 				)
-				const label = MONTH_NAMES[toWib(start).getUTCMonth()]
+				const label =
+					MONTH_NAMES[toLocalDate(start, timezone).getUTCMonth()]
 				buckets.push({ label, start, end })
 			}
 			return {

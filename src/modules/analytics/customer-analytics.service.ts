@@ -2,6 +2,7 @@ import { and, eq, gte, inArray, lt, sql } from 'drizzle-orm'
 
 import { db } from '../../lib/database'
 import { PaginatedResult, normalizePagination } from '../../core/pagination'
+import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { booking, bookingService, customer } from '../bookings/schema'
 import { AnalyticsModel } from './model'
 import { buildTimeWindows } from './time-windows'
@@ -127,7 +128,8 @@ export abstract class CustomerAnalyticsService {
 		organizationId: string,
 		range: AnalyticsRange
 	): Promise<CustomerAnalyticsStats> {
-		const windows = buildTimeWindows(range, new Date())
+		const timezone = await fetchOrgTimezone(organizationId)
+		const windows = buildTimeWindows(range, new Date(), timezone)
 
 		const [currentAgg, previousAgg, chartBuckets] = await Promise.all([
 			queryCustomerPeriodAgg(
@@ -187,7 +189,12 @@ export abstract class CustomerAnalyticsService {
 		query: { page?: number; limit?: number }
 	): Promise<PaginatedResult<CustomerAnalyticsListItem>> {
 		const pagination = normalizePagination(query)
-		const { currentStart, currentEnd } = buildTimeWindows(range, new Date())
+		const timezone = await fetchOrgTimezone(organizationId)
+		const { currentStart, currentEnd } = buildTimeWindows(
+			range,
+			new Date(),
+			timezone
+		)
 
 		const periodWhere = and(
 			eq(booking.organizationId, organizationId),

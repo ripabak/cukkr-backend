@@ -1,10 +1,6 @@
 import { BookingModel } from './model';
 export declare abstract class BookingService {
     private static createBookingNotifications;
-    private static toWibDate;
-    private static getWibDateKey;
-    private static getWibDayOfWeek;
-    private static getWibTime;
     private static buildDayRange;
     private static normalizePhone;
     private static normalizeEmail;
@@ -12,7 +8,7 @@ export declare abstract class BookingService {
     private static validateBarberAssignment;
     private static validateServices;
     private static validateScheduledAt;
-    static validateOpenHours(organizationId: string, scheduledAt: Date): Promise<void>;
+    static validateOpenHours(organizationId: string, scheduledAt: Date, timezone?: string): Promise<void>;
     private static validateStatusTransition;
     private static checkSingleInProgress;
     private static buildStatusUpdate;

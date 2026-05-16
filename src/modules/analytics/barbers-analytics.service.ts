@@ -1,6 +1,7 @@
 import { and, eq, gte, lt, sql } from 'drizzle-orm'
 
 import { db } from '../../lib/database'
+import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { member, user } from '../auth/schema'
 import { booking, bookingService } from '../bookings/schema'
 import { AnalyticsModel } from './model'
@@ -15,7 +16,12 @@ export abstract class BarberAnalyticsService {
 		organizationId: string,
 		range: AnalyticsRange
 	): Promise<{ chart: BarberChartItem[] }> {
-		const { currentStart, currentEnd } = buildTimeWindows(range, new Date())
+		const timezone = await fetchOrgTimezone(organizationId)
+		const { currentStart, currentEnd } = buildTimeWindows(
+			range,
+			new Date(),
+			timezone
+		)
 
 		const rows = await db
 			.select({
@@ -53,7 +59,12 @@ export abstract class BarberAnalyticsService {
 		organizationId: string,
 		range: AnalyticsRange
 	): Promise<BarberListItem[]> {
-		const { currentStart, currentEnd } = buildTimeWindows(range, new Date())
+		const timezone = await fetchOrgTimezone(organizationId)
+		const { currentStart, currentEnd } = buildTimeWindows(
+			range,
+			new Date(),
+			timezone
+		)
 
 		const rows = await db
 			.select({
