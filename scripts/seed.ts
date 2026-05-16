@@ -329,6 +329,7 @@ async function seedBarbershop(
 			id: nanoid(),
 			name: template.name,
 			slug,
+			metadata: JSON.stringify({ timezone: 'Asia/Jakarta' }),
 			createdAt: now
 		})
 		.returning()
