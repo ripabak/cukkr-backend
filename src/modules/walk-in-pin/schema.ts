@@ -11,7 +11,9 @@ export const walkInPin = pgTable('organization_walk_in_pin', {
 	updatedByUserId: text('updated_by_user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'restrict' }),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
+	updatedAt: timestamp('updated_at', { withTimezone: true })
+		.defaultNow()
+		.notNull()
 })
 
 export const walkInPinRelations = relations(walkInPin, ({ one }) => ({

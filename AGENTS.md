@@ -95,6 +95,7 @@ tests/
 - **DTOs:** Define all request/response shapes in the module's `model.ts`. Use the same DTO types consistently across `handler.ts` and `service.ts`.
 - **No magic strings:** Use enums or constants for status codes and error types.
 - **Don't use 'any' type:** Use proper types instead of 'any' as much as possible
+- **Timestamps must use timezone:** Always define timestamp columns with `{ withTimezone: true }` — e.g., `timestamp('created_at', { withTimezone: true }).defaultNow()`. This prevents timezone-related bugs when storing and comparing dates.
 - **Multi-Tenant Scoping:** If a resource belongs to an organization, ensure its table has an `organizationId` foreign key (referencing `organization.id`). Use the `requireOrganization: true` macro in the handler to enforce tenant isolation and access `activeOrganizationId`. Service methods must always filter and insert data using the `organizationId`. If needed adjust you can refer to "https://better-auth.com/docs/plugins/organization" for documentation.
 - **Always make tests for new features:** For every new feature or changes, create a new test or update existing test file in the `tests/modules/` directory.
 - **Don't edit product example module:** The product-example module is a template and should not be edited. Use it as a reference to create new modules.

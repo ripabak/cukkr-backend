@@ -21,8 +21,10 @@ export const openHour = pgTable(
 		isOpen: boolean('is_open').default(false).notNull(),
 		openTime: text('open_time'),
 		closeTime: text('close_time'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()
