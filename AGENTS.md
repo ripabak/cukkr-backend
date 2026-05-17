@@ -97,6 +97,33 @@ tests/
 - **Don't use 'any' type:** Use proper types instead of 'any' as much as possible
 - **Timestamps must use timezone:** Always define timestamp columns with `{ withTimezone: true }` — e.g., `timestamp('created_at', { withTimezone: true }).defaultNow()`. This prevents timezone-related bugs when storing and comparing dates.
 - **Multi-Tenant Scoping:** If a resource belongs to an organization, ensure its table has an `organizationId` foreign key (referencing `organization.id`). Use the `requireOrganization: true` macro in the handler to enforce tenant isolation and access `activeOrganizationId`. Service methods must always filter and insert data using the `organizationId`. If needed adjust you can refer to "https://better-auth.com/docs/plugins/organization" for documentation.
+
+- **Protected Handlers — Auth & Role Macros:** Three macros are available from `authMiddleware` (see `src/middleware/auth-middleware.ts`):
+
+  | Macro | What it enforces | Context injected |
+  |---|---|---|
+  | `requireAuth: true` | Valid session (user logged in) | `user` |
+  | `requireOrganization: true` | Active organization in session | `activeOrganizationId` |
+  | `requireRoles: ['owner'&#124;'admin'&#124;'member']` | Auth + org + member role check | `user`, `activeOrganizationId` |
+
+  Use `requireRoles` as a single drop-in replacement for `requireAuth + requireOrganization` when the endpoint also needs to restrict by role. The macro queries the `member` table and throws `FORBIDDEN` if the user's role is not in the provided list. **Do not** duplicate the role check inside the service method — the handler macro is the authoritative gate.
+
+  ```typescript
+  // ✅ Correct — role enforced at handler level
+  .patch('/settings', async ({ body, path, activeOrganizationId }) => {
+      const data = await BarbershopService.updateSettings(activeOrganizationId, body)
+      return formatResponse({ path, data })
+  }, {
+      requireRoles: ['owner'],           // only owners may call this
+      body: BarbershopModel.SettingsInput,
+  })
+
+  // ✅ Multi-role — owner or admin allowed
+  { requireRoles: ['owner', 'admin'] }
+
+  // ✅ Auth + org only, no role restriction
+  { requireAuth: true, requireOrganization: true }
+  ```
 - **Always make tests for new features:** For every new feature or changes, create a new test or update existing test file in the `tests/modules/` directory.
 - **Don't edit product example module:** The product-example module is a template and should not be edited. Use it as a reference to create new modules.
 - **After changes, always run lint:fix and format:** Before committing, always run `bun run lint:fix` and `bun run format` to ensure your code is clean and consistent. If there are any lint errors, fix them.
