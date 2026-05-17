@@ -42,7 +42,7 @@ export const auth = betterAuth({
 		organization({
 			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
 			async sendInvitationEmail(data) {
-				const inviteLink = `${env.CLIENT_URL}/accept-invitation/${data.id}`
+				const inviteLink = `${env.CLIENT_URL}/d/accept-invitation?id=${data.id}`
 				sendOrganizationInvitation({
 					to: data.email,
 					inviterName: data.inviter.user.name,
