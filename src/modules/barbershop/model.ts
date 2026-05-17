@@ -8,9 +8,20 @@ export namespace BarbershopModel {
 		description: t.Nullable(t.String()),
 		address: t.Nullable(t.String()),
 		logoUrl: t.Nullable(t.String()),
-		onboardingCompleted: t.Boolean()
+		onboardingCompleted: t.Boolean(),
+		timezone: t.String()
 	})
 	export type BarbershopResponse = typeof BarbershopResponse.static
+
+	export const TimezoneInput = t.Object({
+		timezone: t.String({ minLength: 1, maxLength: 100 })
+	})
+	export type TimezoneInput = typeof TimezoneInput.static
+
+	export const TimezoneResponse = t.Object({
+		timezone: t.String()
+	})
+	export type TimezoneResponse = typeof TimezoneResponse.static
 
 	export const BarbershopSettingsInput = t.Object({
 		name: t.Optional(t.String({ minLength: 2, maxLength: 100 })),

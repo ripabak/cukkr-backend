@@ -163,7 +163,7 @@ async function createBarberMemberContext(args: {
 		id: memberId,
 		organizationId: args.organizationId,
 		userId: barberUser.userId,
-		role: 'barber',
+		role: 'member',
 		createdAt: new Date()
 	})
 
@@ -666,7 +666,7 @@ describe('Booking Creation Endpoints', () => {
 		)
 
 		expect(status).toBe(201)
-		expect(data?.data.status).toBe('requested')
+		expect(data?.data.status).toBe('waiting')
 		expect(data?.data.scheduledAt).toBeDefined()
 		expect(data?.data.customer.email).toBe('booked@example.com')
 	})
@@ -1426,7 +1426,7 @@ describe('Booking Barber Split (F1) & Open Hours Validation (F2)', () => {
 		)
 		const detail = createData?.data as Record<string, unknown>
 
-		expect('barber' in detail).toBe(false)
+		expect('member' in detail).toBe(false)
 		expect('requestedBarber' in detail).toBe(true)
 		expect('handledByBarber' in detail).toBe(true)
 	})
@@ -1573,5 +1573,166 @@ describe('Booking Reassignment', () => {
 			.reassign.patch({ handledByMemberId: barber1.memberId })
 
 		expect(status).toBe(401)
+	})
+})
+
+describe('Booking Home Summary Endpoint', () => {
+	let owner: OwnerContext
+	let ownerB: OwnerContext
+
+	const SUMMARY_DATE_A = '2026-04-26'
+	const SUMMARY_DATE_B = '2026-04-27'
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('summary')
+		ownerB = await createOwnerWithOrg('summary-b')
+
+		// Day A: 1 walk_in waiting, 1 appointment in_progress, 1 walk_in cancelled, 1 walk_in completed
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-04-26T03:00:00.000Z'),
+			customerName: 'Summary WalkIn Waiting',
+			serviceNames: ['Cut A']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'in_progress',
+			createdAt: new Date('2026-04-25T20:00:00.000Z'),
+			scheduledAt: new Date('2026-04-26T04:00:00.000Z'),
+			customerName: 'Summary Appt InProgress',
+			serviceNames: ['Appt A']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'cancelled',
+			createdAt: new Date('2026-04-26T05:00:00.000Z'),
+			customerName: 'Summary WalkIn Cancelled',
+			serviceNames: ['Cut Cancelled']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'completed',
+			createdAt: new Date('2026-04-26T06:00:00.000Z'),
+			customerName: 'Summary WalkIn Completed',
+			serviceNames: ['Cut Completed']
+		})
+
+		// Day B: 1 walk_in waiting
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-04-27T03:00:00.000Z'),
+			customerName: 'Summary Day B Customer',
+			serviceNames: ['Cut B']
+		})
+
+		// Other org booking on Day A — must NOT appear in owner's summary
+		await seedBookingRecord({
+			organizationId: ownerB.orgId,
+			createdById: ownerB.ownerUserId,
+			barberId: ownerB.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-04-26T03:30:00.000Z'),
+			customerName: 'Other Org Summary Customer',
+			serviceNames: ['Other Cut']
+		})
+	})
+
+	it('returns 401 without auth', async () => {
+		const { status } = await tClient.api.bookings.summary.get({
+			query: { dateFrom: SUMMARY_DATE_A, dateTo: SUMMARY_DATE_A }
+		})
+
+		expect(status).toBe(401)
+	})
+
+	it('returns correct counts for a single day (Day A), excluding cancelled', async () => {
+		const { status, data } = await tClient.api.bookings.summary.get({
+			query: { dateFrom: SUMMARY_DATE_A, dateTo: SUMMARY_DATE_A },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		expect(
+			new Date(data?.data.dateFrom as unknown as string)
+				.toISOString()
+				.slice(0, 10)
+		).toBe(SUMMARY_DATE_A)
+		expect(
+			new Date(data?.data.dateTo as unknown as string)
+				.toISOString()
+				.slice(0, 10)
+		).toBe(SUMMARY_DATE_A)
+		// 1 walk_in waiting + 1 appointment in_progress + 1 walk_in completed = 3 (cancelled excluded)
+		expect(data?.data.total).toBe(3)
+		expect(data?.data.walkIn).toBe(2)
+		expect(data?.data.appointment).toBe(1)
+		expect(data?.data.inProgress).toBe(1)
+		expect(data?.data.waiting).toBe(1)
+	})
+
+	it('returns correct counts for a date range (Day A + Day B)', async () => {
+		const { status, data } = await tClient.api.bookings.summary.get({
+			query: { dateFrom: SUMMARY_DATE_A, dateTo: SUMMARY_DATE_B },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		// Day A: 3 non-cancelled + Day B: 1 = 4 total
+		expect(data?.data.total).toBe(4)
+		expect(data?.data.walkIn).toBe(3)
+		expect(data?.data.appointment).toBe(1)
+		expect(data?.data.waiting).toBe(2)
+		expect(data?.data.inProgress).toBe(1)
+	})
+
+	it('does not include bookings from other organizations', async () => {
+		const { status, data } = await tClient.api.bookings.summary.get({
+			query: { dateFrom: SUMMARY_DATE_A, dateTo: SUMMARY_DATE_A },
+			fetch: { headers: { cookie: ownerB.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		expect(data?.data.total).toBe(1)
+		expect(data?.data.walkIn).toBe(1)
+	})
+
+	it('returns 400 when dateTo is before dateFrom', async () => {
+		const { status } = await tClient.api.bookings.summary.get({
+			query: { dateFrom: SUMMARY_DATE_B, dateTo: SUMMARY_DATE_A },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(400)
+	})
+
+	it('defaults to today when no query params are provided', async () => {
+		const { status, data } = await tClient.api.bookings.summary.get({
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(200)
+		expect(data?.data.dateFrom).toBeDefined()
+		expect(data?.data.dateTo).toBeDefined()
 	})
 })

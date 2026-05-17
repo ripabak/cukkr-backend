@@ -2,18 +2,27 @@ import { and, count, eq, ne } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { db } from '../../lib/database'
+import { DEFAULT_TIMEZONE } from '../../lib/timezone'
+import { parseOrgMetadata } from '../auth/organization-metadata'
 import { organization, member } from '../auth/schema'
 import { barbershopSettings } from './schema'
 import { BarbershopModel } from './model'
 import { AppError } from '../../core/error'
 import { storageClient } from '../../lib/storage'
 
+function isValidIanaTimezone(tz: string): boolean {
+	try {
+		Intl.DateTimeFormat(undefined, { timeZone: tz })
+		return true
+	} catch {
+		return false
+	}
+}
+
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
 export abstract class BarbershopService {
-	private static async ensureSettingsRow(
-		organizationId: string
-	): Promise<void> {
+	static async ensureSettingsRow(organizationId: string): Promise<void> {
 		await db
 			.insert(barbershopSettings)
 			.values({
@@ -60,6 +69,7 @@ export abstract class BarbershopService {
 				id: organization.id,
 				name: organization.name,
 				slug: organization.slug,
+				metadata: organization.metadata,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
@@ -84,8 +94,48 @@ export abstract class BarbershopService {
 			description: rows[0].description ?? null,
 			address: rows[0].address ?? null,
 			logoUrl: rows[0].logoUrl ?? null,
-			onboardingCompleted: rows[0].onboardingCompleted ?? false
+			onboardingCompleted: rows[0].onboardingCompleted ?? false,
+			timezone:
+				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE
 		}
+	}
+
+	static async updateTimezone(
+		organizationId: string,
+		userId: string,
+		timezone: string
+	): Promise<BarbershopModel.TimezoneResponse> {
+		const memberRow = await db.query.member.findFirst({
+			where: and(
+				eq(member.userId, userId),
+				eq(member.organizationId, organizationId)
+			)
+		})
+		if (!memberRow || memberRow.role !== 'owner') {
+			throw new AppError('Forbidden', 'FORBIDDEN')
+		}
+
+		if (!isValidIanaTimezone(timezone)) {
+			throw new AppError(
+				'Invalid IANA timezone identifier',
+				'BAD_REQUEST'
+			)
+		}
+
+		const orgRow = await db.query.organization.findFirst({
+			where: eq(organization.id, organizationId),
+			columns: { metadata: true }
+		})
+
+		const existing = parseOrgMetadata(orgRow?.metadata)
+		const updated = { ...existing, timezone }
+
+		await db
+			.update(organization)
+			.set({ metadata: JSON.stringify(updated) })
+			.where(eq(organization.id, organizationId))
+
+		return { timezone }
 	}
 
 	static async updateSettings(
@@ -170,86 +220,6 @@ export abstract class BarbershopService {
 			.limit(1)
 
 		return { available: rows.length === 0 }
-	}
-
-	static async createBarbershop(
-		userId: string,
-		body: BarbershopModel.CreateBarbershopInput
-	): Promise<BarbershopModel.BarbershopResponse> {
-		await BarbershopService.validateAndCheckSlug(body.slug)
-
-		const orgId = nanoid()
-		const now = new Date()
-
-		await db.insert(organization).values({
-			id: orgId,
-			name: body.name,
-			slug: body.slug,
-			createdAt: now
-		})
-
-		await db.insert(member).values({
-			id: nanoid(),
-			organizationId: orgId,
-			userId,
-			role: 'owner',
-			createdAt: now
-		})
-
-		await BarbershopService.ensureSettingsRow(orgId)
-
-		if (body.description !== undefined || body.address !== undefined) {
-			const settingsUpdate: {
-				description?: string | null
-				address?: string | null
-			} = {}
-			if (body.description !== undefined)
-				settingsUpdate.description = body.description
-			if (body.address !== undefined)
-				settingsUpdate.address = body.address
-
-			await db
-				.update(barbershopSettings)
-				.set(settingsUpdate)
-				.where(eq(barbershopSettings.organizationId, orgId))
-		}
-
-		return BarbershopService.getSettings(orgId)
-	}
-
-	static async listBarbershops(
-		userId: string
-	): Promise<BarbershopModel.BarbershopListResponse> {
-		const rows = await db
-			.select({
-				id: organization.id,
-				name: organization.name,
-				slug: organization.slug,
-				description: barbershopSettings.description,
-				address: barbershopSettings.address,
-				logoUrl: barbershopSettings.logoUrl,
-				onboardingCompleted: barbershopSettings.onboardingCompleted,
-				role: member.role
-			})
-			.from(member)
-			.innerJoin(organization, eq(organization.id, member.organizationId))
-			.leftJoin(
-				barbershopSettings,
-				eq(barbershopSettings.organizationId, organization.id)
-			)
-			.where(eq(member.userId, userId))
-			.orderBy(organization.createdAt)
-
-		return rows.map((row) => ({
-			id: row.id,
-			name: row.name,
-			slug: row.slug,
-			description: row.description ?? null,
-			address: row.address ?? null,
-			logoUrl: row.logoUrl ?? null,
-			onboardingCompleted: row.onboardingCompleted ?? false,
-			role: row.role
-		}))
 	}
 
 	static async uploadLogo(

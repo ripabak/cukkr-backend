@@ -1,0 +1,81 @@
+export declare const walkInPin: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "organization_walk_in_pin";
+    schema: undefined;
+    columns: {
+        organizationId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "organization_id";
+            tableName: "organization_walk_in_pin";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: true;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        pin: import("drizzle-orm/pg-core").PgColumn<{
+            name: "pin";
+            tableName: "organization_walk_in_pin";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        updatedByUserId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "updated_by_user_id";
+            tableName: "organization_walk_in_pin";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        updatedAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "updated_at";
+            tableName: "organization_walk_in_pin";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+    };
+    dialect: "pg";
+}>;
+export declare const walkInPinRelations: import("drizzle-orm").Relations<"organization_walk_in_pin", {
+    organization: import("drizzle-orm").One<"organization", true>;
+    updatedByUser: import("drizzle-orm").One<"user", true>;
+}>;
+export type WalkInPin = typeof walkInPin.$inferSelect;
+export type NewWalkInPin = typeof walkInPin.$inferInsert;

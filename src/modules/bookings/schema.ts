@@ -25,8 +25,10 @@ export const customer = pgTable(
 		email: text('email'),
 		isVerified: boolean('is_verified').default(false).notNull(),
 		notes: text('notes'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()
@@ -67,16 +69,18 @@ export const booking = pgTable(
 			() => member.id,
 			{ onDelete: 'set null' }
 		),
-		scheduledAt: timestamp('scheduled_at'),
+		scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
 		notes: text('notes'),
-		startedAt: timestamp('started_at'),
-		completedAt: timestamp('completed_at'),
-		cancelledAt: timestamp('cancelled_at'),
+		startedAt: timestamp('started_at', { withTimezone: true }),
+		completedAt: timestamp('completed_at', { withTimezone: true }),
+		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
 		createdById: text('created_by_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'restrict' }),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()
@@ -148,7 +152,7 @@ export const bookingDailyCounter = pgTable(
 			.references(() => organization.id, { onDelete: 'cascade' }),
 		bookingDate: text('booking_date').notNull(),
 		lastSequence: integer('last_sequence').notNull(),
-		updatedAt: timestamp('updated_at')
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()

@@ -8,6 +8,7 @@ import {
 	FormatResponseSchema
 } from '../../core/format-response'
 import { authMiddleware } from '../../middleware/auth-middleware'
+import { auth } from '../../lib/auth'
 import { env } from '../../lib/env'
 
 export const barbershopHandler = new Elysia({
@@ -31,32 +32,43 @@ export const barbershopHandler = new Elysia({
 	)
 
 	// POST /barbershop — create a new barbershop organization
+	// @deprecatedHandler , it will change to better auth instead fully
 	.post(
 		'/',
-		async ({ body, path, user, set }) => {
+		async ({ body, path, user, set, request }) => {
+			const orgData = await auth.api.createOrganization({
+				body: {
+					name: body.name,
+					slug: body.slug,
+					userId: user.id,
+					keepCurrentActiveOrganization: true
+				},
+				headers: request.headers
+			})
+
+			await BarbershopService.ensureSettingsRow(orgData.id)
+
+			if (body.description !== undefined || body.address !== undefined) {
+				await BarbershopService.updateSettings(orgData.id, user.id, {
+					description: body.description,
+					address: body.address
+				})
+			}
+
+			const data = await BarbershopService.getSettings(orgData.id)
+
 			set.status = 201
-			const data = await BarbershopService.createBarbershop(user.id, body)
-			return formatResponse({ path, data, status: 201 })
+			return formatResponse({
+				path,
+				data,
+				status: 201,
+				message: 'Barbershop created successfully'
+			})
 		},
 		{
 			requireAuth: true,
 			body: BarbershopModel.CreateBarbershopInput,
 			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
-		}
-	)
-
-	// GET /barbershop/list — list all orgs for the authenticated user
-	.get(
-		'/list',
-		async ({ path, user }) => {
-			const data = await BarbershopService.listBarbershops(user.id)
-			return formatResponse({ path, data })
-		},
-		{
-			requireAuth: true,
-			response: FormatResponseSchema(
-				BarbershopModel.BarbershopListResponse
-			)
 		}
 	)
 
@@ -93,6 +105,25 @@ export const barbershopHandler = new Elysia({
 			requireAuth: true,
 			params: BarbershopModel.OrgIdParam,
 			response: FormatResponseSchema(BarbershopModel.LeaveOrgResponse)
+		}
+	)
+
+	// PATCH /barbershop/timezone — update org timezone
+	.patch(
+		'/timezone',
+		async ({ body, path, user, activeOrganizationId }) => {
+			const data = await BarbershopService.updateTimezone(
+				activeOrganizationId,
+				user.id,
+				body.timezone
+			)
+			return formatResponse({ path, data, message: 'Timezone updated' })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			body: BarbershopModel.TimezoneInput,
+			response: FormatResponseSchema(BarbershopModel.TimezoneResponse)
 		}
 	)
 

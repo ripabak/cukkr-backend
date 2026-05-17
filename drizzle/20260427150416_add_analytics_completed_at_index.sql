@@ -1,1 +1,0 @@
-CREATE INDEX "booking_organizationId_status_completedAt_idx" ON "booking" USING btree ("organization_id","status","completed_at");

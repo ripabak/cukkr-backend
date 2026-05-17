@@ -79,7 +79,7 @@ export abstract class ServiceService {
 				price: input.price,
 				duration: input.duration,
 				discount: input.discount ?? 0,
-				isActive: false,
+				isActive: input.isActive ?? true,
 				isDefault: false
 			})
 			.returning()

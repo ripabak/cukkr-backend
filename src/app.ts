@@ -17,13 +17,12 @@ import { customersHandler } from './modules/customer-management/handler'
 import { rateLimit } from 'elysia-rate-limit'
 import { logixlysia } from 'logixlysia'
 import { userProfileHandler } from './modules/user-profile/handler'
-import {
-	walkInPinHandler,
-	publicWalkInHandler
-} from './modules/walk-in-pin/handler'
+import { walkInPinHandler } from './modules/walk-in-pin/handler'
 import { analyticsHandler } from './modules/analytics/handler'
 import { notificationsHandler } from './modules/notifications/handler'
 import { publicHandler } from './modules/public/handler'
+import { publicBookingHandler } from './modules/public-booking/handler'
+import { typeShareEdenElysia } from 'type-share-eden-elysia'
 
 export const app = new Elysia()
 	.use(
@@ -43,7 +42,8 @@ export const app = new Elysia()
 	)
 	.use(
 		rateLimit({
-			max: 100,
+			max: 1000,
+			duration: 60000, // 1 minute window
 			skip: () => env.NODE_ENV === 'test'
 		})
 	)
@@ -69,7 +69,7 @@ export const app = new Elysia()
 	// Response middleware
 	// .use(ResponseMiddleware)
 
-	.mount(auth.handler)
+	.mount('auth', auth.handler)
 
 	// Health Check
 	.get('/health-check', () => healthCheck())
@@ -90,10 +90,19 @@ export const app = new Elysia()
 			.use(openHoursHandler)
 			.use(userProfileHandler)
 			.use(walkInPinHandler)
-			.use(publicWalkInHandler)
 			.use(analyticsHandler)
 			.use(notificationsHandler)
 			.use(publicHandler)
+			.use(publicBookingHandler)
+	)
+	.use(
+		typeShareEdenElysia({
+			autoGenerate: true,
+			verbose: env.NODE_ENV === 'development',
+			tsconfigPath: './tsconfig.declarations.json',
+			path: './dist/types/src/app.d.ts',
+			route: '/types/app.d.ts'
+		})
 	)
 
 export type App = typeof app

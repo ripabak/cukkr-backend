@@ -6,10 +6,13 @@
     "dev": "bun run --watch src/main.ts",
     "build": "bunx tsc --noEmit && bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./.output/server ./src/main.ts",
     "start": "./.output/server",
+    "types:generate": "tsc -p tsconfig.declarations.json",
+    "types:check": "curl -s http://localhost:3000/types/app.d.ts | head -20",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed": "bun scripts/seed.ts"
   },
   "lint-staged": {
     "*.ts": [
@@ -19,10 +22,11 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1037.0",
+    "@better-auth/expo": "^1.6.9",
     "@elysiajs/cors": "^1.4.1",
     "@elysiajs/eden": "^1.4.8",
     "@elysiajs/openapi": "^1.4.14",
-    "better-auth": "^1.5.0",
+    "better-auth": "^1.6.9",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "elysia": "latest",
@@ -31,7 +35,9 @@
     "logixlysia": "^6.2.0",
     "nanoid": "^5.1.6",
     "nodemailer": "^8.0.1",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "type-share-eden-elysia": "^0.1.0",
+    "zod": "^4.4.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

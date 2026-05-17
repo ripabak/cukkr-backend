@@ -14,6 +14,13 @@ import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
+import {
+	getDateKey,
+	getDayOfWeek,
+	getTimeString,
+	toLocalDate
+} from '../../lib/timezone'
+import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { NotificationService } from '../notifications/service'
 import { member, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
@@ -43,10 +50,9 @@ type BookingReadRow = BookingRow & {
 	services: BookingServiceRow[]
 }
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
-const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'barber'])
+const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'member'])
 const WALK_IN_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> = {
 	waiting: ['in_progress', 'cancelled'],
 	in_progress: ['completed', 'waiting', 'cancelled']
@@ -93,31 +99,6 @@ export abstract class BookingService {
 			referenceId: bookingDetail.id,
 			referenceType: 'booking'
 		})
-	}
-
-	private static toWibDate(date: Date): Date {
-		return new Date(date.getTime() + WIB_OFFSET_MS)
-	}
-
-	private static getWibDateKey(date: Date): string {
-		const wibDate = BookingService.toWibDate(date)
-		const year = wibDate.getUTCFullYear()
-		const month = String(wibDate.getUTCMonth() + 1).padStart(2, '0')
-		const day = String(wibDate.getUTCDate()).padStart(2, '0')
-
-		return `${year}${month}${day}`
-	}
-
-	private static getWibDayOfWeek(date: Date): number {
-		return BookingService.toWibDate(date).getUTCDay()
-	}
-
-	private static getWibTime(date: Date): string {
-		const wibDate = BookingService.toWibDate(date)
-		const hours = String(wibDate.getUTCHours()).padStart(2, '0')
-		const minutes = String(wibDate.getUTCMinutes()).padStart(2, '0')
-
-		return `${hours}:${minutes}`
 	}
 
 	private static buildDayRange(date: string): {
@@ -231,7 +212,8 @@ export abstract class BookingService {
 
 	private static async validateScheduledAt(
 		organizationId: string,
-		input: BookingCreateInput
+		input: BookingCreateInput,
+		timezone: string
 	): Promise<Date | null> {
 		if (input.type === 'walk_in') {
 			if (input.scheduledAt) {
@@ -252,29 +234,27 @@ export abstract class BookingService {
 			)
 		}
 
-		if (scheduledAt.getTime() <= Date.now()) {
-			throw new AppError(
-				'Appointment scheduledAt must be in the future',
-				'BAD_REQUEST'
-			)
-		}
-
-		await BookingService.validateOpenHours(organizationId, scheduledAt)
+		await BookingService.validateOpenHours(
+			organizationId,
+			scheduledAt,
+			timezone
+		)
 
 		return scheduledAt
 	}
 
 	public static async validateOpenHours(
 		organizationId: string,
-		scheduledAt: Date
+		scheduledAt: Date,
+		timezone?: string
 	): Promise<void> {
+		const tz = timezone ?? (await fetchOrgTimezone(organizationId))
 		const schedule =
 			await OpenHoursService.getWeeklyScheduleForOrganization(
 				organizationId
 			)
-		const daySchedule =
-			schedule[BookingService.getWibDayOfWeek(scheduledAt)]
-		const timeValue = BookingService.getWibTime(scheduledAt)
+		const daySchedule = schedule[getDayOfWeek(scheduledAt, tz)]
+		const timeValue = getTimeString(scheduledAt, tz)
 
 		if (
 			!daySchedule ||
@@ -350,13 +330,16 @@ export abstract class BookingService {
 	private static buildStatusUpdate(
 		current: BookingRow,
 		nextStatus: BookingStatus,
-		now: Date
+		now: Date,
+		actorMemberId?: string | null
 	): Partial<BookingRow> {
 		if (nextStatus === 'in_progress') {
 			return {
 				status: nextStatus,
 				handledByBarberId:
-					current.handledByBarberId ?? current.barberId,
+					actorMemberId ??
+					current.handledByBarberId ??
+					current.barberId,
 				startedAt: now,
 				completedAt: null,
 				cancelledAt: null,
@@ -529,14 +512,73 @@ export abstract class BookingService {
 			.map((row) => BookingService.mapSummary(row as BookingReadRow))
 	}
 
-	static async createBooking(
+	static async listRequestedBookings(
+		organizationId: string,
+		query: BookingModel.BookingRequestListQuery
+	): Promise<BookingModel.BookingSummaryResponse[]> {
+		const today = new Date().toISOString().slice(0, 10)
+		const dateFrom = query.dateFrom ?? today
+		const dateTo =
+			query.dateTo ??
+			(() => {
+				const d = new Date(`${dateFrom}T00:00:00.000Z`)
+				d.setUTCDate(d.getUTCDate() + 6)
+				return d.toISOString().slice(0, 10)
+			})()
+
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
+			)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom)
+		const { end } = BookingService.buildDayRange(dateTo)
+
+		const conditions = [
+			eq(booking.organizationId, organizationId),
+			eq(booking.status, 'requested'),
+			eq(booking.type, 'appointment'),
+			isNotNull(booking.scheduledAt),
+			gte(booking.scheduledAt, start),
+			lt(booking.scheduledAt, end)
+		]
+
+		if (query.barberId) {
+			conditions.push(eq(booking.barberId, query.barberId))
+		}
+
+		const rows = await db.query.booking.findMany({
+			where: and(...conditions),
+			with: {
+				customer: true,
+				barber: { with: { user: true } },
+				handledByBarber: { with: { user: true } },
+				services: true
+			}
+		})
+
+		return rows
+			.sort(
+				(a, b) =>
+					(a.scheduledAt ?? a.createdAt).getTime() -
+					(b.scheduledAt ?? b.createdAt).getTime()
+			)
+			.map((row) => BookingService.mapSummary(row as BookingReadRow))
+	}
+
+	private static async doCreateBooking(
 		organizationId: string,
 		createdById: string,
-		input: BookingModel.BookingCreateInput
+		input: BookingModel.BookingCreateInput,
+		status: BookingStatus
 	): Promise<BookingModel.BookingDetailResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
 		const scheduledAt = await BookingService.validateScheduledAt(
 			organizationId,
-			input
+			input,
+			timezone
 		)
 		const selectedServices = await BookingService.validateServices(
 			organizationId,
@@ -594,7 +636,7 @@ export abstract class BookingService {
 						.returning()
 				)[0]
 
-			const bookingDate = BookingService.getWibDateKey(now)
+			const bookingDate = getDateKey(now, timezone)
 			const [counterRow] = await tx
 				.insert(bookingDailyCounter)
 				.values({
@@ -625,7 +667,7 @@ export abstract class BookingService {
 				organizationId,
 				referenceNumber,
 				type: input.type,
-				status: input.type === 'appointment' ? 'requested' : 'waiting',
+				status,
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
@@ -664,6 +706,32 @@ export abstract class BookingService {
 		return bookingDetail
 	}
 
+	static async createBooking(
+		organizationId: string,
+		createdById: string,
+		input: BookingModel.BookingCreateInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		return BookingService.doCreateBooking(
+			organizationId,
+			createdById,
+			input,
+			'waiting'
+		)
+	}
+
+	static async createAppointmentRequest(
+		organizationId: string,
+		createdById: string,
+		input: BookingModel.AppointmentBookingCreateInput
+	): Promise<BookingModel.BookingDetailResponse> {
+		return BookingService.doCreateBooking(
+			organizationId,
+			createdById,
+			input,
+			'requested'
+		)
+	}
+
 	static async getBooking(
 		organizationId: string,
 		id: string
@@ -696,18 +764,61 @@ export abstract class BookingService {
 		return BookingService.mapDetail(row as BookingReadRow)
 	}
 
+	static async getInProgressBooking(
+		organizationId: string,
+		userId: string
+	): Promise<BookingModel.BookingDetailResponse | null> {
+		const actorMember = await db.query.member.findFirst({
+			where: and(
+				eq(member.userId, userId),
+				eq(member.organizationId, organizationId)
+			)
+		})
+
+		if (!actorMember || !ASSIGNABLE_MEMBER_ROLES.has(actorMember.role)) {
+			return null
+		}
+
+		const row = await db.query.booking.findFirst({
+			where: and(
+				eq(booking.organizationId, organizationId),
+				or(
+					eq(booking.handledByBarberId, actorMember.id),
+					and(
+						isNull(booking.handledByBarberId),
+						eq(booking.barberId, actorMember.id)
+					)
+				),
+				eq(booking.status, 'in_progress')
+			),
+			with: {
+				customer: true,
+				barber: { with: { user: true } },
+				handledByBarber: { with: { user: true } },
+				services: true
+			}
+		})
+
+		return row ? BookingService.mapDetail(row as BookingReadRow) : null
+	}
+
 	static async updateBookingStatus(
 		organizationId: string,
 		id: string,
-		input: BookingModel.BookingStatusUpdateInput
+		input: BookingModel.BookingStatusUpdateInput,
+		userId: string
 	): Promise<BookingModel.BookingDetailResponse> {
 		await db.transaction(async (tx) => {
-			const existing = await tx.query.booking.findFirst({
-				where: and(
-					eq(booking.id, id),
-					eq(booking.organizationId, organizationId)
+			const [existing] = await tx
+				.select()
+				.from(booking)
+				.where(
+					and(
+						eq(booking.id, id),
+						eq(booking.organizationId, organizationId)
+					)
 				)
-			})
+				.for('update')
 
 			if (!existing) {
 				throw new AppError('Booking not found', 'NOT_FOUND')
@@ -719,11 +830,28 @@ export abstract class BookingService {
 				input.status
 			)
 
+			let actorMemberId: string | null = null
 			if (input.status === 'in_progress') {
+				const actorMember = await tx.query.member.findFirst({
+					where: and(
+						eq(member.userId, userId),
+						eq(member.organizationId, organizationId)
+					)
+				})
+
+				if (
+					actorMember &&
+					ASSIGNABLE_MEMBER_ROLES.has(actorMember.role)
+				) {
+					actorMemberId = actorMember.id
+				}
+
 				await BookingService.checkSingleInProgress(
 					tx,
 					organizationId,
-					existing.handledByBarberId ?? existing.barberId,
+					actorMemberId ??
+						existing.handledByBarberId ??
+						existing.barberId,
 					id
 				)
 			}
@@ -735,7 +863,8 @@ export abstract class BookingService {
 					BookingService.buildStatusUpdate(
 						existing,
 						input.status,
-						now
+						now,
+						actorMemberId
 					)
 				)
 				.where(
@@ -872,5 +1001,82 @@ export abstract class BookingService {
 			)
 
 		return BookingService.getBooking(organizationId, id)
+	}
+
+	static async getHomeSummary(
+		organizationId: string,
+		query: BookingModel.BookingHomeSummaryQuery
+	): Promise<BookingModel.BookingHomeSummaryResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
+		const today = new Date()
+		const localToday = toLocalDate(today, timezone)
+		const year = localToday.getUTCFullYear()
+		const month = String(localToday.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(localToday.getUTCDate()).padStart(2, '0')
+		const defaultDate = `${year}-${month}-${day}`
+
+		const dateFrom = query.dateFrom ?? defaultDate
+		const dateTo = query.dateTo ?? defaultDate
+
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
+			)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom)
+		const { end } = BookingService.buildDayRange(dateTo)
+
+		const rangeCondition = or(
+			and(
+				eq(booking.type, 'appointment'),
+				isNotNull(booking.scheduledAt),
+				gte(booking.scheduledAt, start),
+				lt(booking.scheduledAt, end)
+			),
+			and(
+				eq(booking.type, 'walk_in'),
+				gte(booking.createdAt, start),
+				lt(booking.createdAt, end)
+			)
+		)
+
+		const rows = await db
+			.select({
+				type: booking.type,
+				status: booking.status
+			})
+			.from(booking)
+			.where(
+				and(
+					eq(booking.organizationId, organizationId),
+					rangeCondition,
+					sql`${booking.status} NOT IN ('cancelled')`
+				)
+			)
+
+		let walkIn = 0
+		let appointment = 0
+		let inProgress = 0
+		let waiting = 0
+
+		for (const row of rows) {
+			if (row.type === 'walk_in') walkIn++
+			else if (row.type === 'appointment') appointment++
+
+			if (row.status === 'in_progress') inProgress++
+			else if (row.status === 'waiting') waiting++
+		}
+
+		return {
+			dateFrom,
+			dateTo,
+			total: rows.length,
+			walkIn,
+			appointment,
+			inProgress,
+			waiting
+		}
 	}
 }

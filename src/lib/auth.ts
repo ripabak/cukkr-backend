@@ -4,7 +4,8 @@ import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { env } from './env'
-import { sendOtpEmail, sendEmail } from './mail'
+import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
+import { expo } from '@better-auth/expo'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -16,8 +17,12 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: false,
+		// turn on this can make test fail
+		requireEmailVerification: env.NODE_ENV !== 'test',
 		minPasswordLength: 8
+	},
+	emailVerification: {
+		autoSignInAfterVerification: true
 	},
 	plugins: [
 		openAPI(),
@@ -25,7 +30,7 @@ export const auth = betterAuth({
 			otpLength: 4,
 			expiresIn: 300,
 			allowedAttempts: 5,
-			sendVerificationOnSignUp: true,
+			sendVerificationOnSignUp: false,
 			async sendVerificationOTP({ email, otp, type }) {
 				try {
 					await sendOtpEmail({ to: email, otp, purpose: type })
@@ -34,14 +39,39 @@ export const auth = betterAuth({
 				}
 			}
 		}),
-		organization()
+		organization({
+			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
+			async sendInvitationEmail(data) {
+				const inviteLink = `${env.CLIENT_URL}/accept-invitation/${data.id}`
+				sendOrganizationInvitation({
+					to: data.email,
+					inviterName: data.inviter.user.name,
+					organizationName: data.organization.name,
+					inviteUrl: inviteLink
+				})
+			}
+		}),
+		expo()
 	],
-	trustedOrigins: env.CORS_ORIGIN,
+	trustedOrigins: [
+		...env.CORS_ORIGIN,
 
+		// Expo cukkr frontend
+		'cukkrfrontend://',
+
+		// Development mode - Expo's exp:// scheme with local IP ranges
+		...(process.env.NODE_ENV === 'development'
+			? [
+					'exp://', // Trust all Expo URLs (prefix matching)
+					'exp://**', // Trust all Expo URLs (wildcard matching)
+					'exp://192.168.*.*:*/**' // Trust 192.168.x.x IP range with any port and path
+				]
+			: [])
+	],
 	rateLimit: {
-		enabled: env.NODE_ENV !== 'test',
-		window: 900,
-		max: 10
+		enabled: env.NODE_ENV === 'production',
+		window: 60,
+		max: 200
 	},
 
 	user: {

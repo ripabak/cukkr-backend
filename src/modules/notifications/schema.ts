@@ -26,8 +26,10 @@ export const notification = pgTable(
 		referenceId: text('reference_id'),
 		referenceType: text('reference_type'),
 		isRead: boolean('is_read').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()
@@ -63,12 +65,16 @@ export const notificationPushToken = pgTable(
 			.references(() => user.id, { onDelete: 'cascade' }),
 		token: text('token').notNull(),
 		isActive: boolean('is_active').default(true).notNull(),
-		lastRegisteredAt: timestamp('last_registered_at')
+		lastRegisteredAt: timestamp('last_registered_at', {
+			withTimezone: true
+		})
 			.defaultNow()
 			.notNull(),
-		invalidatedAt: timestamp('invalidated_at'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()

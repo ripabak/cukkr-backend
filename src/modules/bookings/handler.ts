@@ -38,6 +38,44 @@ export const bookingsHandler = new Elysia({
 		}
 	)
 	.get(
+		'/summary',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.getHomeSummary(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.BookingHomeSummaryQuery,
+			response: FormatResponseSchema(
+				BookingModel.BookingHomeSummaryResponse
+			)
+		}
+	)
+	.get(
+		'/requests',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.listRequestedBookings(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.BookingRequestListQuery,
+			response: FormatResponseSchema(
+				t.Array(BookingModel.BookingSummaryResponse)
+			)
+		}
+	)
+	.get(
 		'/',
 		async ({ query, path, activeOrganizationId }) => {
 			const data = await BookingService.listBookings(
@@ -53,6 +91,23 @@ export const bookingsHandler = new Elysia({
 			query: BookingModel.BookingListQuery,
 			response: FormatResponseSchema(
 				t.Array(BookingModel.BookingSummaryResponse)
+			)
+		}
+	)
+	.get(
+		'/in-progress',
+		async ({ path, activeOrganizationId, user }) => {
+			const data = await BookingService.getInProgressBooking(
+				activeOrganizationId,
+				user.id
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			response: FormatResponseSchema(
+				t.Nullable(BookingModel.BookingDetailResponse)
 			)
 		}
 	)
@@ -74,11 +129,12 @@ export const bookingsHandler = new Elysia({
 	)
 	.patch(
 		'/:id/status',
-		async ({ params: { id }, body, path, activeOrganizationId }) => {
+		async ({ params: { id }, body, path, activeOrganizationId, user }) => {
 			const data = await BookingService.updateBookingStatus(
 				activeOrganizationId,
 				id,
-				body
+				body,
+				user.id
 			)
 
 			return formatResponse({

@@ -10,7 +10,6 @@ import {
 	type ExpoPushMessage
 } from '../../lib/push'
 import { member } from '../auth/schema'
-import { BarberService } from '../barbers/service'
 import { BookingService } from '../bookings/service'
 import { NotificationModel } from './model'
 import {
@@ -341,7 +340,7 @@ export abstract class NotificationService {
 		const members = await db.query.member.findMany({
 			where: and(
 				eq(member.organizationId, organizationId),
-				inArray(member.role, ['owner', 'barber'])
+				inArray(member.role, ['owner', 'member'])
 			)
 		})
 
@@ -401,9 +400,7 @@ export abstract class NotificationService {
 
 		const referenceType = notif.referenceType
 
-		if (referenceType === 'invitation') {
-			await BarberService.acceptInvitation(userId, notif.referenceId)
-		} else if (
+		if (
 			referenceType === 'booking' &&
 			notif.type === 'appointment_requested'
 		) {
@@ -442,9 +439,7 @@ export abstract class NotificationService {
 
 		const referenceType = notif.referenceType
 
-		if (referenceType === 'invitation') {
-			await BarberService.declineInvitation(userId, notif.referenceId)
-		} else if (
+		if (
 			referenceType === 'booking' &&
 			notif.type === 'appointment_requested'
 		) {

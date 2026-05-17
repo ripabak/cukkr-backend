@@ -212,6 +212,39 @@ export namespace BookingModel {
 		updatedAt: t.Date()
 	})
 	export type BookingDetailResponse = typeof BookingDetailResponse.static
+
+	export const BookingRequestListQuery = t.Object(
+		{
+			dateFrom: t.Optional(
+				t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' })
+			),
+			dateTo: t.Optional(t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' })),
+			barberId: t.Optional(t.String({ minLength: 1 }))
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingRequestListQuery = typeof BookingRequestListQuery.static
+
+	export const BookingHomeSummaryQuery = t.Object(
+		{
+			dateFrom: t.Optional(t.String({ format: 'date' })),
+			dateTo: t.Optional(t.String({ format: 'date' }))
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingHomeSummaryQuery = typeof BookingHomeSummaryQuery.static
+
+	export const BookingHomeSummaryResponse = t.Object({
+		dateFrom: t.String(),
+		dateTo: t.String(),
+		total: t.Number(),
+		walkIn: t.Number(),
+		appointment: t.Number(),
+		inProgress: t.Number(),
+		waiting: t.Number()
+	})
+	export type BookingHomeSummaryResponse =
+		typeof BookingHomeSummaryResponse.static
 }
 
 export type BookingType = (typeof BOOKING_TYPES)[number]

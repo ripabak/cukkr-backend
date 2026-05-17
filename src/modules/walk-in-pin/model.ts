@@ -2,17 +2,14 @@ import { t } from 'elysia'
 
 export namespace WalkInPinModel {
 	export const GeneratePinResponse = t.Object({
-		pin: t.String(),
-		expiresAt: t.Date(),
-		activeCount: t.Number()
+		pin: t.String()
 	})
 	export type GeneratePinResponse = typeof GeneratePinResponse.static
 
-	export const ActiveCountResponse = t.Object({
-		activeCount: t.Number(),
-		limit: t.Number()
+	export const CurrentPinResponse = t.Object({
+		pin: t.Nullable(t.String())
 	})
-	export type ActiveCountResponse = typeof ActiveCountResponse.static
+	export type CurrentPinResponse = typeof CurrentPinResponse.static
 
 	export const ValidatePinBody = t.Object(
 		{

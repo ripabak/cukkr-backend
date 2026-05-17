@@ -36,11 +36,9 @@ const checkStorageConnection = async () => {
 }
 
 export const healthCheck = async () => {
-	await Promise.all([
-		checkDatabaseConnection(),
-		checkSmtpConnection(),
-		checkStorageConnection()
-	])
+	await checkDatabaseConnection()
+	await checkSmtpConnection()
+	await checkStorageConnection()
 	return {
 		status: 'ok',
 		message: 'Elysia Backend is running',

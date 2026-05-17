@@ -24,8 +24,10 @@ export const service = pgTable(
 		imageUrl: text('image_url'),
 		isActive: boolean('is_active').default(false).notNull(),
 		isDefault: boolean('is_default').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.defaultNow()
 			.$onUpdate(() => new Date())
 			.notNull()
