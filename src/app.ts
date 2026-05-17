@@ -42,7 +42,8 @@ export const app = new Elysia()
 	)
 	.use(
 		rateLimit({
-			max: 200,
+			max: 1000,
+			duration: 60000, // 1 minute window
 			skip: () => env.NODE_ENV === 'test'
 		})
 	)
