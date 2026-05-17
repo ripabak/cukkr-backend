@@ -69,7 +69,10 @@ export const authMiddleware = new Elysia()
 					})
 
 					if (!memberRow) {
-						throw new AppError('Forbidden', 'FORBIDDEN')
+						throw new AppError(
+							'You have no permission to perform this action',
+							'FORBIDDEN'
+						)
 					}
 
 					return { user, activeOrganizationId }
