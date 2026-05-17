@@ -1,9 +1,8 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
-import { member } from '../auth/schema'
 import { OpenHoursModel } from './model'
 import { OpenHour, openHour } from './schema'
 
@@ -34,11 +33,8 @@ export abstract class OpenHoursService {
 
 	static async replaceWeeklySchedule(
 		organizationId: string,
-		userId: string,
 		input: OpenHoursModel.UpdateOpenHoursBody
 	): Promise<OpenHoursModel.OpenHoursWeekResponse> {
-		await OpenHoursService.ensureOwner(organizationId, userId)
-
 		const normalizedDays = OpenHoursService.normalizeInputDays(input.days)
 
 		const insertedRows = await db.transaction(async (tx) => {
@@ -62,22 +58,6 @@ export abstract class OpenHoursService {
 		})
 
 		return OpenHoursService.normalizeStoredRows(insertedRows)
-	}
-
-	private static async ensureOwner(
-		organizationId: string,
-		userId: string
-	): Promise<void> {
-		const memberRow = await db.query.member.findFirst({
-			where: and(
-				eq(member.organizationId, organizationId),
-				eq(member.userId, userId)
-			)
-		})
-
-		if (!memberRow || memberRow.role !== 'owner') {
-			throw new AppError('Forbidden', 'FORBIDDEN')
-		}
 	}
 
 	private static normalizeStoredRows(

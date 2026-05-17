@@ -49,7 +49,7 @@ export const barbershopHandler = new Elysia({
 			await BarbershopService.ensureSettingsRow(orgData.id)
 
 			if (body.description !== undefined || body.address !== undefined) {
-				await BarbershopService.updateSettings(orgData.id, user.id, {
+				await BarbershopService.updateSettings(orgData.id, {
 					description: body.description,
 					address: body.address
 				})
@@ -75,17 +75,15 @@ export const barbershopHandler = new Elysia({
 	// PATCH /barbershop/settings — partial update of profile fields
 	.patch(
 		'/settings',
-		async ({ body, path, user, activeOrganizationId }) => {
+		async ({ body, path, activeOrganizationId }) => {
 			const data = await BarbershopService.updateSettings(
 				activeOrganizationId,
-				user.id,
 				body
 			)
 			return formatResponse({ path, data, message: 'Settings updated' })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner'],
 			body: BarbershopModel.BarbershopSettingsInput,
 			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
 		}
@@ -111,17 +109,15 @@ export const barbershopHandler = new Elysia({
 	// PATCH /barbershop/timezone — update org timezone
 	.patch(
 		'/timezone',
-		async ({ body, path, user, activeOrganizationId }) => {
+		async ({ body, path, activeOrganizationId }) => {
 			const data = await BarbershopService.updateTimezone(
 				activeOrganizationId,
-				user.id,
 				body.timezone
 			)
 			return formatResponse({ path, data, message: 'Timezone updated' })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner'],
 			body: BarbershopModel.TimezoneInput,
 			response: FormatResponseSchema(BarbershopModel.TimezoneResponse)
 		}
@@ -130,10 +126,9 @@ export const barbershopHandler = new Elysia({
 	// POST /barbershop/logo — upload barbershop logo
 	.post(
 		'/logo',
-		async ({ body, path, user, activeOrganizationId }) => {
+		async ({ body, path, activeOrganizationId }) => {
 			const data = await BarbershopService.uploadLogo(
 				activeOrganizationId,
-				user.id,
 				body.file
 			)
 			return formatResponse({
@@ -143,8 +138,7 @@ export const barbershopHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner'],
 			body: BarbershopModel.LogoUploadInput,
 			response: FormatResponseSchema(BarbershopModel.LogoUploadResponse)
 		}
