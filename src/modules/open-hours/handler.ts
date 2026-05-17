@@ -39,10 +39,9 @@ export const openHoursHandler = new Elysia({
 	)
 	.put(
 		'/',
-		async ({ body, path, activeOrganizationId, user }) => {
+		async ({ body, path, activeOrganizationId }) => {
 			const data = await OpenHoursService.replaceWeeklySchedule(
 				activeOrganizationId,
-				user.id,
 				body
 			)
 
@@ -53,8 +52,7 @@ export const openHoursHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner'],
 			body: OpenHoursModel.UpdateOpenHoursBody,
 			response: FormatResponseSchema(OpenHoursModel.OpenHoursWeekResponse)
 		}

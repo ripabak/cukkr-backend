@@ -2,7 +2,6 @@ import { and, asc, desc, eq, ilike } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { db } from '../../lib/database'
-import { member } from '../auth/schema'
 import { service } from './schema'
 import { ServiceModel } from './model'
 import { AppError } from '../../core/error'
@@ -220,20 +219,9 @@ export abstract class ServiceService {
 
 	static async uploadServiceImage(
 		organizationId: string,
-		userId: string,
 		id: string,
 		file: File
 	): Promise<ServiceModel.ServiceImageUploadResponse> {
-		const memberRow = await db.query.member.findFirst({
-			where: and(
-				eq(member.userId, userId),
-				eq(member.organizationId, organizationId)
-			)
-		})
-		if (!memberRow || memberRow.role !== 'owner') {
-			throw new AppError('Forbidden', 'FORBIDDEN')
-		}
-
 		await ServiceService.findInOrg(id, organizationId)
 
 		const SERVICE_IMAGE_MAX_SIZE = 5 * 1024 * 1024

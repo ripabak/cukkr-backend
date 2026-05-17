@@ -102,19 +102,8 @@ export abstract class BarbershopService {
 
 	static async updateTimezone(
 		organizationId: string,
-		userId: string,
 		timezone: string
 	): Promise<BarbershopModel.TimezoneResponse> {
-		const memberRow = await db.query.member.findFirst({
-			where: and(
-				eq(member.userId, userId),
-				eq(member.organizationId, organizationId)
-			)
-		})
-		if (!memberRow || memberRow.role !== 'owner') {
-			throw new AppError('Forbidden', 'FORBIDDEN')
-		}
-
 		if (!isValidIanaTimezone(timezone)) {
 			throw new AppError(
 				'Invalid IANA timezone identifier',
@@ -140,19 +129,8 @@ export abstract class BarbershopService {
 
 	static async updateSettings(
 		organizationId: string,
-		userId: string,
 		body: BarbershopModel.BarbershopSettingsInput
 	): Promise<BarbershopModel.BarbershopResponse> {
-		const memberRow = await db.query.member.findFirst({
-			where: and(
-				eq(member.userId, userId),
-				eq(member.organizationId, organizationId)
-			)
-		})
-		if (!memberRow || memberRow.role !== 'owner') {
-			throw new AppError('Forbidden', 'FORBIDDEN')
-		}
-
 		const { name, slug, description, address, onboardingCompleted } = body
 
 		if (onboardingCompleted === false) {
@@ -224,19 +202,8 @@ export abstract class BarbershopService {
 
 	static async uploadLogo(
 		organizationId: string,
-		userId: string,
 		file: File
 	): Promise<BarbershopModel.LogoUploadResponse> {
-		const memberRow = await db.query.member.findFirst({
-			where: and(
-				eq(member.userId, userId),
-				eq(member.organizationId, organizationId)
-			)
-		})
-		if (!memberRow || memberRow.role !== 'owner') {
-			throw new AppError('Forbidden', 'FORBIDDEN')
-		}
-
 		const LOGO_MAX_SIZE = 5 * 1024 * 1024
 		const ALLOWED_MIME_EXTENSIONS: Record<string, string> = {
 			'image/jpeg': 'jpg',

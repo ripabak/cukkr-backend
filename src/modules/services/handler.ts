@@ -145,10 +145,9 @@ export const servicesHandler = new Elysia({
 	// POST /services/:id/image — upload service thumbnail
 	.post(
 		'/:id/image',
-		async ({ params: { id }, body, path, activeOrganizationId, user }) => {
+		async ({ params: { id }, body, path, activeOrganizationId }) => {
 			const data = await ServiceService.uploadServiceImage(
 				activeOrganizationId,
-				user.id,
 				id,
 				body.file
 			)
@@ -159,8 +158,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner'],
 			params: ServiceModel.ServiceIdParam,
 			body: ServiceModel.ServiceImageUploadInput,
 			response: FormatResponseSchema(
