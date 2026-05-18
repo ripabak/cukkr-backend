@@ -234,6 +234,13 @@ export abstract class BookingService {
 			)
 		}
 
+		if (scheduledAt.getTime() <= Date.now()) {
+			throw new AppError(
+				'Appointment scheduledAt must be in the future',
+				'BAD_REQUEST'
+			)
+		}
+
 		await BookingService.validateOpenHours(
 			organizationId,
 			scheduledAt,
