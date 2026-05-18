@@ -8,5 +8,5 @@ export declare abstract class ServiceService {
     static deleteService(organizationId: string, id: string): Promise<ServiceModel.ServiceResponse>;
     static toggleActive(organizationId: string, id: string): Promise<ServiceModel.ServiceResponse>;
     static setDefault(organizationId: string, id: string): Promise<ServiceModel.ServiceResponse>;
-    static uploadServiceImage(organizationId: string, userId: string, id: string, file: File): Promise<ServiceModel.ServiceImageUploadResponse>;
+    static uploadServiceImage(organizationId: string, id: string, file: File): Promise<ServiceModel.ServiceImageUploadResponse>;
 }
