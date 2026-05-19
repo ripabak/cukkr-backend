@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
+import { and, eq } from 'drizzle-orm'
 import { env } from './env'
 import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { expo } from '@better-auth/expo'
@@ -40,6 +41,20 @@ export const auth = betterAuth({
 			}
 		}),
 		organization({
+			allowUserToCreateOrganization: async (user) => {
+				if (env.NODE_ENV !== 'production') return true
+				const existing = await db
+					.select({ id: schema.member.id })
+					.from(schema.member)
+					.where(
+						and(
+							eq(schema.member.userId, user.id),
+							eq(schema.member.role, 'owner')
+						)
+					)
+					.limit(1)
+				return existing.length === 0
+			},
 			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
 			async sendInvitationEmail(data) {
 				const inviteLink = `${env.CLIENT_URL}/d/accept-invitation?id=${data.id}`
