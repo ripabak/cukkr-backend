@@ -482,7 +482,7 @@ export declare const bookingService: import("drizzle-orm/pg-core").PgTableWithCo
             columnType: "PgText";
             data: string;
             driverParam: string;
-            notNull: true;
+            notNull: false;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
@@ -669,7 +669,7 @@ export declare const bookingRelations: import("drizzle-orm").Relations<"booking"
 }>;
 export declare const bookingServiceRelations: import("drizzle-orm").Relations<"booking_service", {
     booking: import("drizzle-orm").One<"booking", true>;
-    service: import("drizzle-orm").One<"service", true>;
+    service: import("drizzle-orm").One<"service", false>;
 }>;
 export declare const bookingDailyCounterRelations: import("drizzle-orm").Relations<"booking_daily_counter", {
     organization: import("drizzle-orm").One<"organization", true>;

@@ -15,6 +15,13 @@
       "when": 1778940130164,
       "tag": "20260516140210_fix-timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779209465321,
+      "tag": "20260519165105_fix-delete-barbershop",
+      "breakpoints": true
     }
   ]
 }
