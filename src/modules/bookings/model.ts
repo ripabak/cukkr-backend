@@ -148,7 +148,7 @@ export namespace BookingModel {
 
 	export const BookingServiceLineItemResponse = t.Object({
 		id: t.String(),
-		serviceId: t.String(),
+		serviceId: t.Nullable(t.String()),
 		serviceName: t.String(),
 		price: t.Number(),
 		originalPrice: t.Number(),

@@ -175,7 +175,7 @@ export abstract class ServiceAnalyticsService {
 			data: serviceRows.map((r) => {
 				const bookingCount = parseInt(r.totalBookings, 10)
 				return {
-					serviceId: r.serviceId,
+					serviceId: r.serviceId!,
 					serviceName: r.serviceName,
 					totalBookings: bookingCount,
 					percentage:
