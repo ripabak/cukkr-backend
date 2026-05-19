@@ -132,9 +132,9 @@ export const bookingService = pgTable(
 		bookingId: text('booking_id')
 			.notNull()
 			.references(() => booking.id, { onDelete: 'cascade' }),
-		serviceId: text('service_id')
-			.notNull()
-			.references(() => service.id, { onDelete: 'restrict' }),
+		serviceId: text('service_id').references(() => service.id, {
+			onDelete: 'set null'
+		}),
 		serviceName: text('service_name').notNull(),
 		price: integer('price').notNull(),
 		originalPrice: integer('original_price').notNull(),

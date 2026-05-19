@@ -165,6 +165,8 @@ export abstract class AnalyticsService {
 
 		const { serviceId, books, revenue } = topRows[0]
 
+		if (!serviceId) return null
+
 		const serviceRow = await db.query.service.findFirst({
 			where: eq(service.id, serviceId)
 		})
