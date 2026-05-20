@@ -631,10 +631,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             id: string;
                             price: number;
                             discount: number;
-                            serviceId: string;
+                            serviceId: string | null;
                             serviceName: string;
                             originalPrice: number;
                         }[];
+                        totalDuration: number;
                         requestedBarber: {
                             name: string;
                             email: string;
@@ -746,6 +747,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             } | null;
                             customerName: string;
                             serviceNames: string[];
+                            totalDuration: number;
                         }[];
                         status: string | number;
                         path: string;
@@ -803,6 +805,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                         } | null;
                         customerName: string;
                         serviceNames: string[];
+                        totalDuration: number;
                     }[];
                     status: string | number;
                     path: string;
@@ -875,10 +878,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 id: string;
                                 price: number;
                                 discount: number;
-                                serviceId: string;
+                                serviceId: string | null;
                                 serviceName: string;
                                 originalPrice: number;
                             }[];
+                            totalDuration: number;
                             requestedBarber: {
                                 name: string;
                                 email: string;
@@ -961,10 +965,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 id: string;
                                 price: number;
                                 discount: number;
-                                serviceId: string;
+                                serviceId: string | null;
                                 serviceName: string;
                                 originalPrice: number;
                             }[];
+                            totalDuration: number;
                             requestedBarber: {
                                 name: string;
                                 email: string;
@@ -1051,10 +1056,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     id: string;
                                     price: number;
                                     discount: number;
-                                    serviceId: string;
+                                    serviceId: string | null;
                                     serviceName: string;
                                     originalPrice: number;
                                 }[];
+                                totalDuration: number;
                                 requestedBarber: {
                                     name: string;
                                     email: string;
@@ -1139,10 +1145,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     id: string;
                                     price: number;
                                     discount: number;
-                                    serviceId: string;
+                                    serviceId: string | null;
                                     serviceName: string;
                                     originalPrice: number;
                                 }[];
+                                totalDuration: number;
                                 requestedBarber: {
                                     name: string;
                                     email: string;
@@ -1229,10 +1236,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     id: string;
                                     price: number;
                                     discount: number;
-                                    serviceId: string;
+                                    serviceId: string | null;
                                     serviceName: string;
                                     originalPrice: number;
                                 }[];
+                                totalDuration: number;
                                 requestedBarber: {
                                     name: string;
                                     email: string;
@@ -1319,10 +1327,11 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     id: string;
                                     price: number;
                                     discount: number;
-                                    serviceId: string;
+                                    serviceId: string | null;
                                     serviceName: string;
                                     originalPrice: number;
                                 }[];
+                                totalDuration: number;
                                 requestedBarber: {
                                     name: string;
                                     email: string;

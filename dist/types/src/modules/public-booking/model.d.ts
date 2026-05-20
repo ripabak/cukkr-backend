@@ -153,13 +153,14 @@ export declare namespace PublicBookingModel {
             }>, import("@sinclair/typebox").TNull]>;
             services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
-                serviceId: import("@sinclair/typebox").TString;
+                serviceId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 serviceName: import("@sinclair/typebox").TString;
                 price: import("@sinclair/typebox").TNumber;
                 originalPrice: import("@sinclair/typebox").TNumber;
                 discount: import("@sinclair/typebox").TNumber;
                 duration: import("@sinclair/typebox").TNumber;
             }>>;
+            totalDuration: import("@sinclair/typebox").TNumber;
             scheduledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
             notes: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             startedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
