@@ -410,6 +410,10 @@ export abstract class BookingService {
 			status: row.status as BookingModel.BookingStatus,
 			customerName: row.customer.name,
 			serviceNames: row.services.map((item) => item.serviceName),
+			totalDuration: row.services.reduce(
+				(sum, item) => sum + item.duration,
+				0
+			),
 			barber: BookingService.mapBarber(row.barber),
 			scheduledAt: row.scheduledAt,
 			createdAt: row.createdAt
@@ -446,6 +450,10 @@ export abstract class BookingService {
 				discount: item.discount,
 				duration: item.duration
 			})),
+			totalDuration: row.services.reduce(
+				(sum, item) => sum + item.duration,
+				0
+			),
 			scheduledAt: row.scheduledAt,
 			notes: row.notes,
 			startedAt: row.startedAt,

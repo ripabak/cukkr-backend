@@ -186,6 +186,7 @@ export namespace BookingModel {
 		status: BookingStatusEnum,
 		customerName: t.String(),
 		serviceNames: t.Array(t.String()),
+		totalDuration: t.Number(),
 		barber: t.Nullable(BarberSummaryResponse),
 		scheduledAt: t.Nullable(t.Date()),
 		createdAt: t.Date()
@@ -202,6 +203,7 @@ export namespace BookingModel {
 		requestedBarber: t.Nullable(BarberSummaryResponse),
 		handledByBarber: t.Nullable(BarberSummaryResponse),
 		services: t.Array(BookingServiceLineItemResponse),
+		totalDuration: t.Number(),
 		scheduledAt: t.Nullable(t.Date()),
 		notes: t.Nullable(t.String()),
 		startedAt: t.Nullable(t.Date()),

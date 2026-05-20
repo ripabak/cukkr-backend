@@ -189,10 +189,11 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                         id: string;
                                         price: number;
                                         discount: number;
-                                        serviceId: string;
+                                        serviceId: string | null;
                                         serviceName: string;
                                         originalPrice: number;
                                     }[];
+                                    totalDuration: number;
                                     requestedBarber: {
                                         name: string;
                                         email: string;

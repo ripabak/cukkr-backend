@@ -76,7 +76,7 @@ export declare namespace BookingModel {
     type BookingListQuery = typeof BookingListQuery.static;
     const BookingServiceLineItemResponse: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
-        serviceId: import("@sinclair/typebox").TString;
+        serviceId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         serviceName: import("@sinclair/typebox").TString;
         price: import("@sinclair/typebox").TNumber;
         originalPrice: import("@sinclair/typebox").TNumber;
@@ -110,6 +110,7 @@ export declare namespace BookingModel {
         status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
         customerName: import("@sinclair/typebox").TString;
         serviceNames: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
+        totalDuration: import("@sinclair/typebox").TNumber;
         barber: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TObject<{
             memberId: import("@sinclair/typebox").TString;
             userId: import("@sinclair/typebox").TString;
@@ -153,13 +154,14 @@ export declare namespace BookingModel {
         }>, import("@sinclair/typebox").TNull]>;
         services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
-            serviceId: import("@sinclair/typebox").TString;
+            serviceId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             serviceName: import("@sinclair/typebox").TString;
             price: import("@sinclair/typebox").TNumber;
             originalPrice: import("@sinclair/typebox").TNumber;
             discount: import("@sinclair/typebox").TNumber;
             duration: import("@sinclair/typebox").TNumber;
         }>>;
+        totalDuration: import("@sinclair/typebox").TNumber;
         scheduledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         notes: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         startedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
