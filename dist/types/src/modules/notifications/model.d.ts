@@ -73,4 +73,26 @@ export declare namespace NotificationModel {
         reason: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
     }>;
     type NotificationDeclineActionInput = typeof NotificationDeclineActionInput.static;
+    const NotificationWebPushSubscribeInput: import("@sinclair/typebox").TObject<{
+        endpoint: import("@sinclair/typebox").TString;
+        p256dh: import("@sinclair/typebox").TString;
+        auth: import("@sinclair/typebox").TString;
+    }>;
+    type NotificationWebPushSubscribeInput = typeof NotificationWebPushSubscribeInput.static;
+    const NotificationWebPushUnsubscribeInput: import("@sinclair/typebox").TObject<{
+        endpoint: import("@sinclair/typebox").TString;
+    }>;
+    type NotificationWebPushUnsubscribeInput = typeof NotificationWebPushUnsubscribeInput.static;
+    const NotificationVapidPublicKeyResponse: import("@sinclair/typebox").TObject<{
+        publicKey: import("@sinclair/typebox").TString;
+    }>;
+    type NotificationVapidPublicKeyResponse = typeof NotificationVapidPublicKeyResponse.static;
+    const NotificationWebPushSubscribeResponse: import("@sinclair/typebox").TObject<{
+        subscribed: import("@sinclair/typebox").TLiteral<true>;
+    }>;
+    type NotificationWebPushSubscribeResponse = typeof NotificationWebPushSubscribeResponse.static;
+    const NotificationWebPushUnsubscribeResponse: import("@sinclair/typebox").TObject<{
+        unsubscribed: import("@sinclair/typebox").TLiteral<true>;
+    }>;
+    type NotificationWebPushUnsubscribeResponse = typeof NotificationWebPushUnsubscribeResponse.static;
 }

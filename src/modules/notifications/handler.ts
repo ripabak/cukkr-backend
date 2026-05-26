@@ -5,6 +5,7 @@ import {
 	FormatResponseSchema
 } from '../../core/format-response'
 import { buildPaginationMeta } from '../../core/pagination'
+import { env } from '../../lib/env'
 import { authMiddleware } from '../../middleware/auth-middleware'
 import { NotificationModel } from './model'
 import { NotificationService } from './service'
@@ -137,6 +138,59 @@ export const notificationsHandler = new Elysia({
 			body: NotificationModel.NotificationDeclineActionInput,
 			response: FormatResponseSchema(
 				NotificationModel.NotificationActionResponse
+			)
+		}
+	)
+	.get(
+		'/vapid-public-key',
+		async ({ path }) => {
+			return formatResponse({
+				path,
+				data: { publicKey: env.VAPID_PUBLIC_KEY }
+			})
+		},
+		{
+			response: FormatResponseSchema(
+				NotificationModel.NotificationVapidPublicKeyResponse
+			)
+		}
+	)
+	.post(
+		'/web-push/subscribe',
+		async ({ body, path, user }) => {
+			await NotificationService.registerWebPushSubscription(user.id, body)
+			return formatResponse({
+				path,
+				data: { subscribed: true as const },
+				message: 'Web push subscription registered'
+			})
+		},
+		{
+			requireAuth: true,
+			body: NotificationModel.NotificationWebPushSubscribeInput,
+			response: FormatResponseSchema(
+				NotificationModel.NotificationWebPushSubscribeResponse
+			)
+		}
+	)
+	.delete(
+		'/web-push/unsubscribe',
+		async ({ body, path, user }) => {
+			await NotificationService.unregisterWebPushSubscription(
+				user.id,
+				body.endpoint
+			)
+			return formatResponse({
+				path,
+				data: { unsubscribed: true as const },
+				message: 'Web push subscription removed'
+			})
+		},
+		{
+			requireAuth: true,
+			body: NotificationModel.NotificationWebPushUnsubscribeInput,
+			response: FormatResponseSchema(
+				NotificationModel.NotificationWebPushUnsubscribeResponse
 			)
 		}
 	)

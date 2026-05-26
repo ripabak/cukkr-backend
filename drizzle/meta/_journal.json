@@ -22,6 +22,13 @@
       "when": 1779209465321,
       "tag": "20260519165105_fix-delete-barbershop",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779795901557,
+      "tag": "20260526114501_add-web-push-subscription",
+      "breakpoints": true
     }
   ]
 }

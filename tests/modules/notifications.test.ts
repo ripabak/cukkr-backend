@@ -14,6 +14,7 @@ import {
 	notificationPushToken
 } from '../../src/modules/notifications/schema'
 import { booking } from '../../src/modules/bookings/schema'
+import { invitation, member } from '../../src/modules/auth/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -536,5 +537,172 @@ describe('Notifications Module Tests', () => {
 		expect(secondRow?.userId).toBe(ownerB.userId)
 		expect(secondRow?.isActive).toBe(true)
 		expect(secondRow?.invalidatedAt).toBeNull()
+	})
+})
+
+describe('Invitation Notification Action Tests', () => {
+	let inviterCtx: UserContext
+	let inviteeCtx: { cookie: string; userId: string; email: string }
+	let invitationAcceptNotifId = ''
+	let invitationDeclineNotifId = ''
+
+	beforeAll(async () => {
+		inviterCtx = await createUserWithOrg('invite-action-owner')
+
+		const inviteeAcceptEmail = `invitee_accept_${Date.now()}_${nanoid(4)}@example.com`
+		const signUpAcceptRes = await (tClient as any).auth.api[
+			'sign-up'
+		].email.post(
+			{
+				email: inviteeAcceptEmail,
+				password: 'password123',
+				name: 'Invitee Accept'
+			},
+			{ fetch: { headers: { origin: ORIGIN } } }
+		)
+		const acceptCookie =
+			signUpAcceptRes.response?.headers.get('set-cookie') ?? ''
+		const acceptSession = await (tClient as any).auth.api[
+			'get-session'
+		].get({
+			headers: { cookie: acceptCookie }
+		})
+		const acceptUser = acceptSession.data?.user
+		inviteeCtx = {
+			cookie: acceptCookie,
+			userId: acceptUser.id,
+			email: inviteeAcceptEmail
+		}
+
+		const inviteeDeclineEmail = `invitee_decline_${Date.now()}_${nanoid(4)}@example.com`
+		const signUpDeclineRes = await (tClient as any).auth.api[
+			'sign-up'
+		].email.post(
+			{
+				email: inviteeDeclineEmail,
+				password: 'password123',
+				name: 'Invitee Decline'
+			},
+			{ fetch: { headers: { origin: ORIGIN } } }
+		)
+		const declineCookie =
+			signUpDeclineRes.response?.headers.get('set-cookie') ?? ''
+		const declineSession = await (tClient as any).auth.api[
+			'get-session'
+		].get({
+			headers: { cookie: declineCookie }
+		})
+		const declineUser = declineSession.data?.user
+
+		// Seed invitations directly and notifications for each invitee
+		const acceptInvId = nanoid()
+		await db.insert(invitation).values({
+			id: acceptInvId,
+			organizationId: inviterCtx.orgId,
+			email: inviteeAcceptEmail.toLowerCase(),
+			role: 'member',
+			status: 'pending',
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+			inviterId: inviterCtx.userId
+		})
+		invitationAcceptNotifId = await seedNotification({
+			organizationId: inviterCtx.orgId,
+			recipientUserId: acceptUser.id,
+			type: 'barbershop_invitation',
+			referenceId: acceptInvId,
+			referenceType: 'invitation',
+			createdAt: new Date()
+		})
+
+		const declineInvId = nanoid()
+		await db.insert(invitation).values({
+			id: declineInvId,
+			organizationId: inviterCtx.orgId,
+			email: inviteeDeclineEmail.toLowerCase(),
+			role: 'member',
+			status: 'pending',
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+			inviterId: inviterCtx.userId
+		})
+		invitationDeclineNotifId = await seedNotification({
+			organizationId: inviterCtx.orgId,
+			recipientUserId: declineUser.id,
+			type: 'barbershop_invitation',
+			referenceId: declineInvId,
+			referenceType: 'invitation',
+			createdAt: new Date()
+		})
+
+		// Store decline cookie for later
+		;(inviteeCtx as any).declineCookie = declineCookie
+		;(inviteeCtx as any).declineUserId = declineUser.id
+	})
+
+	it('accepts a barbershop invitation and creates a member record', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${invitationAcceptNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: inviteeCtx.cookie
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('accepted')
+		expect(response.data.data?.referenceType).toBe('invitation')
+
+		const invId = response.data.data?.referenceId as string
+		const inv = await db.query.invitation.findFirst({
+			where: eq(invitation.id, invId)
+		})
+		expect(inv?.status).toBe('accepted')
+
+		const newMember = await db.query.member.findFirst({
+			where: and(
+				eq(member.organizationId, inviterCtx.orgId),
+				eq(member.userId, inviteeCtx.userId)
+			)
+		})
+		expect(newMember).toBeTruthy()
+		expect(newMember?.role).toBe('member')
+
+		const notif = await db.query.notification.findFirst({
+			where: eq(notification.id, invitationAcceptNotifId)
+		})
+		expect(notif?.isRead).toBe(true)
+	})
+
+	it('declines a barbershop invitation and marks invitation as rejected', async () => {
+		const declineCookie = (inviteeCtx as any).declineCookie as string
+
+		const response = await requestJson({
+			path: `/api/notifications/${invitationDeclineNotifId}/actions/decline`,
+			method: 'POST',
+			cookie: declineCookie,
+			body: {}
+		})
+
+		expect(response.status).toBe(200)
+		expect(response.data.data?.action).toBe('declined')
+		expect(response.data.data?.referenceType).toBe('invitation')
+
+		const invId = response.data.data?.referenceId as string
+		const inv = await db.query.invitation.findFirst({
+			where: eq(invitation.id, invId)
+		})
+		expect(inv?.status).toBe('rejected')
+
+		const notif = await db.query.notification.findFirst({
+			where: eq(notification.id, invitationDeclineNotifId)
+		})
+		expect(notif?.isRead).toBe(true)
+	})
+
+	it('returns 400 when accepting an already-actioned invitation', async () => {
+		const response = await requestJson({
+			path: `/api/notifications/${invitationAcceptNotifId}/actions/accept`,
+			method: 'POST',
+			cookie: inviteeCtx.cookie
+		})
+
+		expect(response.status).toBe(400)
 	})
 })

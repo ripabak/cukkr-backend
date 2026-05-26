@@ -100,4 +100,36 @@ export namespace NotificationModel {
 	)
 	export type NotificationDeclineActionInput =
 		typeof NotificationDeclineActionInput.static
+
+	export const NotificationWebPushSubscribeInput = t.Object({
+		endpoint: t.String({ minLength: 1 }),
+		p256dh: t.String({ minLength: 1 }),
+		auth: t.String({ minLength: 1 })
+	})
+	export type NotificationWebPushSubscribeInput =
+		typeof NotificationWebPushSubscribeInput.static
+
+	export const NotificationWebPushUnsubscribeInput = t.Object({
+		endpoint: t.String({ minLength: 1 })
+	})
+	export type NotificationWebPushUnsubscribeInput =
+		typeof NotificationWebPushUnsubscribeInput.static
+
+	export const NotificationVapidPublicKeyResponse = t.Object({
+		publicKey: t.String()
+	})
+	export type NotificationVapidPublicKeyResponse =
+		typeof NotificationVapidPublicKeyResponse.static
+
+	export const NotificationWebPushSubscribeResponse = t.Object({
+		subscribed: t.Literal(true)
+	})
+	export type NotificationWebPushSubscribeResponse =
+		typeof NotificationWebPushSubscribeResponse.static
+
+	export const NotificationWebPushUnsubscribeResponse = t.Object({
+		unsubscribed: t.Literal(true)
+	})
+	export type NotificationWebPushUnsubscribeResponse =
+		typeof NotificationWebPushUnsubscribeResponse.static
 }

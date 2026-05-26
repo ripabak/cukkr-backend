@@ -13,11 +13,13 @@ export type CreateNotificationsForRecipientsInput = {
     body: string;
     referenceId?: string | null;
     referenceType?: NotificationListItem['referenceType'];
+    data?: Record<string, unknown>;
 };
 export declare abstract class NotificationService {
     private static toNotificationListItem;
     private static deriveActionType;
     private static dispatchPushNotifications;
+    private static dispatchWebPushNotifications;
     private static normalizePagination;
     private static getOwnedNotification;
     static listNotifications(recipientUserId: string, query: NotificationListQuery): Promise<PaginatedResult<NotificationListItem>>;
@@ -27,6 +29,8 @@ export declare abstract class NotificationService {
     static createNotificationsForRecipients(input: CreateNotificationsForRecipientsInput): Promise<NotificationRow[]>;
     static getOrganizationRecipientUserIds(organizationId: string): Promise<string[]>;
     static registerPushToken(userId: string, token: string): Promise<NotificationRegisterPushTokenResponse>;
+    static registerWebPushSubscription(userId: string, input: NotificationModel.NotificationWebPushSubscribeInput): Promise<void>;
+    static unregisterWebPushSubscription(userId: string, endpoint: string): Promise<void>;
     static executeAcceptAction(userId: string, notificationId: string): Promise<NotificationModel.NotificationActionResponse>;
     static executeDeclineAction(userId: string, notificationId: string, reason?: string): Promise<NotificationModel.NotificationActionResponse>;
 }

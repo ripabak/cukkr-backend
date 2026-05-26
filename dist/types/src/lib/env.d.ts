@@ -8,6 +8,9 @@ export declare const env: {
     CLIENT_URL: string;
     SMTP_SECURE: boolean;
     WALK_IN_TOKEN_SECRET: string;
+    VAPID_PUBLIC_KEY: string;
+    VAPID_PRIVATE_KEY: string;
+    VAPID_EMAIL: string;
     STORAGE_ENDPOINT?: string | undefined;
     STORAGE_BUCKET?: string | undefined;
     STORAGE_ACCESS_KEY?: string | undefined;
