@@ -1537,7 +1537,9 @@ export declare const app: Elysia<"", {
                     query: {};
                     headers: {};
                     response: {
-                        200: Response;
+                        200: AsyncGenerator<{
+                            readonly data: string;
+                        }, void, unknown>;
                     };
                 };
             };
