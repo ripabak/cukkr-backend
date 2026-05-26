@@ -13,6 +13,7 @@ import {
 import { customAlphabet, nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
+import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import {
 	getDateKey,
@@ -717,6 +718,7 @@ export abstract class BookingService {
 		)
 
 		await BookingService.createBookingNotifications(bookingDetail)
+		bookingEventBus.notify(organizationId)
 
 		return bookingDetail
 	}
@@ -890,7 +892,9 @@ export abstract class BookingService {
 				)
 		})
 
-		return BookingService.getBooking(organizationId, id)
+		const result = await BookingService.getBooking(organizationId, id)
+		bookingEventBus.notify(organizationId)
+		return result
 	}
 
 	static async acceptBooking(
@@ -927,7 +931,9 @@ export abstract class BookingService {
 				)
 		})
 
-		return BookingService.getBooking(organizationId, id)
+		const result = await BookingService.getBooking(organizationId, id)
+		bookingEventBus.notify(organizationId)
+		return result
 	}
 
 	static async declineBooking(
@@ -970,7 +976,9 @@ export abstract class BookingService {
 				)
 		})
 
-		return BookingService.getBooking(organizationId, id)
+		const result = await BookingService.getBooking(organizationId, id)
+		bookingEventBus.notify(organizationId)
+		return result
 	}
 
 	static async reassignBooking(
@@ -1015,7 +1023,9 @@ export abstract class BookingService {
 				)
 			)
 
-		return BookingService.getBooking(organizationId, id)
+		const result = await BookingService.getBooking(organizationId, id)
+		bookingEventBus.notify(organizationId)
+		return result
 	}
 
 	static async getHomeSummary(

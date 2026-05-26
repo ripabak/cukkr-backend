@@ -1530,6 +1530,20 @@ export declare const app: Elysia<"", {
         };
     } & {
         bookings: {
+            events: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: Response;
+                    };
+                };
+            };
+        };
+    } & {
+        bookings: {
             "in-progress": {
                 get: {
                     body: {};

@@ -5,6 +5,7 @@ import {
 	FormatResponseSchema
 } from '../../core/format-response'
 import { authMiddleware } from '../../middleware/auth-middleware'
+import { bookingEventBus } from './event-bus'
 import { BookingModel } from './model'
 import { BookingService } from './service'
 
@@ -92,6 +93,49 @@ export const bookingsHandler = new Elysia({
 			response: FormatResponseSchema(
 				t.Array(BookingModel.BookingSummaryResponse)
 			)
+		}
+	)
+	.get(
+		'/events',
+		({ request, activeOrganizationId }) => {
+			const encoder = new TextEncoder()
+
+			const stream = new ReadableStream({
+				start(controller) {
+					const send = () => {
+						controller.enqueue(
+							encoder.encode('data: booking_updated\n\n')
+						)
+					}
+
+					const unsubscribe = bookingEventBus.subscribe(
+						activeOrganizationId,
+						send
+					)
+
+					const heartbeat = setInterval(() => {
+						controller.enqueue(encoder.encode('data: ping\n\n'))
+					}, 30000)
+
+					request.signal.addEventListener('abort', () => {
+						clearInterval(heartbeat)
+						unsubscribe()
+					})
+				}
+			})
+
+			return new Response(stream, {
+				headers: {
+					'Content-Type': 'text/event-stream',
+					'Cache-Control': 'no-cache',
+					Connection: 'keep-alive',
+					'X-Accel-Buffering': 'no'
+				}
+			})
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true
 		}
 	)
 	.get(
