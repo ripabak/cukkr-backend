@@ -1,4 +1,4 @@
-import { Elysia, t } from 'elysia'
+import { Elysia, sse, t } from 'elysia'
 
 import {
 	formatResponse,
@@ -97,41 +97,46 @@ export const bookingsHandler = new Elysia({
 	)
 	.get(
 		'/events',
-		({ request, activeOrganizationId }) => {
-			const encoder = new TextEncoder()
+		async function* ({ request, activeOrganizationId }) {
+			let pendingResolve: (() => void) | null = null
+			const pendingEvents: string[] = []
 
-			const stream = new ReadableStream({
-				start(controller) {
-					const send = () => {
-						controller.enqueue(
-							encoder.encode('data: booking_updated\n\n')
-						)
+			const notify = () => {
+				pendingEvents.push('booking_updated')
+				pendingResolve?.()
+				pendingResolve = null
+			}
+
+			const unsubscribe = bookingEventBus.subscribe(
+				activeOrganizationId,
+				notify
+			)
+
+			const wait = (ms: number) =>
+				new Promise<void>((resolve) => {
+					const timer = setTimeout(() => resolve(), ms)
+					pendingResolve = () => {
+						clearTimeout(timer)
+						resolve()
 					}
+				})
 
-					const unsubscribe = bookingEventBus.subscribe(
-						activeOrganizationId,
-						send
-					)
+			try {
+				while (!request.signal.aborted) {
+					await wait(30000)
+					if (request.signal.aborted) break
 
-					const heartbeat = setInterval(() => {
-						controller.enqueue(encoder.encode('data: ping\n\n'))
-					}, 30000)
-
-					request.signal.addEventListener('abort', () => {
-						clearInterval(heartbeat)
-						unsubscribe()
-					})
+					if (pendingEvents.length > 0) {
+						while (pendingEvents.length > 0) {
+							yield sse({ data: pendingEvents.shift()! })
+						}
+					} else {
+						yield sse({ data: 'ping' })
+					}
 				}
-			})
-
-			return new Response(stream, {
-				headers: {
-					'Content-Type': 'text/event-stream',
-					'Cache-Control': 'no-cache',
-					Connection: 'keep-alive',
-					'X-Accel-Buffering': 'no'
-				}
-			})
+			} finally {
+				unsubscribe()
+			}
 		},
 		{
 			requireAuth: true,
