@@ -87,6 +87,30 @@ export const notificationPushToken = pgTable(
 	]
 )
 
+export const webPushSubscription = pgTable(
+	'web_push_subscription',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		endpoint: text('endpoint').notNull(),
+		p256dh: text('p256dh').notNull(),
+		auth: text('auth').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull()
+	},
+	(table) => [
+		uniqueIndex('web_push_subscription_endpoint_uidx').on(table.endpoint),
+		index('web_push_subscription_userId_idx').on(table.userId)
+	]
+)
+
 export const notificationRelations = relations(notification, ({ one }) => ({
 	organization: one(organization, {
 		fields: [notification.organizationId],
@@ -113,3 +137,16 @@ export type NewNotification = typeof notification.$inferInsert
 
 export type NotificationPushToken = typeof notificationPushToken.$inferSelect
 export type NewNotificationPushToken = typeof notificationPushToken.$inferInsert
+
+export const webPushSubscriptionRelations = relations(
+	webPushSubscription,
+	({ one }) => ({
+		user: one(user, {
+			fields: [webPushSubscription.userId],
+			references: [user.id]
+		})
+	})
+)
+
+export type WebPushSubscription = typeof webPushSubscription.$inferSelect
+export type NewWebPushSubscription = typeof webPushSubscription.$inferInsert

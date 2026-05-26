@@ -9,12 +9,14 @@ import {
 	isExpoPushToken,
 	type ExpoPushMessage
 } from '../../lib/push'
-import { member } from '../auth/schema'
+import { webpush } from '../../lib/web-push'
+import { invitation, member, user } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import { NotificationModel } from './model'
 import {
 	notification,
 	notificationPushToken,
+	webPushSubscription,
 	type Notification as NotificationRow
 } from './schema'
 
@@ -36,6 +38,7 @@ export type CreateNotificationsForRecipientsInput = {
 	body: string
 	referenceId?: string | null
 	referenceType?: NotificationListItem['referenceType']
+	data?: Record<string, unknown>
 }
 
 export abstract class NotificationService {
@@ -152,6 +155,89 @@ export abstract class NotificationService {
 				updatedAt: now
 			})
 			.where(inArray(notificationPushToken.token, invalidTokens))
+	}
+
+	private static async dispatchWebPushNotifications(
+		notifications: NotificationRow[],
+		data?: Record<string, unknown>
+	): Promise<void> {
+		const recipientUserIds = Array.from(
+			new Set(notifications.map((row) => row.recipientUserId))
+		)
+
+		if (recipientUserIds.length === 0) {
+			return
+		}
+
+		const subscriptionRows = await db.query.webPushSubscription.findMany({
+			where: inArray(webPushSubscription.userId, recipientUserIds)
+		})
+
+		if (subscriptionRows.length === 0) {
+			return
+		}
+
+		const subscriptionsByUserId = new Map<
+			string,
+			(typeof subscriptionRows)[number][]
+		>()
+
+		for (const row of subscriptionRows) {
+			const existing = subscriptionsByUserId.get(row.userId) ?? []
+			subscriptionsByUserId.set(row.userId, [...existing, row])
+		}
+
+		const sendPromises = notifications.flatMap((notifRow) => {
+			const subs =
+				subscriptionsByUserId.get(notifRow.recipientUserId) ?? []
+			return subs.map(async (sub) => {
+				const payload = JSON.stringify({
+					title: notifRow.title,
+					body: notifRow.body,
+					type: notifRow.type,
+					referenceId: notifRow.referenceId,
+					referenceType: notifRow.referenceType,
+					notificationId: notifRow.id,
+					...data
+				})
+
+				try {
+					await webpush.sendNotification(
+						{
+							endpoint: sub.endpoint,
+							keys: {
+								p256dh: sub.p256dh,
+								auth: sub.auth
+							}
+						},
+						payload
+					)
+				} catch (err: unknown) {
+					const statusCode = (err as { statusCode?: number })
+						.statusCode
+					if (statusCode === 404 || statusCode === 410) {
+						await db
+							.delete(webPushSubscription)
+							.where(
+								eq(webPushSubscription.endpoint, sub.endpoint)
+							)
+							.catch((deleteErr) => {
+								console.error(
+									'[Notifications] Failed to delete expired web push subscription',
+									deleteErr
+								)
+							})
+					} else {
+						console.error(
+							'[Notifications] Web push delivery failed',
+							err
+						)
+					}
+				}
+			})
+		})
+
+		await Promise.allSettled(sendPromises)
 	}
 
 	private static normalizePagination(
@@ -331,6 +417,16 @@ export abstract class NotificationService {
 			)
 		})
 
+		void NotificationService.dispatchWebPushNotifications(
+			createdNotifications,
+			input.data
+		).catch((error) => {
+			console.error(
+				'[Notifications] Failed to dispatch web pushes',
+				error
+			)
+		})
+
 		return createdNotifications
 	}
 
@@ -385,6 +481,46 @@ export abstract class NotificationService {
 		}
 	}
 
+	static async registerWebPushSubscription(
+		userId: string,
+		input: NotificationModel.NotificationWebPushSubscribeInput
+	): Promise<void> {
+		const now = new Date()
+
+		await db
+			.insert(webPushSubscription)
+			.values({
+				id: nanoid(),
+				userId,
+				endpoint: input.endpoint,
+				p256dh: input.p256dh,
+				auth: input.auth,
+				createdAt: now,
+				updatedAt: now
+			})
+			.onConflictDoUpdate({
+				target: webPushSubscription.endpoint,
+				set: {
+					userId,
+					updatedAt: now
+				}
+			})
+	}
+
+	static async unregisterWebPushSubscription(
+		userId: string,
+		endpoint: string
+	): Promise<void> {
+		await db
+			.delete(webPushSubscription)
+			.where(
+				and(
+					eq(webPushSubscription.userId, userId),
+					eq(webPushSubscription.endpoint, endpoint)
+				)
+			)
+	}
+
 	static async executeAcceptAction(
 		userId: string,
 		notificationId: string
@@ -408,6 +544,67 @@ export abstract class NotificationService {
 				notif.organizationId,
 				notif.referenceId
 			)
+		} else if (
+			referenceType === 'invitation' &&
+			notif.type === 'barbershop_invitation'
+		) {
+			const inviteeUser = await db.query.user.findFirst({
+				where: eq(user.id, userId)
+			})
+			if (!inviteeUser) {
+				throw new AppError('User not found', 'NOT_FOUND')
+			}
+
+			const inv = await db.query.invitation.findFirst({
+				where: eq(invitation.id, notif.referenceId)
+			})
+			if (!inv) {
+				throw new AppError('Invitation not found', 'NOT_FOUND')
+			}
+			if (inv.status !== 'pending') {
+				throw new AppError(
+					'Invitation has already been actioned',
+					'BAD_REQUEST'
+				)
+			}
+			if (inv.email.toLowerCase() !== inviteeUser.email.toLowerCase()) {
+				throw new AppError(
+					'Invitation does not belong to this user',
+					'FORBIDDEN'
+				)
+			}
+
+			const now = new Date()
+			await db
+				.update(invitation)
+				.set({ status: 'accepted' })
+				.where(eq(invitation.id, inv.id))
+
+			const existingMember = await db.query.member.findFirst({
+				where: and(
+					eq(member.organizationId, inv.organizationId),
+					eq(member.userId, userId)
+				)
+			})
+			if (!existingMember) {
+				await db.insert(member).values({
+					id: nanoid(),
+					organizationId: inv.organizationId,
+					userId,
+					role: inv.role ?? 'member',
+					createdAt: now
+				})
+			}
+
+			await db
+				.update(notification)
+				.set({ isRead: true, updatedAt: now })
+				.where(
+					and(
+						eq(notification.id, notificationId),
+						eq(notification.recipientUserId, userId)
+					)
+				)
 		} else {
 			throw new AppError(
 				'Action not supported for this notification type',
@@ -454,6 +651,51 @@ export abstract class NotificationService {
 				notif.referenceId,
 				{ reason }
 			)
+		} else if (
+			referenceType === 'invitation' &&
+			notif.type === 'barbershop_invitation'
+		) {
+			const inviteeUser = await db.query.user.findFirst({
+				where: eq(user.id, userId)
+			})
+			if (!inviteeUser) {
+				throw new AppError('User not found', 'NOT_FOUND')
+			}
+
+			const inv = await db.query.invitation.findFirst({
+				where: eq(invitation.id, notif.referenceId)
+			})
+			if (!inv) {
+				throw new AppError('Invitation not found', 'NOT_FOUND')
+			}
+			if (inv.status !== 'pending') {
+				throw new AppError(
+					'Invitation has already been actioned',
+					'BAD_REQUEST'
+				)
+			}
+			if (inv.email.toLowerCase() !== inviteeUser.email.toLowerCase()) {
+				throw new AppError(
+					'Invitation does not belong to this user',
+					'FORBIDDEN'
+				)
+			}
+
+			const now = new Date()
+			await db
+				.update(invitation)
+				.set({ status: 'rejected' })
+				.where(eq(invitation.id, inv.id))
+
+			await db
+				.update(notification)
+				.set({ isRead: true, updatedAt: now })
+				.where(
+					and(
+						eq(notification.id, notificationId),
+						eq(notification.recipientUserId, userId)
+					)
+				)
 		} else {
 			throw new AppError(
 				'Action not supported for this notification type',

@@ -4,6 +4,7 @@ import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
 import * as schema from '../../drizzle/schemas'
 import { and, eq } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
 import { env } from './env'
 import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { expo } from '@better-auth/expo'
@@ -64,6 +65,30 @@ export const auth = betterAuth({
 					organizationName: data.organization.name,
 					inviteUrl: inviteLink
 				})
+
+				// Create in-app notification if the invitee already has an account
+				try {
+					const inviteeUser = await db.query.user.findFirst({
+						where: eq(schema.user.email, data.email.toLowerCase())
+					})
+					if (inviteeUser) {
+						await db.insert(schema.notification).values({
+							id: nanoid(),
+							organizationId: data.organization.id,
+							recipientUserId: inviteeUser.id,
+							type: 'barbershop_invitation',
+							title: `${data.organization.name} Invitation`,
+							body: `${data.inviter.user.name} invited you to join ${data.organization.name}`,
+							referenceId: data.id,
+							referenceType: 'invitation'
+						})
+					}
+				} catch (err) {
+					console.error(
+						'[Auth] Failed to create barbershop_invitation notification',
+						err
+					)
+				}
 			}
 		}),
 		expo()

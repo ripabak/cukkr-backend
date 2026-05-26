@@ -34,7 +34,12 @@ const envSchema = z.object({
 	SMTP_FROM: z.string().optional(),
 
 	// Walk-In PIN System
-	WALK_IN_TOKEN_SECRET: z.string().min(32)
+	WALK_IN_TOKEN_SECRET: z.string().min(32),
+
+	// Web Push (VAPID)
+	VAPID_PUBLIC_KEY: z.string().min(1),
+	VAPID_PRIVATE_KEY: z.string().min(1),
+	VAPID_EMAIL: z.string().min(1)
 })
 
 const parsed = envSchema.safeParse(process.env)

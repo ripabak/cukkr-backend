@@ -3280,7 +3280,7 @@ export declare const app: Elysia<"", {
                         } | undefined;
                         message: string;
                         data: {
-                            type: "appointment_requested" | "walk_in_arrival" | "barbershop_invitation";
+                            type: "barbershop_invitation" | "appointment_requested" | "walk_in_arrival";
                             id: string;
                             createdAt: Date;
                             updatedAt: Date;
@@ -3564,6 +3564,133 @@ export declare const app: Elysia<"", {
                                     property?: string;
                                     expected?: string;
                                 };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        notifications: {
+            "vapid-public-key": {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                publicKey: string;
+                            };
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        notifications: {
+            "web-push": {
+                subscribe: {
+                    post: {
+                        body: {
+                            endpoint: string;
+                            p256dh: string;
+                            auth: string;
+                        };
+                        params: {};
+                        query: {};
+                        headers: {};
+                        response: {
+                            200: {
+                                meta?: {
+                                    limit: number;
+                                    page: number;
+                                    totalItems: number;
+                                    totalPages: number;
+                                    hasNext: boolean;
+                                    hasPrev: boolean;
+                                } | undefined;
+                                message: string;
+                                data: {
+                                    subscribed: true;
+                                };
+                                status: string | number;
+                                path: string;
+                                timeStamp: string;
+                            };
+                            422: {
+                                type: "validation";
+                                on: string;
+                                summary?: string;
+                                message?: string;
+                                found?: unknown;
+                                property?: string;
+                                expected?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        notifications: {
+            "web-push": {
+                unsubscribe: {
+                    delete: {
+                        body: {
+                            endpoint: string;
+                        };
+                        params: {};
+                        query: {};
+                        headers: {};
+                        response: {
+                            200: {
+                                meta?: {
+                                    limit: number;
+                                    page: number;
+                                    totalItems: number;
+                                    totalPages: number;
+                                    hasNext: boolean;
+                                    hasPrev: boolean;
+                                } | undefined;
+                                message: string;
+                                data: {
+                                    unsubscribed: true;
+                                };
+                                status: string | number;
+                                path: string;
+                                timeStamp: string;
+                            };
+                            422: {
+                                type: "validation";
+                                on: string;
+                                summary?: string;
+                                message?: string;
+                                found?: unknown;
+                                property?: string;
+                                expected?: string;
                             };
                         };
                     };

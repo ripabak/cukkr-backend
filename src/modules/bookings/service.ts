@@ -98,7 +98,11 @@ export abstract class BookingService {
 			title,
 			body,
 			referenceId: bookingDetail.id,
-			referenceType: 'booking'
+			referenceType: 'booking',
+			data: {
+				customerName: bookingDetail.customer.name,
+				bookingType: bookingDetail.type
+			}
 		})
 	}
 
