@@ -969,7 +969,7 @@ export abstract class BookingService {
 				.set({
 					status: 'cancelled',
 					cancelledAt: now,
-					notes: input.reason,
+					notes: input.reason ?? null,
 					updatedAt: now
 				})
 				.where(

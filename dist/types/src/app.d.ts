@@ -510,55 +510,6 @@ export declare const app: Elysia<"", {
         };
     } & {
         barbershop: {
-            post: {
-                body: {
-                    description?: string | null | undefined;
-                    address?: string | null | undefined;
-                    name: string;
-                    slug: string;
-                };
-                params: {};
-                query: {};
-                headers: {};
-                response: {
-                    200: {
-                        meta?: {
-                            limit: number;
-                            page: number;
-                            totalItems: number;
-                            totalPages: number;
-                            hasNext: boolean;
-                            hasPrev: boolean;
-                        } | undefined;
-                        message: string;
-                        data: {
-                            id: string;
-                            name: string;
-                            slug: string;
-                            description: string | null;
-                            address: string | null;
-                            logoUrl: string | null;
-                            onboardingCompleted: boolean;
-                            timezone: string;
-                        };
-                        status: string | number;
-                        path: string;
-                        timeStamp: string;
-                    };
-                    422: {
-                        type: "validation";
-                        on: string;
-                        summary?: string;
-                        message?: string;
-                        found?: unknown;
-                        property?: string;
-                        expected?: string;
-                    };
-                };
-            };
-        };
-    } & {
-        barbershop: {
             settings: {
                 patch: {
                     body: {
@@ -1903,7 +1854,7 @@ export declare const app: Elysia<"", {
                 decline: {
                     post: {
                         body: {
-                            reason: string;
+                            reason?: string | undefined;
                         };
                         params: {
                             id: string;
@@ -3289,6 +3240,7 @@ export declare const app: Elysia<"", {
                             body: string;
                             referenceId: string | null;
                             referenceType: "invitation" | "booking" | null;
+                            actionedAs: "accepted" | "declined" | null;
                             isRead: boolean;
                             actionType: "accept_decline_appointment" | "accept_decline_invite" | null;
                         }[];

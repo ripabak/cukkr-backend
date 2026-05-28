@@ -116,7 +116,7 @@ export namespace BookingModel {
 
 	export const BookingDeclineInput = t.Object(
 		{
-			reason: t.String({ minLength: 1, maxLength: 500 })
+			reason: t.Optional(t.String({ maxLength: 500 }))
 		},
 		{ additionalProperties: false }
 	)

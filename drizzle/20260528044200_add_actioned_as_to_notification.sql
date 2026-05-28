@@ -1,0 +1,1 @@
+ALTER TABLE "notification" ADD COLUMN "actioned_as" text;

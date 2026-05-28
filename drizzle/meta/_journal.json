@@ -29,6 +29,13 @@
       "when": 1779795901557,
       "tag": "20260526114501_add-web-push-subscription",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779943320941,
+      "tag": "20260528044200_add_actioned_as_to_notification",
+      "breakpoints": true
     }
   ]
 }

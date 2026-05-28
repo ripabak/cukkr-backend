@@ -21,6 +21,7 @@ export declare namespace NotificationModel {
         referenceId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         referenceType: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"booking">, import("@sinclair/typebox").TLiteral<"invitation">]>, import("@sinclair/typebox").TNull]>;
         actionType: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"accept_decline_appointment">, import("@sinclair/typebox").TLiteral<"accept_decline_invite">, import("@sinclair/typebox").TNull]>;
+        actionedAs: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"accepted">, import("@sinclair/typebox").TLiteral<"declined">]>, import("@sinclair/typebox").TNull]>;
         isRead: import("@sinclair/typebox").TBoolean;
         createdAt: import("@sinclair/typebox").TDate;
         updatedAt: import("@sinclair/typebox").TDate;
@@ -35,6 +36,7 @@ export declare namespace NotificationModel {
         referenceId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         referenceType: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"booking">, import("@sinclair/typebox").TLiteral<"invitation">]>, import("@sinclair/typebox").TNull]>;
         actionType: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"accept_decline_appointment">, import("@sinclair/typebox").TLiteral<"accept_decline_invite">, import("@sinclair/typebox").TNull]>;
+        actionedAs: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"accepted">, import("@sinclair/typebox").TLiteral<"declined">]>, import("@sinclair/typebox").TNull]>;
         isRead: import("@sinclair/typebox").TBoolean;
         createdAt: import("@sinclair/typebox").TDate;
         updatedAt: import("@sinclair/typebox").TDate;

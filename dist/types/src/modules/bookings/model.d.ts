@@ -60,7 +60,7 @@ export declare namespace BookingModel {
     }>;
     type BookingStatusUpdateInput = typeof BookingStatusUpdateInput.static;
     const BookingDeclineInput: import("@sinclair/typebox").TObject<{
-        reason: import("@sinclair/typebox").TString;
+        reason: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
     }>;
     type BookingDeclineInput = typeof BookingDeclineInput.static;
     const BookingReassignInput: import("@sinclair/typebox").TObject<{

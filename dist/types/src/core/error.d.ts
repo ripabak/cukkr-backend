@@ -46,11 +46,11 @@ export declare const CustomError: Elysia<"", {
     schema: {};
     standaloneSchema: {};
     response: {
-        200: Response | {
+        200: {
             message: string;
             status: string | number;
             path: string;
             timeStamp: string;
-        };
+        } | Response;
     };
 }>;
