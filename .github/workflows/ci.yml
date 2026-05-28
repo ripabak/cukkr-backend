@@ -48,6 +48,6 @@ jobs:
           BETTER_AUTH_URL: http://localhost:3000
           WALK_IN_TOKEN_SECRET: test-walk-in-token-secret-that-is-at-least-32-chars
           CLIENT_URL: http://localhost:3000
-          VAPID_PUBLIC_KEY=BOSdtNO4Aj4p6s6MGsYFsfZQ2gX35CiakezQkMHGI-Ab1vWrmwzAXokzNiJXM-oYkvPg4GuVpXiA1oh8gLFRBUk
-          VAPID_PRIVATE_KEY=91zeUwFTNpp3c7e7-0JlMgSMS5h-hndRgnyBUuIbuNQ
-          VAPID_EMAIL=mailto:support@cukkr.com
+          VAPID_PUBLIC_KEY: BOSdtNO4Aj4p6s6MGsYFsfZQ2gX35CiakezQkMHGI-Ab1vWrmwzAXokzNiJXM-oYkvPg4GuVpXiA1oh8gLFRBUk
+          VAPID_PRIVATE_KEY: 91zeUwFTNpp3c7e7-0JlMgSMS5h-hndRgnyBUuIbuNQ
+          VAPID_EMAIL: mailto:support@cukkr.com
