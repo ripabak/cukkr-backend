@@ -33,5 +33,8 @@ export declare abstract class NotificationService {
     static unregisterWebPushSubscription(userId: string, endpoint: string): Promise<void>;
     static executeAcceptAction(userId: string, notificationId: string): Promise<NotificationModel.NotificationActionResponse>;
     static executeDeclineAction(userId: string, notificationId: string, reason?: string): Promise<NotificationModel.NotificationActionResponse>;
+    static cleanupOldNotifications(): Promise<{
+        deletedCount: number;
+    }>;
 }
 export {};

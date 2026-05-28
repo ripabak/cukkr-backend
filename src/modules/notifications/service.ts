@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, lt } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -724,5 +724,17 @@ export abstract class NotificationService {
 			referenceType: referenceType as 'booking' | 'invitation',
 			referenceId: notif.referenceId
 		}
+	}
+
+	static async cleanupOldNotifications(): Promise<{ deletedCount: number }> {
+		const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+		const deleted = await db
+			.delete(notification)
+			.where(lt(notification.createdAt, cutoff))
+			.returning({ id: notification.id })
+		console.log(
+			`[Notifications] Cleanup: deleted ${deleted.length} notifications older than 30 days`
+		)
+		return { deletedCount: deleted.length }
 	}
 }

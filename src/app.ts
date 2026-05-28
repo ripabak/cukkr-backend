@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia'
+import { cron } from '@elysiajs/cron'
 import { auth } from './lib/auth'
 import { openapi } from '@elysiajs/openapi'
 import { OpenAPI } from './lib/auth'
@@ -23,6 +24,7 @@ import { notificationsHandler } from './modules/notifications/handler'
 import { publicHandler } from './modules/public/handler'
 import { publicBookingHandler } from './modules/public-booking/handler'
 import { typeShareEdenElysia } from 'type-share-eden-elysia'
+import { NotificationService } from './modules/notifications/service'
 
 export const app = new Elysia()
 	.use(
@@ -65,6 +67,19 @@ export const app = new Elysia()
 	)
 	// Error handler
 	.use(CustomError)
+
+	// Cron jobs
+	.use(
+		cron({
+			name: 'notification-cleanup',
+			pattern: '0 0 * * *', // Daily at midnight
+			run() {
+				void NotificationService.cleanupOldNotifications().catch(
+					console.error
+				)
+			}
+		})
+	)
 
 	// Response middleware
 	// .use(ResponseMiddleware)

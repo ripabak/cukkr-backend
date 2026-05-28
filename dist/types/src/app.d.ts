@@ -6,6 +6,7 @@ export declare const app: Elysia<"", {
         beforeTime?: bigint | undefined;
         logger: import("logixlysia").Logger;
         pino: import("logixlysia").Pino;
+        cron: Record<"notification-cleanup", import("croner").Cron>;
     };
     derive: import("logixlysia").EmptyElysiaSlot;
     resolve: import("logixlysia").EmptyElysiaSlot;
@@ -29,6 +30,9 @@ export declare const app: Elysia<"", {
 } & {
     typebox: {};
     error: {};
+} & {
+    typebox: {};
+    error: {};
 }, {
     schema: {};
     standaloneSchema: {};
@@ -41,6 +45,13 @@ export declare const app: Elysia<"", {
     macro: {};
     macroFn: {};
     parser: {};
+} & {
+    schema: {};
+    standaloneSchema: {};
+    macro: {};
+    macroFn: {};
+    parser: {};
+    response: {};
 } & {
     schema: {};
     standaloneSchema: {};
@@ -4059,6 +4070,12 @@ export declare const app: Elysia<"", {
     derive: {};
     resolve: {};
     schema: {};
+} & {
+    derive: {};
+    resolve: {};
+    schema: {};
+    standaloneSchema: {};
+    response: {};
 }, {
     derive: {};
     resolve: {};
@@ -4075,6 +4092,12 @@ export declare const app: Elysia<"", {
     derive: {};
     resolve: {};
     schema: {};
+} & {
+    derive: {};
+    resolve: {};
+    schema: {};
+    standaloneSchema: {};
+    response: {};
 } & {
     derive: {};
     resolve: {};
