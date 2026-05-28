@@ -138,6 +138,23 @@ export declare const notification: import("drizzle-orm/pg-core").PgTableWithColu
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        actionedAs: import("drizzle-orm/pg-core").PgColumn<{
+            name: "actioned_as";
+            tableName: "notification";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         isRead: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_read";
             tableName: "notification";

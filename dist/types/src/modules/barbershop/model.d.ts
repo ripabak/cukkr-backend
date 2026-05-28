@@ -34,13 +34,6 @@ export declare namespace BarbershopModel {
         available: import("@sinclair/typebox").TBoolean;
     }>;
     type SlugCheckResponse = typeof SlugCheckResponse.static;
-    const CreateBarbershopInput: import("@sinclair/typebox").TObject<{
-        name: import("@sinclair/typebox").TString;
-        slug: import("@sinclair/typebox").TString;
-        description: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
-        address: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
-    }>;
-    type CreateBarbershopInput = typeof CreateBarbershopInput.static;
     const BarbershopListItem: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;

@@ -33,6 +33,7 @@ async function createOwnerWithOrg(suffix: string): Promise<OwnerContext> {
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 	const orgId: string = orgRes.data?.id ?? ''
+	const actualSlug: string = orgRes.data?.slug ?? slug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -51,7 +52,12 @@ async function createOwnerWithOrg(suffix: string): Promise<OwnerContext> {
 		throw new Error('Owner member not created for walk-in test setup')
 	}
 
-	return { authCookie, orgId, orgSlug: slug, ownerUserId: ownerMember.userId }
+	return {
+		authCookie,
+		orgId,
+		orgSlug: actualSlug,
+		ownerUserId: ownerMember.userId
+	}
 }
 
 async function createActiveService(authCookie: string): Promise<string> {

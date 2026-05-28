@@ -27,6 +27,7 @@ async function createOwnerContext(suffix: string): Promise<OwnerContext> {
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 	const orgId: string = orgRes.data?.id ?? ''
+	const actualSlug: string = orgRes.data?.slug ?? slug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -36,7 +37,7 @@ async function createOwnerContext(suffix: string): Promise<OwnerContext> {
 	)
 	const finalCookie = activeRes.response?.headers.get('set-cookie') ?? cookie
 
-	return { cookie: finalCookie, orgId, orgSlug: slug }
+	return { cookie: finalCookie, orgId, orgSlug: actualSlug }
 }
 
 async function getNoOrgCookie(): Promise<string> {

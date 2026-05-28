@@ -1,5 +1,6 @@
 import { BarbershopModel } from './model';
 export declare abstract class BarbershopService {
+    static generateUniqueSlug(name: string): Promise<string>;
     static ensureSettingsRow(organizationId: string): Promise<void>;
     private static validateAndCheckSlug;
     static getSettings(organizationId: string): Promise<BarbershopModel.BarbershopResponse>;

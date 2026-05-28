@@ -55,6 +55,7 @@ export abstract class NotificationService {
 			referenceType:
 				row.referenceType as NotificationListItem['referenceType'],
 			actionType: NotificationService.deriveActionType(row.type),
+			actionedAs: row.actionedAs as 'accepted' | 'declined' | null,
 			isRead: row.isRead,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt
@@ -544,6 +545,16 @@ export abstract class NotificationService {
 				notif.organizationId,
 				notif.referenceId
 			)
+			const now = new Date()
+			await db
+				.update(notification)
+				.set({ actionedAs: 'accepted', updatedAt: now })
+				.where(
+					and(
+						eq(notification.id, notificationId),
+						eq(notification.recipientUserId, userId)
+					)
+				)
 		} else if (
 			referenceType === 'invitation' &&
 			notif.type === 'barbershop_invitation'
@@ -640,17 +651,21 @@ export abstract class NotificationService {
 			referenceType === 'booking' &&
 			notif.type === 'appointment_requested'
 		) {
-			if (!reason) {
-				throw new AppError(
-					'reason is required to decline an appointment',
-					'BAD_REQUEST'
-				)
-			}
 			await BookingService.declineBooking(
 				notif.organizationId,
 				notif.referenceId,
 				{ reason }
 			)
+			const now = new Date()
+			await db
+				.update(notification)
+				.set({ actionedAs: 'declined', updatedAt: now })
+				.where(
+					and(
+						eq(notification.id, notificationId),
+						eq(notification.recipientUserId, userId)
+					)
+				)
 		} else if (
 			referenceType === 'invitation' &&
 			notif.type === 'barbershop_invitation'

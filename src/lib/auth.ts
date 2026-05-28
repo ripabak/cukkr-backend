@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid'
 import { env } from './env'
 import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { expo } from '@better-auth/expo'
+import { BarbershopService } from '../modules/barbershop/service'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -42,6 +43,14 @@ export const auth = betterAuth({
 			}
 		}),
 		organization({
+			organizationHooks: {
+				beforeCreateOrganization: async ({ organization: orgData }) => {
+					const slug = await BarbershopService.generateUniqueSlug(
+						orgData.name ?? ''
+					)
+					return { data: { slug } }
+				}
+			},
 			allowUserToCreateOrganization: async (user) => {
 				if (env.NODE_ENV !== 'production') return true
 				const existing = await db

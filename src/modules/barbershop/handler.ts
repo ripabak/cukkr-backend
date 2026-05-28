@@ -8,7 +8,6 @@ import {
 	FormatResponseSchema
 } from '../../core/format-response'
 import { authMiddleware } from '../../middleware/auth-middleware'
-import { auth } from '../../lib/auth'
 import { env } from '../../lib/env'
 
 export const barbershopHandler = new Elysia({
@@ -27,47 +26,6 @@ export const barbershopHandler = new Elysia({
 		},
 		{
 			requireOrganization: true,
-			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
-		}
-	)
-
-	// POST /barbershop — create a new barbershop organization
-	// @deprecatedHandler , it will change to better auth instead fully
-	.post(
-		'/',
-		async ({ body, path, user, set, request }) => {
-			const orgData = await auth.api.createOrganization({
-				body: {
-					name: body.name,
-					slug: body.slug,
-					userId: user.id,
-					keepCurrentActiveOrganization: true
-				},
-				headers: request.headers
-			})
-
-			await BarbershopService.ensureSettingsRow(orgData.id)
-
-			if (body.description !== undefined || body.address !== undefined) {
-				await BarbershopService.updateSettings(orgData.id, {
-					description: body.description,
-					address: body.address
-				})
-			}
-
-			const data = await BarbershopService.getSettings(orgData.id)
-
-			set.status = 201
-			return formatResponse({
-				path,
-				data,
-				status: 201,
-				message: 'Barbershop created successfully'
-			})
-		},
-		{
-			requireAuth: true,
-			body: BarbershopModel.CreateBarbershopInput,
 			response: FormatResponseSchema(BarbershopModel.BarbershopResponse)
 		}
 	)

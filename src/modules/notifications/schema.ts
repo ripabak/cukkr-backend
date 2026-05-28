@@ -25,6 +25,7 @@ export const notification = pgTable(
 		body: text('body').notNull(),
 		referenceId: text('reference_id'),
 		referenceType: text('reference_type'),
+		actionedAs: text('actioned_as'),
 		isRead: boolean('is_read').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true })
 			.defaultNow()

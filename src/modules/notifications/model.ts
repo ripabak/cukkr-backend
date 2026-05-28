@@ -41,6 +41,9 @@ export namespace NotificationModel {
 		referenceId: t.Nullable(t.String()),
 		referenceType: t.Nullable(NotificationReferenceTypeEnum),
 		actionType: NotificationActionTypeEnum,
+		actionedAs: t.Nullable(
+			t.Union([t.Literal('accepted'), t.Literal('declined')])
+		),
 		isRead: t.Boolean(),
 		createdAt: t.Date(),
 		updatedAt: t.Date()

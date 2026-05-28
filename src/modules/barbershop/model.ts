@@ -42,14 +42,6 @@ export namespace BarbershopModel {
 	})
 	export type SlugCheckResponse = typeof SlugCheckResponse.static
 
-	export const CreateBarbershopInput = t.Object({
-		name: t.String({ minLength: 2, maxLength: 100 }),
-		slug: t.String({ minLength: 3, maxLength: 60 }),
-		description: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
-		address: t.Optional(t.Nullable(t.String({ maxLength: 300 })))
-	})
-	export type CreateBarbershopInput = typeof CreateBarbershopInput.static
-
 	export const BarbershopListItem = t.Object({
 		id: t.String(),
 		name: t.String(),
