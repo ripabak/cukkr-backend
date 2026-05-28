@@ -51,6 +51,7 @@ async function createUserWithOrg(suffix: string): Promise<{
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 	const orgId: string = orgRes.data?.id
+	const actualSlug: string = orgRes.data?.slug ?? orgSlug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -66,7 +67,7 @@ async function createUserWithOrg(suffix: string): Promise<{
 	})
 	const userId: string = sessionRes.data?.user?.id ?? ''
 
-	return { authCookie, orgId, orgSlug, userId }
+	return { authCookie, orgId, orgSlug: actualSlug, userId }
 }
 
 async function setActiveOrg(
@@ -105,35 +106,23 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 		ownerCookie = owner.authCookie
 	})
 
-	// T-01: POST /barbershop creates org, assigns owner role, returns org profile
-	it('T-01: POST /barbershop creates org, assigns owner role, returns org profile', async () => {
-		const slug = `t01-${nanoidSlug()}`
-		const { status, data } = await tClient.api.barbershop.post(
-			{ name: 'My Second Shop', slug },
-			{ fetch: { headers: { cookie: ownerCookie } } }
+	// T-01: Creating a second org via Better Auth auto-generates a unique slug
+	it('T-01: Organization creation auto-generates unique slug in name-xxxxx format', async () => {
+		const orgRes = await (tClient as any).auth.api.organization.create.post(
+			{ name: 'My Second Shop', slug: `t01-${nanoidSlug()}` },
+			{ fetch: { headers: { cookie: ownerCookie, origin: ORIGIN } } }
 		)
-		expect(status).toBe(201)
-		expect(data?.data.slug).toBe(slug)
-		expect(data?.data.name).toBe('My Second Shop')
-		expect(data?.data.onboardingCompleted).toBe(false)
-	})
-
-	// T-04: POST /barbershop without session returns 401 Unauthorized
-	it('T-04: POST /barbershop without session returns 401 Unauthorized', async () => {
-		const { status } = await tClient.api.barbershop.post({
-			name: 'No Auth Shop',
-			slug: `t04-${nanoidSlug()}`
-		})
-		expect(status).toBe(401)
+		expect(orgRes.status).toBe(200)
+		expect(orgRes.data?.slug).toMatch(/^my-second-shop-[a-z0-9]{5}$/)
+		expect(orgRes.data?.name).toBe('My Second Shop')
 	})
 
 	// T-05: GET /barbershop/list returns all orgs (2 created, expect 2)
 	it('T-05: GET /barbershop/list returns all orgs for user', async () => {
 		const user = await createUserWithOrg('t05')
-		const slug2 = `t05-second-${nanoidSlug()}`
-		await tClient.api.barbershop.post(
-			{ name: 'Second Shop T05', slug: slug2 },
-			{ fetch: { headers: { cookie: user.authCookie } } }
+		await (tClient as any).auth.api.organization.create.post(
+			{ name: 'Second Shop T05', slug: `t05-second-${nanoidSlug()}` },
+			{ fetch: { headers: { cookie: user.authCookie, origin: ORIGIN } } }
 		)
 		const { status, data } = await (
 			tClient as any
@@ -261,12 +250,13 @@ describe('Multi-Barbershop & Branch Management Tests', () => {
 			)
 		}
 
-		const slugB = `t12-orgb-${nanoidSlug()}`
-		const createRes = await tClient.api.barbershop.post(
-			{ name: 'Org B T12', slug: slugB },
-			{ fetch: { headers: { cookie: user.authCookie } } }
+		const createRes = await (
+			tClient as any
+		).auth.api.organization.create.post(
+			{ name: 'Org B T12', slug: `t12-orgb-${nanoidSlug()}` },
+			{ fetch: { headers: { cookie: user.authCookie, origin: ORIGIN } } }
 		)
-		const orgBId = createRes.data?.data.id ?? ''
+		const orgBId = createRes.data?.id ?? ''
 
 		const cookieOrgB = await setActiveOrg(user.authCookie, orgBId)
 		for (let i = 0; i < 2; i++) {

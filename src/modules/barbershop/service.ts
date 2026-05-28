@@ -1,5 +1,5 @@
 import { and, count, eq, ne } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
 
 import { db } from '../../lib/database'
 import { DEFAULT_TIMEZONE } from '../../lib/timezone'
@@ -22,6 +22,33 @@ function isValidIanaTimezone(tz: string): boolean {
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
 export abstract class BarbershopService {
+	static async generateUniqueSlug(name: string): Promise<string> {
+		const generateCode = customAlphabet(
+			'abcdefghijklmnopqrstuvwxyz0123456789',
+			5
+		)
+		const base = name
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '')
+
+		for (let attempt = 0; attempt < 5; attempt++) {
+			const slug = `${base}-${generateCode()}`
+			const existing = await db
+				.select({ id: organization.id })
+				.from(organization)
+				.where(eq(organization.slug, slug))
+				.limit(1)
+
+			if (!existing[0]) return slug
+		}
+
+		throw new AppError(
+			'Failed to generate a unique slug after 5 attempts',
+			'INTERNAL_ERROR'
+		)
+	}
+
 	static async ensureSettingsRow(organizationId: string): Promise<void> {
 		await db
 			.insert(barbershopSettings)

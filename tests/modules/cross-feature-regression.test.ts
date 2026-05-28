@@ -66,6 +66,7 @@ async function createOwnerContext(prefix: string): Promise<UserContext> {
 		{ fetch: { headers: { cookie: rawCookie, origin: ORIGIN } } }
 	)
 	const orgId: string = orgRes.data?.id ?? ''
+	const actualSlug: string = orgRes.data?.slug ?? slug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -76,7 +77,7 @@ async function createOwnerContext(prefix: string): Promise<UserContext> {
 	const cookie: string =
 		activeRes.response?.headers.get('set-cookie') ?? rawCookie
 
-	return { cookie, userId, orgId, slug }
+	return { cookie, userId, orgId, slug: actualSlug }
 }
 
 async function addBarberMember(args: {

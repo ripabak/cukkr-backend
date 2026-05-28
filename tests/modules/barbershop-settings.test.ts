@@ -24,6 +24,7 @@ async function createUserWithOrg(suffix: string): Promise<{
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 	const orgId: string = orgRes.data?.id
+	const actualSlug: string = orgRes.data?.slug ?? orgSlug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -34,7 +35,7 @@ async function createUserWithOrg(suffix: string): Promise<{
 	const authCookie: string =
 		activeRes.response?.headers.get('set-cookie') || cookie
 
-	return { authCookie, orgId, orgSlug }
+	return { authCookie, orgId, orgSlug: actualSlug }
 }
 
 describe('Barbershop Settings Tests', () => {

@@ -27,13 +27,14 @@ async function createPublicBarbershopContext(suffix: string) {
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 	const orgId = orgRes.data?.id ?? ''
+	const actualSlug: string = orgRes.data?.slug ?? slug
 
 	await (tClient as any).auth.api.organization['set-active'].post(
 		{ organizationId: orgId },
 		{ fetch: { headers: { cookie, origin: ORIGIN } } }
 	)
 
-	return { slug, orgId }
+	return { slug: actualSlug, orgId }
 }
 
 describe('Public Barbershop API', () => {
@@ -145,6 +146,7 @@ async function createPublicBarbershopContextFull(suffix: string) {
 		{ fetch: { headers: { cookie: rawCookie, origin: ORIGIN } } }
 	)
 	const orgId = orgRes.data?.id ?? ''
+	const actualSlug: string = orgRes.data?.slug ?? slug
 
 	const activeRes = await (tClient as any).auth.api.organization[
 		'set-active'
@@ -154,7 +156,7 @@ async function createPublicBarbershopContextFull(suffix: string) {
 	)
 	const cookie = activeRes.response?.headers.get('set-cookie') ?? rawCookie
 
-	return { slug, orgId, cookie }
+	return { slug: actualSlug, orgId, cookie }
 }
 
 describe('Public Appointment Booking Flow', () => {
