@@ -80,9 +80,9 @@ async function getAdminAuthCookie() {
 
 describe('Product Module Tests', () => {
 	describe('GET /products', () => {
-		it('should return 403 Forbidden since unauthenticated requests lack organization', async () => {
+		it('should return 401 Unauthorized since unauthenticated requests have no session', async () => {
 			const { status } = await tClient.api['product-examples'].get()
-			expect(status).toBe(403)
+			expect(status).toBe(401)
 		})
 
 		it('should return 403 Forbidden for a regular user', async () => {
