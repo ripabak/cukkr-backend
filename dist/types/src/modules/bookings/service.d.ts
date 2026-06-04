@@ -1,6 +1,5 @@
 import { BookingModel } from './model';
 export declare abstract class BookingService {
-    private static createBookingNotifications;
     private static buildDayRange;
     private static normalizePhone;
     private static normalizeEmail;

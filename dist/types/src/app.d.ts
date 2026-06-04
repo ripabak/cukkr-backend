@@ -2679,7 +2679,7 @@ export declare const app: Elysia<"", {
                 body: {};
                 params: {};
                 query: {
-                    range: "24h" | "week" | "month" | "6m" | "1y";
+                    range: "month" | "24h" | "week" | "6m" | "1y";
                 };
                 headers: {};
                 response: {
@@ -2694,7 +2694,7 @@ export declare const app: Elysia<"", {
                         } | undefined;
                         message: string;
                         data: {
-                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            range: "month" | "24h" | "week" | "6m" | "1y";
                             stats: {
                                 totalBookings: {
                                     current: number;
@@ -2777,7 +2777,7 @@ export declare const app: Elysia<"", {
                     body: {};
                     params: {};
                     query: {
-                        range: "24h" | "week" | "month" | "6m" | "1y";
+                        range: "month" | "24h" | "week" | "6m" | "1y";
                     };
                     headers: {};
                     response: {
@@ -2792,7 +2792,7 @@ export declare const app: Elysia<"", {
                             } | undefined;
                             message: string;
                             data: {
-                                range: "24h" | "week" | "month" | "6m" | "1y";
+                                range: "month" | "24h" | "week" | "6m" | "1y";
                                 stats: {
                                     totalBookings: {
                                         current: number;
@@ -2846,7 +2846,7 @@ export declare const app: Elysia<"", {
                             type?: "all" | "walk_in" | "appointment" | undefined;
                             limit?: number | undefined;
                             page?: number | undefined;
-                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            range: "month" | "24h" | "week" | "6m" | "1y";
                         };
                         headers: {};
                         response: {
@@ -2894,7 +2894,7 @@ export declare const app: Elysia<"", {
                     body: {};
                     params: {};
                     query: {
-                        range: "24h" | "week" | "month" | "6m" | "1y";
+                        range: "month" | "24h" | "week" | "6m" | "1y";
                     };
                     headers: {};
                     response: {
@@ -2909,7 +2909,7 @@ export declare const app: Elysia<"", {
                             } | undefined;
                             message: string;
                             data: {
-                                range: "24h" | "week" | "month" | "6m" | "1y";
+                                range: "month" | "24h" | "week" | "6m" | "1y";
                                 stats: {
                                     totalCustomers: {
                                         current: number;
@@ -2975,7 +2975,7 @@ export declare const app: Elysia<"", {
                             status?: "return" | "all" | "new" | undefined;
                             limit?: number | undefined;
                             page?: number | undefined;
-                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            range: "month" | "24h" | "week" | "6m" | "1y";
                         };
                         headers: {};
                         response: {
@@ -3022,7 +3022,7 @@ export declare const app: Elysia<"", {
                     body: {};
                     params: {};
                     query: {
-                        range: "24h" | "week" | "month" | "6m" | "1y";
+                        range: "month" | "24h" | "week" | "6m" | "1y";
                     };
                     headers: {};
                     response: {
@@ -3068,7 +3068,7 @@ export declare const app: Elysia<"", {
                         body: {};
                         params: {};
                         query: {
-                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            range: "month" | "24h" | "week" | "6m" | "1y";
                         };
                         headers: {};
                         response: {
@@ -3114,7 +3114,7 @@ export declare const app: Elysia<"", {
                     body: {};
                     params: {};
                     query: {
-                        range: "24h" | "week" | "month" | "6m" | "1y";
+                        range: "month" | "24h" | "week" | "6m" | "1y";
                     };
                     headers: {};
                     response: {
@@ -3129,7 +3129,7 @@ export declare const app: Elysia<"", {
                             } | undefined;
                             message: string;
                             data: {
-                                range: "24h" | "week" | "month" | "6m" | "1y";
+                                range: "month" | "24h" | "week" | "6m" | "1y";
                                 stats: {
                                     totalBookings: {
                                         current: number;
@@ -3176,7 +3176,7 @@ export declare const app: Elysia<"", {
                         query: {
                             limit?: number | undefined;
                             page?: number | undefined;
-                            range: "24h" | "week" | "month" | "6m" | "1y";
+                            range: "month" | "24h" | "week" | "6m" | "1y";
                         };
                         headers: {};
                         response: {

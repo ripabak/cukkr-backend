@@ -8,6 +8,7 @@ import { authMiddleware } from '../../middleware/auth-middleware'
 import { bookingEventBus } from './event-bus'
 import { BookingModel } from './model'
 import { BookingService } from './service'
+import { NotificationService } from '../notifications/service'
 
 export const bookingsHandler = new Elysia({
 	prefix: '/bookings',
@@ -23,6 +24,8 @@ export const bookingsHandler = new Elysia({
 				user.id,
 				body
 			)
+
+			await NotificationService.createBookingNotifications(data)
 
 			return formatResponse({
 				path,

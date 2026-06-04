@@ -12,6 +12,7 @@ import {
 import { webpush } from '../../lib/web-push'
 import { invitation, member, user } from '../auth/schema'
 import { BookingService } from '../bookings/service'
+import type { BookingModel } from '../bookings/model'
 import { NotificationModel } from './model'
 import {
 	notification,
@@ -724,6 +725,45 @@ export abstract class NotificationService {
 			referenceType: referenceType as 'booking' | 'invitation',
 			referenceId: notif.referenceId
 		}
+	}
+
+	static async createBookingNotifications(
+		bookingDetail: BookingModel.BookingDetailResponse
+	): Promise<void> {
+		const recipientUserIds =
+			await NotificationService.getOrganizationRecipientUserIds(
+				bookingDetail.organizationId
+			)
+
+		if (recipientUserIds.length === 0) {
+			return
+		}
+
+		const title =
+			bookingDetail.type === 'appointment'
+				? 'New Appointment Request'
+				: 'New Walk-In Arrival'
+		const body =
+			bookingDetail.type === 'appointment'
+				? `${bookingDetail.customer.name} requested an appointment.`
+				: `${bookingDetail.customer.name} has arrived as a walk-in customer.`
+
+		await NotificationService.createNotificationsForRecipients({
+			organizationId: bookingDetail.organizationId,
+			recipientUserIds,
+			type:
+				bookingDetail.type === 'appointment'
+					? 'appointment_requested'
+					: 'walk_in_arrival',
+			title,
+			body,
+			referenceId: bookingDetail.id,
+			referenceType: 'booking',
+			data: {
+				customerName: bookingDetail.customer.name,
+				bookingType: bookingDetail.type
+			}
+		})
 	}
 
 	static async cleanupOldNotifications(): Promise<{ deletedCount: number }> {

@@ -25,8 +25,12 @@ export const authMiddleware = new Elysia()
 			}
 		},
 		requireOrganization: {
-			async resolve({ session }) {
-				if (!session?.activeOrganizationId) {
+			async resolve({ user, session }) {
+				if (!user || !session) {
+					throw new AppError('Unauthorized', 'UNAUTHORIZED')
+				}
+
+				if (!session.activeOrganizationId) {
 					throw new AppError('Organization not selected', 'FORBIDDEN')
 				}
 

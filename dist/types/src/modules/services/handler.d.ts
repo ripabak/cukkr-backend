@@ -204,7 +204,7 @@ export declare const servicesHandler: Elysia<"/services", {
             }>;
         };
         readonly requireOrganization: {
-            readonly resolve: ({ session }: {
+            readonly resolve: ({ user, session }: {
                 body: unknown;
                 query: Record<string, string>;
                 params: {};
