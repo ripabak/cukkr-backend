@@ -1,4 +1,4 @@
-import { betterAuth } from 'better-auth'
+import { betterAuth, APIError } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP, openAPI, organization } from 'better-auth/plugins'
 import { db } from './database'
@@ -9,6 +9,7 @@ import { env } from './env'
 import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { expo } from '@better-auth/expo'
 import { BarbershopService } from '../modules/barbershop/service'
+import { validateEmail } from '../utils/email-validation'
 
 export const auth = betterAuth({
 	basePath: '/api',
@@ -49,6 +50,14 @@ export const auth = betterAuth({
 						orgData.name ?? ''
 					)
 					return { data: { slug } }
+				},
+				beforeCreateInvitation: async ({ invitation }) => {
+					const result = await validateEmail(invitation.email)
+					if (!result.valid) {
+						throw new APIError('BAD_REQUEST', {
+							message: result.reason!
+						})
+					}
 				}
 			},
 			allowUserToCreateOrganization: async (user) => {
@@ -68,12 +77,20 @@ export const auth = betterAuth({
 			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
 			async sendInvitationEmail(data) {
 				const inviteLink = `${env.CLIENT_URL}/d/accept-invitation?id=${data.id}`
-				sendOrganizationInvitation({
-					to: data.email,
-					inviterName: data.inviter.user.name,
-					organizationName: data.organization.name,
-					inviteUrl: inviteLink
-				})
+				try {
+					await sendOrganizationInvitation({
+						to: data.email,
+						inviterName: data.inviter.user.name,
+						organizationName: data.organization.name,
+						inviteUrl: inviteLink
+					})
+				} catch (err) {
+					console.error(
+						'[Auth] Failed to send invitation email to',
+						data.email,
+						err
+					)
+				}
 
 				// Create in-app notification if the invitee already has an account
 				try {
