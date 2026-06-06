@@ -8,6 +8,7 @@ import { env } from '../../lib/env'
 import { organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import { BookingModel } from '../bookings/model'
+import { NotificationService } from '../notifications/service'
 import { ipFailureGuard } from '../../utils/ip-failure-guard'
 import { WalkInPinModel } from './model'
 import { walkInPin } from './schema'
@@ -131,14 +132,22 @@ export abstract class WalkInPinService {
 
 		consumedTokens.add(jti)
 
-		return BookingService.createBooking(organizationId, userId, {
-			type: 'walk_in',
-			customerName: input.customerName,
-			customerPhone: input.customerPhone,
-			customerEmail: input.customerEmail,
-			serviceIds: input.serviceIds,
-			barberId: input.barberId,
-			notes: input.notes
-		})
+		const detail = await BookingService.createBooking(
+			organizationId,
+			userId,
+			{
+				type: 'walk_in',
+				customerName: input.customerName,
+				customerPhone: input.customerPhone,
+				customerEmail: input.customerEmail,
+				serviceIds: input.serviceIds,
+				barberId: input.barberId,
+				notes: input.notes
+			}
+		)
+
+		await NotificationService.createBookingNotifications(detail)
+
+		return detail
 	}
 }

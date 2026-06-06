@@ -204,7 +204,7 @@ export declare const openHoursHandler: Elysia<"/open-hours", {
             }>;
         };
         readonly requireOrganization: {
-            readonly resolve: ({ session }: {
+            readonly resolve: ({ user, session }: {
                 body: unknown;
                 query: Record<string, string>;
                 params: {};

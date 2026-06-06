@@ -198,7 +198,7 @@ export declare const authMiddleware: Elysia<"", {
             }>;
         };
         readonly requireOrganization: {
-            readonly resolve: ({ session }: {
+            readonly resolve: ({ user, session }: {
                 body: unknown;
                 query: Record<string, string>;
                 params: {};

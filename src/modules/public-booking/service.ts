@@ -5,6 +5,7 @@ import { db } from '../../lib/database'
 import { member, organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import type { BookingModel } from '../bookings/model'
+import { NotificationService } from '../notifications/service'
 import { service } from '../services/schema'
 import { WalkInPinService } from '../walk-in-pin/service'
 import type { WalkInPinModel } from '../walk-in-pin/model'
@@ -114,6 +115,8 @@ export abstract class PublicBookingService {
 			ownerMember.userId,
 			{ type: 'appointment', ...input }
 		)
+
+		await NotificationService.createBookingNotifications(detail)
 
 		return {
 			id: detail.id,

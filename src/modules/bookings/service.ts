@@ -19,10 +19,10 @@ import {
 	getDateKey,
 	getDayOfWeek,
 	getTimeString,
+	startOfDay,
 	toLocalDate
 } from '../../lib/timezone'
 import { fetchOrgTimezone } from '../auth/organization-metadata'
-import { NotificationService } from '../notifications/service'
 import { member, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
 import { service as serviceTable } from '../services/schema'
@@ -67,56 +67,33 @@ const APPOINTMENT_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> =
 	}
 
 export abstract class BookingService {
-	private static async createBookingNotifications(
-		bookingDetail: BookingModel.BookingDetailResponse
-	): Promise<void> {
-		const recipientUserIds =
-			await NotificationService.getOrganizationRecipientUserIds(
-				bookingDetail.organizationId
-			)
-
-		if (recipientUserIds.length === 0) {
-			return
-		}
-
-		const title =
-			bookingDetail.type === 'appointment'
-				? 'New Appointment Request'
-				: 'New Walk-In Arrival'
-		const body =
-			bookingDetail.type === 'appointment'
-				? `${bookingDetail.customer.name} requested an appointment.`
-				: `${bookingDetail.customer.name} has arrived as a walk-in customer.`
-
-		await NotificationService.createNotificationsForRecipients({
-			organizationId: bookingDetail.organizationId,
-			recipientUserIds,
-			type:
-				bookingDetail.type === 'appointment'
-					? 'appointment_requested'
-					: 'walk_in_arrival',
-			title,
-			body,
-			referenceId: bookingDetail.id,
-			referenceType: 'booking',
-			data: {
-				customerName: bookingDetail.customer.name,
-				bookingType: bookingDetail.type
-			}
-		})
-	}
-
-	private static buildDayRange(date: string): {
+	private static buildDayRange(
+		date: string,
+		timezone?: string
+	): {
 		start: Date
 		end: Date
 	} {
-		const start = new Date(`${date}T00:00:00.000Z`)
-		if (Number.isNaN(start.getTime())) {
+		const datePattern = /^\d{4}-\d{2}-\d{2}$/
+		if (!datePattern.test(date)) {
 			throw new AppError('Invalid booking date', 'BAD_REQUEST')
 		}
 
-		const end = new Date(start)
-		end.setUTCDate(end.getUTCDate() + 1)
+		if (!timezone) {
+			const start = new Date(`${date}T00:00:00.000Z`)
+			const end = new Date(start)
+			end.setUTCDate(end.getUTCDate() + 1)
+
+			return { start, end }
+		}
+
+		const [year, month, day] = date.split('-').map(Number)
+		const noonUts = Date.UTC(year, month - 1, day, 12, 0, 0)
+		const start = startOfDay(new Date(noonUts), timezone)
+		const end = startOfDay(
+			new Date(noonUts + 24 * 60 * 60 * 1000),
+			timezone
+		)
 
 		return { start, end }
 	}
@@ -343,7 +320,8 @@ export abstract class BookingService {
 		current: BookingRow,
 		nextStatus: BookingStatus,
 		now: Date,
-		actorMemberId?: string | null
+		actorMemberId?: string | null,
+		cancelReason?: string | null
 	): Partial<BookingRow> {
 		if (nextStatus === 'in_progress') {
 			return {
@@ -375,6 +353,7 @@ export abstract class BookingService {
 				startedAt: current.startedAt,
 				completedAt: current.completedAt,
 				cancelledAt: now,
+				notes: cancelReason ?? current.notes,
 				updatedAt: now
 			}
 		}
@@ -474,7 +453,11 @@ export abstract class BookingService {
 		organizationId: string,
 		query: BookingModel.BookingListQuery
 	): Promise<BookingModel.BookingSummaryResponse[]> {
-		const { start, end } = BookingService.buildDayRange(query.date)
+		const timezone = await fetchOrgTimezone(organizationId)
+		const { start, end } = BookingService.buildDayRange(
+			query.date,
+			timezone
+		)
 
 		const dayCondition = or(
 			and(
@@ -553,8 +536,9 @@ export abstract class BookingService {
 			)
 		}
 
-		const { start } = BookingService.buildDayRange(dateFrom)
-		const { end } = BookingService.buildDayRange(dateTo)
+		const timezone = await fetchOrgTimezone(organizationId)
+		const { start } = BookingService.buildDayRange(dateFrom, timezone)
+		const { end } = BookingService.buildDayRange(dateTo, timezone)
 
 		const conditions = [
 			eq(booking.organizationId, organizationId),
@@ -721,7 +705,6 @@ export abstract class BookingService {
 			bookingId
 		)
 
-		await BookingService.createBookingNotifications(bookingDetail)
 		bookingEventBus.notify(organizationId)
 
 		return bookingDetail
@@ -885,7 +868,8 @@ export abstract class BookingService {
 						existing,
 						input.status,
 						now,
-						actorMemberId
+						actorMemberId,
+						input.cancelReason
 					)
 				)
 				.where(
@@ -1054,8 +1038,8 @@ export abstract class BookingService {
 			)
 		}
 
-		const { start } = BookingService.buildDayRange(dateFrom)
-		const { end } = BookingService.buildDayRange(dateTo)
+		const { start } = BookingService.buildDayRange(dateFrom, timezone)
+		const { end } = BookingService.buildDayRange(dateTo, timezone)
 
 		const rangeCondition = or(
 			and(

@@ -70,9 +70,9 @@ describe('Barbershop Settings Tests', () => {
 	})
 
 	// T-02: Load settings — no session
-	it('T-02: GET /barbershop returns 403 without session', async () => {
+	it('T-02: GET /barbershop returns 401 without session', async () => {
 		const { status } = await tClient.api.barbershop.get()
-		expect(status).toBe(403)
+		expect(status).toBe(401)
 	})
 
 	// T-03: Update name only

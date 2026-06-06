@@ -1,4 +1,5 @@
 import { PaginatedResult } from '../../core/pagination';
+import type { BookingModel } from '../bookings/model';
 import { NotificationModel } from './model';
 import { type Notification as NotificationRow } from './schema';
 type NotificationListItem = NotificationModel.NotificationListItem;
@@ -33,5 +34,9 @@ export declare abstract class NotificationService {
     static unregisterWebPushSubscription(userId: string, endpoint: string): Promise<void>;
     static executeAcceptAction(userId: string, notificationId: string): Promise<NotificationModel.NotificationActionResponse>;
     static executeDeclineAction(userId: string, notificationId: string, reason?: string): Promise<NotificationModel.NotificationActionResponse>;
+    static createBookingNotifications(bookingDetail: BookingModel.BookingDetailResponse): Promise<void>;
+    static cleanupOldNotifications(): Promise<{
+        deletedCount: number;
+    }>;
 }
 export {};
