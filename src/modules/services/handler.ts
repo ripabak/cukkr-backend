@@ -31,8 +31,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			body: ServiceModel.ServiceCreateInput,
 			response: FormatResponseSchema(ServiceModel.ServiceResponse)
 		}
@@ -90,8 +89,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			params: ServiceModel.ServiceIdParam,
 			body: ServiceModel.ServiceUpdateInput,
 			response: FormatResponseSchema(ServiceModel.ServiceResponse)
@@ -113,8 +111,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			params: ServiceModel.ServiceIdParam,
 			response: FormatResponseSchema(ServiceModel.ServiceResponse)
 		}
@@ -135,8 +132,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			params: ServiceModel.ServiceIdParam,
 			response: FormatResponseSchema(ServiceModel.ServiceResponse)
 		}
@@ -182,8 +178,7 @@ export const servicesHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			params: ServiceModel.ServiceIdParam,
 			response: FormatResponseSchema(ServiceModel.ServiceResponse)
 		}
