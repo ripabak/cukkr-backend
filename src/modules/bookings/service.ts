@@ -16,6 +16,10 @@ import { AppError } from '../../core/error'
 import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import {
+	sendBookingAcceptedEmail,
+	sendBookingDeclinedEmail
+} from '../../lib/mail'
+import {
 	getDateKey,
 	getDayOfWeek,
 	getTimeString,
@@ -23,7 +27,7 @@ import {
 	toLocalDate
 } from '../../lib/timezone'
 import { fetchOrgTimezone } from '../auth/organization-metadata'
-import { member, user } from '../auth/schema'
+import { member, organization, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
 import { service as serviceTable } from '../services/schema'
 import { BookingModel } from './model'
@@ -894,6 +898,22 @@ export abstract class BookingService {
 
 		const result = await BookingService.getBooking(organizationId, id)
 		bookingEventBus.notify(organizationId)
+
+		if (result.customer.email) {
+			const [orgRow] = await db
+				.select({ name: organization.name })
+				.from(organization)
+				.where(eq(organization.id, organizationId))
+				.limit(1)
+
+			sendBookingAcceptedEmail({
+				to: result.customer.email,
+				customerName: result.customer.name,
+				barbershopName: orgRow?.name ?? 'the barbershop',
+				referenceNumber: result.referenceNumber
+			}).catch(console.error)
+		}
+
 		return result
 	}
 
@@ -939,6 +959,23 @@ export abstract class BookingService {
 
 		const result = await BookingService.getBooking(organizationId, id)
 		bookingEventBus.notify(organizationId)
+
+		if (result.customer.email) {
+			const [orgRow] = await db
+				.select({ name: organization.name })
+				.from(organization)
+				.where(eq(organization.id, organizationId))
+				.limit(1)
+
+			sendBookingDeclinedEmail({
+				to: result.customer.email,
+				customerName: result.customer.name,
+				barbershopName: orgRow?.name ?? 'the barbershop',
+				referenceNumber: result.referenceNumber,
+				reason: input.reason ?? null
+			}).catch(console.error)
+		}
+
 		return result
 	}
 
