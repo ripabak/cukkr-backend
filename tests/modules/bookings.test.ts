@@ -347,6 +347,7 @@ async function seedBookingRecord(args: {
 		barberId: args.barberId,
 		scheduledAt: args.scheduledAt ?? null,
 		notes: args.notes ?? null,
+		verifiedAt: args.createdAt,
 		createdById: args.createdById,
 		createdAt: args.createdAt,
 		updatedAt: args.createdAt,
@@ -536,8 +537,8 @@ describe('Booking Creation Endpoints', () => {
 		existingCustomer = await seedCustomer({
 			organizationId: ownerA.orgId,
 			name: 'Existing Customer',
-			phone: '+628123456789',
-			email: null
+			phone: null,
+			email: 'budi@example.com'
 		})
 		activeServiceA = await seedService({
 			organizationId: ownerA.orgId,
@@ -603,7 +604,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'walk_in',
 				customerName: 'Budi',
-				customerPhone: '08123456789',
+				customerEmail: 'budi@example.com',
 				serviceIds: [activeServiceA.id, extraServiceA.id],
 				barberId: ownerA.ownerMemberId,
 				notes: 'Arrived without appointment'
@@ -711,6 +712,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Missing Schedule',
+				customerEmail: 'missing@example.com',
 				serviceIds: [activeServiceA.id]
 			} as any,
 			{ fetch: { headers: { cookie: ownerA.authCookie } } }
@@ -724,6 +726,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Past Appointment',
+				customerEmail: 'past@example.com',
 				serviceIds: [activeServiceA.id],
 				scheduledAt: new Date(Date.now() - 60 * 60 * 1000).toISOString()
 			},
@@ -751,6 +754,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Closed Day Appointment',
+				customerEmail: 'closed@example.com',
 				serviceIds: [closedDayService.id],
 				scheduledAt
 			},
@@ -767,6 +771,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Late Appointment',
+				customerEmail: 'late@example.com',
 				serviceIds: [activeServiceA.id],
 				scheduledAt
 			},
@@ -1438,6 +1443,7 @@ describe('Booking Barber Split (F1) & Open Hours Validation (F2)', () => {
 			{
 				type: 'appointment',
 				customerName: 'Out-of-Hours Customer',
+				customerEmail: 'outofhours@example.com',
 				serviceIds: [splitServiceId],
 				scheduledAt: closedTime
 			},

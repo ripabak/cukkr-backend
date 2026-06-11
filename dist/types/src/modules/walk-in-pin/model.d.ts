@@ -18,7 +18,6 @@ export declare namespace WalkInPinModel {
     const WalkInBookingBody: import("@sinclair/typebox").TObject<{
         validationToken: import("@sinclair/typebox").TString;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;

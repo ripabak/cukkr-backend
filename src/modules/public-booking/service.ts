@@ -2,8 +2,10 @@ import { and, eq } from 'drizzle-orm'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
+import { sendAppointmentVerificationEmail } from '../../lib/mail'
 import { member, organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
+import { booking } from '../bookings/schema'
 import type { BookingModel } from '../bookings/model'
 import { NotificationService } from '../notifications/service'
 import { service } from '../services/schema'
@@ -92,8 +94,11 @@ export abstract class PublicBookingService {
 
 	static async createAppointment(
 		slug: string,
-		input: PublicBookingModel.AppointmentCreateInput
-	): Promise<PublicBookingModel.AppointmentCreatedResponse> {
+		input: PublicBookingModel.AppointmentCreateInput,
+		baseUrl: string
+	): Promise<{
+		appointment: PublicBookingModel.AppointmentCreatedResponse
+	}> {
 		const org = await resolveOrgBySlug(slug)
 
 		const ownerMember = await db.query.member.findFirst({
@@ -116,22 +121,81 @@ export abstract class PublicBookingService {
 			{ type: 'appointment', ...input }
 		)
 
-		await NotificationService.createBookingNotifications(detail)
+		const token = await BookingService.getBookingVerificationToken(
+			detail.id
+		)
+
+		const orgInfo = await db.query.organization.findFirst({
+			where: eq(organization.id, org.id),
+			columns: { name: true }
+		})
+
+		if (token && input.customerEmail) {
+			const verifyUrl = `${baseUrl}/${slug}/booking/appointment/verify?token=${token}`
+			await sendAppointmentVerificationEmail({
+				to: input.customerEmail,
+				customerName: input.customerName,
+				barbershopName: orgInfo?.name ?? 'the barbershop',
+				verifyUrl
+			}).catch((err) => {
+				console.error(
+					'Failed to send appointment verification email:',
+					err
+				)
+			})
+		}
 
 		return {
-			id: detail.id,
-			referenceNumber: detail.referenceNumber,
-			type: 'appointment',
-			status: 'requested',
-			scheduledAt: detail.scheduledAt!,
-			customerName: detail.customer.name,
-			serviceNames: detail.services.map((s) => s.serviceName),
-			requestedBarber: detail.requestedBarber
-				? {
-						memberId: detail.requestedBarber.memberId,
-						name: detail.requestedBarber.name
-					}
-				: null
+			appointment: {
+				id: detail.id,
+				referenceNumber: detail.referenceNumber,
+				type: 'appointment',
+				status: 'requested',
+				scheduledAt: detail.scheduledAt!,
+				customerName: detail.customer.name,
+				serviceNames: detail.services.map((s) => s.serviceName),
+				requestedBarber: detail.requestedBarber
+					? {
+							memberId: detail.requestedBarber.memberId,
+							name: detail.requestedBarber.name
+						}
+					: null
+			}
 		}
+	}
+
+	static async verifyAppointment(token: string): Promise<{
+		verified: boolean
+		bookingId: string | null
+		status: 'verified' | 'already_verified' | 'invalid'
+	}> {
+		const result = await BookingService.verifyAppointmentEmail(token)
+
+		if (result.status === 'verified' && result.bookingId) {
+			const bookingRow = await db.query.booking.findFirst({
+				where: eq(booking.id, result.bookingId),
+				columns: { organizationId: true }
+			})
+
+			if (bookingRow) {
+				const detail = await BookingService.getBooking(
+					bookingRow.organizationId,
+					result.bookingId
+				).catch(() => null)
+
+				if (detail) {
+					await NotificationService.createBookingNotifications(
+						detail
+					).catch(console.error)
+				}
+			}
+		}
+
+		return result
+	}
+
+	static async getOrgIdBySlug(slug: string): Promise<string> {
+		const org = await resolveOrgBySlug(slug)
+		return org.id
 	}
 }

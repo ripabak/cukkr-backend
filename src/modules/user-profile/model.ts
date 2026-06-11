@@ -1,7 +1,5 @@
 import { t } from 'elysia'
 
-const PHONE_PATTERN = '^(?:\\+[1-9]\\d{1,14}|0\\d{8,14})$'
-
 export namespace UserProfileModel {
 	export const UpdateProfileInput = t.Object(
 		{
@@ -17,30 +15,12 @@ export namespace UserProfileModel {
 	})
 	export type AvatarUploadInput = typeof AvatarUploadInput.static
 
-	export const ChangePhoneInput = t.Object(
-		{
-			phone: t.String({ pattern: PHONE_PATTERN })
-		},
-		{ additionalProperties: false }
-	)
-	export type ChangePhoneInput = typeof ChangePhoneInput.static
-
-	export const VerifyPhoneInput = t.Object(
-		{
-			phone: t.String({ pattern: PHONE_PATTERN }),
-			otp: t.String({ minLength: 6, maxLength: 6, pattern: '^\\d{6}$' })
-		},
-		{ additionalProperties: false }
-	)
-	export type VerifyPhoneInput = typeof VerifyPhoneInput.static
-
 	export const UserProfileResponse = t.Object({
 		id: t.String(),
 		name: t.String(),
 		bio: t.Nullable(t.String()),
 		avatarUrl: t.Nullable(t.String()),
 		email: t.String(),
-		phone: t.Nullable(t.String()),
 		emailVerified: t.Boolean(),
 		role: t.Nullable(t.String()),
 		createdAt: t.Date(),
@@ -52,9 +32,4 @@ export namespace UserProfileModel {
 		avatarUrl: t.String()
 	})
 	export type AvatarUploadResponse = typeof AvatarUploadResponse.static
-
-	export const ChangePhoneResponse = t.Object({
-		message: t.String()
-	})
-	export type ChangePhoneResponse = typeof ChangePhoneResponse.static
 }

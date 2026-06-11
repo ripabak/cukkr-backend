@@ -11,7 +11,6 @@ export declare namespace BookingModel {
     const WalkInBookingCreateInput: import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"walk_in">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -22,8 +21,7 @@ export declare namespace BookingModel {
     const AppointmentBookingCreateInput: import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
-        customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+        customerEmail: import("@sinclair/typebox").TString;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         scheduledAt: import("@sinclair/typebox").TString;
@@ -37,7 +35,6 @@ export declare namespace BookingModel {
     const BookingCreateInput: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"walk_in">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -46,8 +43,7 @@ export declare namespace BookingModel {
     }>, import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
-        customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+        customerEmail: import("@sinclair/typebox").TString;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         scheduledAt: import("@sinclair/typebox").TString;

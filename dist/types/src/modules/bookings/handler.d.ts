@@ -566,7 +566,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                 notes?: string | null | undefined;
                 barberId?: string | null | undefined;
                 scheduledAt?: string | null | undefined;
-                customerPhone?: string | null | undefined;
                 customerEmail?: string | null | undefined;
                 type: "walk_in";
                 customerName: string;
@@ -574,11 +573,10 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             } | {
                 notes?: string | null | undefined;
                 barberId?: string | null | undefined;
-                customerPhone?: string | null | undefined;
-                customerEmail?: string | null | undefined;
                 type: "appointment";
                 scheduledAt: string;
                 customerName: string;
+                customerEmail: string;
                 serviceIds: string[];
             };
             params: {};

@@ -98,25 +98,6 @@ export abstract class BookingService {
 		return { start, end }
 	}
 
-	private static normalizePhone(phone?: string | null): string | null {
-		if (!phone) return null
-
-		const trimmed = phone.trim()
-		if (!trimmed) return null
-
-		if (trimmed.startsWith('+')) {
-			const digits = trimmed.slice(1).replace(/\D/g, '')
-			return digits ? `+${digits}` : null
-		}
-
-		const digits = trimmed.replace(/\D/g, '')
-		if (!digits) return null
-		if (digits.startsWith('0')) return `+62${digits.slice(1)}`
-		if (digits.startsWith('62')) return `+${digits}`
-
-		return `+${digits}`
-	}
-
 	private static normalizeEmail(email?: string | null): string | null {
 		const normalized = email?.trim().toLowerCase() ?? ''
 		return normalized || null
@@ -475,7 +456,8 @@ export abstract class BookingService {
 
 		const conditions = [
 			eq(booking.organizationId, organizationId),
-			dayCondition
+			dayCondition,
+			isNotNull(booking.verifiedAt)
 		]
 		if (query.status && query.status !== 'all') {
 			conditions.push(eq(booking.status, query.status))
@@ -544,6 +526,7 @@ export abstract class BookingService {
 			eq(booking.organizationId, organizationId),
 			eq(booking.status, 'requested'),
 			eq(booking.type, 'appointment'),
+			isNotNull(booking.verifiedAt),
 			isNotNull(booking.scheduledAt),
 			gte(booking.scheduledAt, start),
 			lt(booking.scheduledAt, end)
@@ -594,32 +577,18 @@ export abstract class BookingService {
 		)
 		const bookingId = await db.transaction(async (tx) => {
 			const now = new Date()
-			const normalizedPhone = BookingService.normalizePhone(
-				input.customerPhone
-			)
 			const normalizedEmail = BookingService.normalizeEmail(
-				input.customerEmail
+				input.customerEmail ?? null
 			)
-			const matchers = [
-				normalizedPhone
-					? eq(customer.phone, normalizedPhone)
-					: undefined,
-				normalizedEmail
-					? eq(customer.email, normalizedEmail)
-					: undefined
-			].filter(Boolean)
 
-			const existingCustomer =
-				matchers.length > 0
-					? await tx.query.customer.findFirst({
-							where: and(
-								eq(customer.organizationId, organizationId),
-								matchers.length === 1
-									? matchers[0]!
-									: or(...matchers)
-							)
-						})
-					: null
+			const existingCustomer = normalizedEmail
+				? await tx.query.customer.findFirst({
+						where: and(
+							eq(customer.organizationId, organizationId),
+							eq(customer.email, normalizedEmail)
+						)
+					})
+				: null
 
 			const customerRow =
 				existingCustomer ??
@@ -630,15 +599,17 @@ export abstract class BookingService {
 							id: nanoid(),
 							organizationId,
 							name: input.customerName,
-							phone: normalizedPhone,
+							phone: null,
 							email: normalizedEmail,
-							isVerified: Boolean(
-								normalizedPhone || normalizedEmail
-							),
+							isVerified: Boolean(normalizedEmail),
 							notes: null
 						})
 						.returning()
 				)[0]
+
+			const isAppointment = input.type === 'appointment'
+			const verificationToken = isAppointment ? nanoid(32) : null
+			const verifiedAt = isAppointment ? null : now
 
 			const bookingDate = getDateKey(now, timezone)
 			const [counterRow] = await tx
@@ -676,6 +647,8 @@ export abstract class BookingService {
 				barberId,
 				scheduledAt,
 				notes: input.notes ?? null,
+				verifiedAt,
+				verificationToken,
 				startedAt: null,
 				completedAt: null,
 				cancelledAt: null,
@@ -1065,7 +1038,8 @@ export abstract class BookingService {
 				and(
 					eq(booking.organizationId, organizationId),
 					rangeCondition,
-					sql`${booking.status} NOT IN ('cancelled')`
+					sql`${booking.status} NOT IN ('cancelled')`,
+					isNotNull(booking.verifiedAt)
 				)
 			)
 
@@ -1091,5 +1065,51 @@ export abstract class BookingService {
 			inProgress,
 			waiting
 		}
+	}
+
+	static async verifyAppointmentEmail(token: string): Promise<{
+		verified: boolean
+		bookingId: string | null
+		status: 'verified' | 'already_verified' | 'invalid'
+	}> {
+		const existing = await db.query.booking.findFirst({
+			where: eq(booking.verificationToken, token)
+		})
+
+		if (!existing) {
+			return { verified: false, bookingId: null, status: 'invalid' }
+		}
+
+		if (existing.verifiedAt) {
+			return {
+				verified: true,
+				bookingId: existing.id,
+				status: 'already_verified'
+			}
+		}
+
+		const now = new Date()
+		await db
+			.update(booking)
+			.set({
+				verifiedAt: now,
+				updatedAt: now
+			})
+			.where(eq(booking.id, existing.id))
+
+		bookingEventBus.notify(existing.organizationId)
+
+		return { verified: true, bookingId: existing.id, status: 'verified' }
+	}
+
+	static async getBookingVerificationToken(
+		bookingId: string
+	): Promise<string | null> {
+		const row = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId),
+			columns: { verificationToken: true }
+		})
+
+		return row?.verificationToken ?? null
 	}
 }

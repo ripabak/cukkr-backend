@@ -44,9 +44,6 @@ export namespace BookingModel {
 		{
 			type: t.Literal('walk_in'),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerPhone: t.Optional(
-				t.Nullable(t.String({ minLength: 1, maxLength: 20 }))
-			),
 			customerEmail: t.Optional(
 				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
 			),
@@ -69,12 +66,7 @@ export namespace BookingModel {
 		{
 			type: t.Literal('appointment'),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerPhone: t.Optional(
-				t.Nullable(t.String({ minLength: 1, maxLength: 20 }))
-			),
-			customerEmail: t.Optional(
-				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
-			),
+			customerEmail: t.String({ format: 'email', maxLength: 254 }),
 			serviceIds: t.Array(t.String({ minLength: 1 }), {
 				minItems: 1,
 				uniqueItems: true

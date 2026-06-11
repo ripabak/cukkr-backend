@@ -201,6 +201,7 @@ describe('Notification Action Mutations', () => {
 			body: {
 				type: 'appointment',
 				customerName: 'Action Accept Customer',
+				customerEmail: 'action-accept@test.com',
 				serviceIds: [svcId],
 				scheduledAt: scheduledAtStr
 			}
@@ -214,6 +215,7 @@ describe('Notification Action Mutations', () => {
 			body: {
 				type: 'appointment',
 				customerName: 'Action Decline Customer',
+				customerEmail: 'action-decline@test.com',
 				serviceIds: [svcId],
 				scheduledAt: scheduledAtStr
 			}

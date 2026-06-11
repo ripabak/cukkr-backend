@@ -275,61 +275,6 @@ describe('S-08: Multi-Tenant Organization Context', () => {
 })
 
 // ---------------------------------------------------------------------------
-// S-05 — Phone Change (send-otp / verify-otp endpoints, 401 + rate limit)
-// ---------------------------------------------------------------------------
-describe('S-05: Phone Change — Authentication Guards', () => {
-	it('should return 401 on send-otp without authentication', async () => {
-		const res = await tClient.api.auth.phone['send-otp'].post({
-			step: 'old'
-		})
-		expect(res.status).toBe(401)
-	})
-
-	it('should return 401 on verify-otp without authentication', async () => {
-		const res = await tClient.api.auth.phone['verify-otp'].post({
-			step: 'old',
-			otp: '1234'
-		})
-		expect(res.status).toBe(401)
-	})
-
-	it('should return 400 when step=new and phone is missing', async () => {
-		const { cookie } = await signUpAndGetCookie()
-		const res = await tClient.api.auth.phone['send-otp'].post(
-			{ step: 'new' },
-			{ fetch: { headers: { cookie } } }
-		)
-		expect([400, 422]).toContain(res.status)
-	})
-
-	it('should return 400 when OTP is invalid (no prior send)', async () => {
-		const { cookie } = await signUpAndGetCookie()
-		const res = await tClient.api.auth.phone['verify-otp'].post(
-			{ step: 'old', otp: '0000' },
-			{ fetch: { headers: { cookie } } }
-		)
-		expect(res.status).toBe(400)
-	})
-
-	it('should enforce 429 after exceeding phone OTP rate limit', async () => {
-		const { cookie } = await signUpAndGetCookie()
-
-		for (let i = 0; i < 3; i++) {
-			await tClient.api.auth.phone['send-otp'].post(
-				{ step: 'old' },
-				{ fetch: { headers: { cookie } } }
-			)
-		}
-
-		const res = await tClient.api.auth.phone['send-otp'].post(
-			{ step: 'old' },
-			{ fetch: { headers: { cookie } } }
-		)
-		expect(res.status).toBe(429)
-	})
-})
-
-// ---------------------------------------------------------------------------
 // S-03 — Forgot Password Flow (US-08–11)
 // ---------------------------------------------------------------------------
 describe('S-03: Forgot Password Flow', () => {

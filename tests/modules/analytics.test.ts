@@ -124,6 +124,7 @@ async function seedBooking(args: SeedBookingArgs): Promise<string> {
 		handledByBarberId: args.handledByBarberId ?? null,
 		scheduledAt: null,
 		notes: null,
+		verifiedAt: new Date(),
 		startedAt: null,
 		completedAt: args.completedAt,
 		cancelledAt: null,

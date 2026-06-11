@@ -71,6 +71,8 @@ export const booking = pgTable(
 		),
 		scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
 		notes: text('notes'),
+		verifiedAt: timestamp('verified_at', { withTimezone: true }),
+		verificationToken: text('verification_token'),
 		startedAt: timestamp('started_at', { withTimezone: true }),
 		completedAt: timestamp('completed_at', { withTimezone: true }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),

@@ -137,6 +137,7 @@ async function seedBooking(args: {
 		barberId: args.barberId,
 		scheduledAt: null,
 		notes: null,
+		verifiedAt: args.createdAt,
 		createdById: args.createdById,
 		createdAt: args.createdAt,
 		updatedAt: args.createdAt,

@@ -16,5 +16,11 @@ export declare function sendOrganizationInvitation({ to, inviterName, organizati
     organizationName: string;
     inviteUrl: string;
 }): Promise<void>;
+export declare function sendAppointmentVerificationEmail({ to, customerName, barbershopName, verifyUrl }: {
+    to: string;
+    customerName: string;
+    barbershopName: string;
+    verifyUrl: string;
+}): Promise<void>;
 export declare function verifySmtp(): Promise<boolean>;
 export {};

@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import { eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
 
 import { app } from '../../src/app'
-import { db } from '../../src/lib/database'
-import { user, verification } from '../../src/modules/auth/schema'
-import { UserProfileService } from '../../src/modules/user-profile/service'
-import { clearOtpForTesting, getLatestOtpForTesting } from '../../src/utils/otp'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -17,12 +12,6 @@ function uniqueEmail() {
 
 function uniqueSlug(prefix: string) {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-}
-
-function uniquePhone() {
-	return `+628${Date.now().toString().slice(-8)}${Math.floor(
-		Math.random() * 10
-	)}`
 }
 
 async function createAuthenticatedUser(
@@ -197,118 +186,7 @@ describe('User Profile Module Tests', () => {
 			expect(response.status).toBe(422)
 		})
 
-		it('T-11: POST /api/me/change-phone initiates the OTP flow', async () => {
-			const auth = await createAuthenticatedUser('Phone Init User')
-			const phone = uniquePhone()
-			const res = await tClient.api.me['change-phone'].post(
-				{ phone },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			expect(res.status).toBe(202)
-			expect(res.data?.data.message).toContain('OTP sent')
-		})
-
-		it('T-12: POST /api/me/change-phone returns 409 for a taken phone number', async () => {
-			const auth = await createAuthenticatedUser('Primary Phone User')
-			const conflictingUser =
-				await createAuthenticatedUser('Conflict User')
-			const conflictPhone = uniquePhone()
-			const conflictProfile = await tClient.api.me.get({
-				fetch: { headers: { cookie: conflictingUser.cookie } }
-			})
-
-			await db
-				.update(user)
-				.set({ phone: conflictPhone })
-				.where(eq(user.id, conflictProfile.data?.data.id ?? ''))
-
-			const res = await tClient.api.me['change-phone'].post(
-				{ phone: conflictPhone },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			expect(res.status).toBe(409)
-		})
-
-		it('T-13: POST /api/me/change-phone/verify accepts the correct OTP', async () => {
-			clearOtpForTesting()
-			const auth = await createAuthenticatedUser('Phone Verify User')
-			const profileRes = await tClient.api.me.get({
-				fetch: { headers: { cookie: auth.cookie } }
-			})
-			const profileUserId = profileRes.data?.data.id ?? ''
-			const phone = uniquePhone()
-			await tClient.api.me['change-phone'].post(
-				{ phone },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			const otp = getLatestOtpForTesting(
-				UserProfileService.buildPhoneChangeIdentifier(
-					profileUserId,
-					phone
-				)
-			)
-
-			const res = await tClient.api.me['change-phone']['verify'].post(
-				{ phone, otp: otp ?? '' },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			expect(res.status).toBe(200)
-			expect(res.data?.data.phone).toBe(phone)
-		})
-
-		it('T-14: POST /api/me/change-phone/verify rejects the wrong OTP', async () => {
-			const auth = await createAuthenticatedUser('Wrong OTP User')
-			const phone = uniquePhone()
-			await tClient.api.me['change-phone'].post(
-				{ phone },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			const res = await tClient.api.me['change-phone']['verify'].post(
-				{ phone, otp: '000000' },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			expect(res.status).toBe(400)
-		})
-
-		it('T-15: POST /api/me/change-phone/verify rejects an expired OTP', async () => {
-			clearOtpForTesting()
-			const auth = await createAuthenticatedUser('Expired OTP User')
-			const profileRes = await tClient.api.me.get({
-				fetch: { headers: { cookie: auth.cookie } }
-			})
-			const profileUserId = profileRes.data?.data.id ?? ''
-			const phone = uniquePhone()
-			await tClient.api.me['change-phone'].post(
-				{ phone },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			const identifier = UserProfileService.buildPhoneChangeIdentifier(
-				profileUserId,
-				phone
-			)
-			const otp = getLatestOtpForTesting(identifier)
-
-			await db
-				.update(verification)
-				.set({ expiresAt: new Date(Date.now() - 60_000) })
-				.where(eq(verification.identifier, identifier))
-
-			const res = await tClient.api.me['change-phone']['verify'].post(
-				{ phone, otp: otp ?? '' },
-				{ fetch: { headers: { cookie: auth.cookie } } }
-			)
-
-			expect(res.status).toBe(400)
-		})
-
-		it('T-16: POST /auth/api/change-password accepts the correct password', async () => {
+		it('T-11: POST /auth/api/change-password accepts the correct password', async () => {
 			const auth = await createAuthenticatedUser('Password User')
 			const res = await (tClient as any).auth.api['change-password'].post(
 				{
@@ -321,7 +199,7 @@ describe('User Profile Module Tests', () => {
 			expect([200, 204]).toContain(res.status)
 		})
 
-		it('T-17: POST /auth/api/change-password rejects a wrong current password', async () => {
+		it('T-12: POST /auth/api/change-password rejects a wrong current password', async () => {
 			const auth = await createAuthenticatedUser('Wrong Password User')
 			const res = await (tClient as any).auth.api['change-password'].post(
 				{
@@ -334,7 +212,7 @@ describe('User Profile Module Tests', () => {
 			expect([400, 401]).toContain(res.status)
 		})
 
-		it('T-18: POST /auth/api/sign-out clears the session', async () => {
+		it('T-13: POST /auth/api/sign-out clears the session', async () => {
 			const auth = await createAuthenticatedUser('Logout User')
 			const signOutRes = await (tClient as any).auth.api['sign-out'].post(
 				{},

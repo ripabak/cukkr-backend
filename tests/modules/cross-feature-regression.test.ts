@@ -448,6 +448,7 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 			ownerCtx.slug
 		].appointment.post({
 			customerName: 'Lifecycle Customer',
+			customerEmail: 'lifecycle@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -490,6 +491,7 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 			ownerCtx.slug
 		].appointment.post({
 			customerName: 'Decline Lifecycle Customer',
+			customerEmail: 'decline-lifecycle@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -565,6 +567,7 @@ describe('Cross-Feature Booking Regression — Public Appointment Full Lifecycle
 			ownerCtx.slug
 		].appointment.post({
 			customerName: 'Barber Split Customer',
+			customerEmail: 'barber-split@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt,
 			barberId: barber.memberId
@@ -716,6 +719,7 @@ describe('Cross-Feature Public Surface Regression', () => {
 			ownerCtx.slug
 		].appointment.post({
 			customerName: 'Cross-Org Customer',
+			customerEmail: 'cross-org@test.com',
 			serviceIds: [otherSvcId],
 			scheduledAt
 		})
