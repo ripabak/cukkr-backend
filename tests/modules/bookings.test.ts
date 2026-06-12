@@ -347,6 +347,8 @@ async function seedBookingRecord(args: {
 		barberId: args.barberId,
 		scheduledAt: args.scheduledAt ?? null,
 		notes: args.notes ?? null,
+		verifiedAt: args.createdAt,
+		source: 'staff',
 		createdById: args.createdById,
 		createdAt: args.createdAt,
 		updatedAt: args.createdAt,
@@ -536,8 +538,8 @@ describe('Booking Creation Endpoints', () => {
 		existingCustomer = await seedCustomer({
 			organizationId: ownerA.orgId,
 			name: 'Existing Customer',
-			phone: '+628123456789',
-			email: null
+			phone: null,
+			email: 'budi@example.com'
 		})
 		activeServiceA = await seedService({
 			organizationId: ownerA.orgId,
@@ -603,7 +605,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'walk_in',
 				customerName: 'Budi',
-				customerPhone: '08123456789',
+				customerEmail: 'budi@example.com',
 				serviceIds: [activeServiceA.id, extraServiceA.id],
 				barberId: ownerA.ownerMemberId,
 				notes: 'Arrived without appointment'
@@ -711,6 +713,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Missing Schedule',
+				customerEmail: 'missing@example.com',
 				serviceIds: [activeServiceA.id]
 			} as any,
 			{ fetch: { headers: { cookie: ownerA.authCookie } } }
@@ -724,6 +727,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Past Appointment',
+				customerEmail: 'past@example.com',
 				serviceIds: [activeServiceA.id],
 				scheduledAt: new Date(Date.now() - 60 * 60 * 1000).toISOString()
 			},
@@ -751,6 +755,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Closed Day Appointment',
+				customerEmail: 'closed@example.com',
 				serviceIds: [closedDayService.id],
 				scheduledAt
 			},
@@ -767,6 +772,7 @@ describe('Booking Creation Endpoints', () => {
 			{
 				type: 'appointment',
 				customerName: 'Late Appointment',
+				customerEmail: 'late@example.com',
 				serviceIds: [activeServiceA.id],
 				scheduledAt
 			},
@@ -1438,6 +1444,7 @@ describe('Booking Barber Split (F1) & Open Hours Validation (F2)', () => {
 			{
 				type: 'appointment',
 				customerName: 'Out-of-Hours Customer',
+				customerEmail: 'outofhours@example.com',
 				serviceIds: [splitServiceId],
 				scheduledAt: closedTime
 			},
@@ -1734,5 +1741,154 @@ describe('Booking Home Summary Endpoint', () => {
 		expect(status).toBe(200)
 		expect(data?.data.dateFrom).toBeDefined()
 		expect(data?.data.dateTo).toBeDefined()
+	})
+})
+
+describe('Booking Date Markers Endpoint', () => {
+	let owner: OwnerContext
+	let ownerB: OwnerContext
+
+	const MARKER_DATE_A = '2026-05-15'
+	const MARKER_DATE_B = '2026-05-16'
+	const MARKER_DATE_C = '2026-05-17'
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('date-markers')
+		ownerB = await createOwnerWithOrg('date-markers-b')
+
+		// Date A: 1 requested (appointment) + 1 waiting (walk_in) — should have both dots
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: new Date('2026-05-14T20:00:00.000Z'),
+			scheduledAt: new Date('2026-05-15T03:00:00.000Z'),
+			customerName: 'Marker Req A',
+			serviceNames: ['Req A']
+		})
+
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'walk_in',
+			status: 'waiting',
+			createdAt: new Date('2026-05-15T04:00:00.000Z'),
+			customerName: 'Marker Wait A',
+			serviceNames: ['Wait A']
+		})
+
+		// Date B: 1 waiting (appointment) — should have only waiting dot
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'waiting',
+			createdAt: new Date('2026-05-15T20:00:00.000Z'),
+			scheduledAt: new Date('2026-05-16T03:00:00.000Z'),
+			customerName: 'Marker Wait B',
+			serviceNames: ['Wait B']
+		})
+
+		// Date A: 1 cancelled — must NOT appear
+		await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'cancelled',
+			createdAt: new Date('2026-05-14T21:00:00.000Z'),
+			scheduledAt: new Date('2026-05-15T05:00:00.000Z'),
+			customerName: 'Cancelled on A',
+			serviceNames: ['Cancelled A']
+		})
+
+		// Other org booking on Date A — must NOT appear in owner's markers
+		await seedBookingRecord({
+			organizationId: ownerB.orgId,
+			createdById: ownerB.ownerUserId,
+			barberId: ownerB.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: new Date('2026-05-14T20:30:00.000Z'),
+			scheduledAt: new Date('2026-05-15T03:00:00.000Z'),
+			customerName: 'Other Org Marker',
+			serviceNames: ['Other Marker']
+		})
+	})
+
+	it('returns 401 without auth', async () => {
+		const { status } = await tClient.api.bookings['date-markers'].get({
+			query: { dateFrom: MARKER_DATE_A, dateTo: MARKER_DATE_B }
+		})
+
+		expect(status).toBe(401)
+	})
+
+	it('returns correct markers for Date A (requested + waiting)', async () => {
+		const { status, data } = await tClient.api.bookings['date-markers'].get(
+			{
+				query: { dateFrom: MARKER_DATE_A, dateTo: MARKER_DATE_A },
+				fetch: { headers: { cookie: owner.authCookie } }
+			}
+		)
+
+		expect(status).toBe(200)
+		expect(data?.data.markers[MARKER_DATE_A]).toBeDefined()
+		expect(data?.data.markers[MARKER_DATE_A].requested).toBe(true)
+		expect(data?.data.markers[MARKER_DATE_A].waiting).toBe(true)
+	})
+
+	it('returns correct markers for Date B (waiting only)', async () => {
+		const { status, data } = await tClient.api.bookings['date-markers'].get(
+			{
+				query: { dateFrom: MARKER_DATE_B, dateTo: MARKER_DATE_B },
+				fetch: { headers: { cookie: owner.authCookie } }
+			}
+		)
+
+		expect(status).toBe(200)
+		expect(data?.data.markers[MARKER_DATE_B]).toBeDefined()
+		expect(data?.data.markers[MARKER_DATE_B].requested).toBe(false)
+		expect(data?.data.markers[MARKER_DATE_B].waiting).toBe(true)
+	})
+
+	it('returns empty markers for Date C (no bookings)', async () => {
+		const { status, data } = await tClient.api.bookings['date-markers'].get(
+			{
+				query: { dateFrom: MARKER_DATE_C, dateTo: MARKER_DATE_C },
+				fetch: { headers: { cookie: owner.authCookie } }
+			}
+		)
+
+		expect(status).toBe(200)
+		expect(data?.data.markers[MARKER_DATE_C]).toBeUndefined()
+	})
+
+	it('does not include bookings from other organizations', async () => {
+		const { status, data } = await tClient.api.bookings['date-markers'].get(
+			{
+				query: { dateFrom: MARKER_DATE_A, dateTo: MARKER_DATE_A },
+				fetch: { headers: { cookie: ownerB.authCookie } }
+			}
+		)
+
+		expect(status).toBe(200)
+		// ownerB should only see their own booking on Date A
+		expect(data?.data.markers[MARKER_DATE_A]).toBeDefined()
+		expect(data?.data.markers[MARKER_DATE_A].requested).toBe(true)
+		expect(data?.data.markers[MARKER_DATE_A].waiting).toBe(false)
+	})
+
+	it('returns 400 when dateTo is before dateFrom', async () => {
+		const { status } = await tClient.api.bookings['date-markers'].get({
+			query: { dateFrom: MARKER_DATE_B, dateTo: MARKER_DATE_A },
+			fetch: { headers: { cookie: owner.authCookie } }
+		})
+
+		expect(status).toBe(400)
 	})
 })

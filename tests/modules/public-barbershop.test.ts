@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { treaty } from '@elysiajs/eden'
 import { customAlphabet, nanoid } from 'nanoid'
+import { eq } from 'drizzle-orm'
 
 const nanoidSlug = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 
@@ -8,6 +9,7 @@ import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
 import { openHour } from '../../src/modules/open-hours/schema'
 import { service } from '../../src/modules/services/schema'
+import { booking } from '../../src/modules/bookings/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -225,6 +227,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Public Customer',
+			customerEmail: 'public@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -246,6 +249,7 @@ describe('Public Appointment Booking Flow', () => {
 			unknownSlug
 		].appointment.post({
 			customerName: 'Ghost Customer',
+			customerEmail: 'ghost@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -260,6 +264,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Past Customer',
+			customerEmail: 'past@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt: pastAt
 		})
@@ -274,6 +279,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Early Customer',
+			customerEmail: 'early@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt: earlyAt
 		})
@@ -288,6 +294,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Bad Service Customer',
+			customerEmail: 'badservice@test.com',
 			serviceIds: [nanoid()],
 			scheduledAt
 		})
@@ -302,6 +309,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Accept Lifecycle Customer',
+			customerEmail: 'accept@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -325,6 +333,7 @@ describe('Public Appointment Booking Flow', () => {
 			apptSlug
 		].appointment.post({
 			customerName: 'Decline Lifecycle Customer',
+			customerEmail: 'decline@test.com',
 			serviceIds: [activeServiceId],
 			scheduledAt
 		})
@@ -340,5 +349,142 @@ describe('Public Appointment Booking Flow', () => {
 
 		expect(declineRes.status).toBe(200)
 		expect((declineRes.data as any)?.data?.status).toBe('cancelled')
+	})
+
+	it('unverified appointment is NOT visible in booking requests list', async () => {
+		const scheduledAt = getFutureWibIso(3, 11, 0)
+
+		const createRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Unverified Customer',
+			customerEmail: 'unverified@test.com',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
+		expect(createRes.status).toBe(201)
+		const bookingId = (createRes.data as any)?.data?.id as string
+
+		const reqRes = await (tClient as any).api.bookings.requests.get({
+			query: { dateFrom: scheduledAt.slice(0, 10) },
+			fetch: { headers: { cookie: apptCookie } }
+		})
+		expect(reqRes.status).toBe(200)
+		const items = (reqRes.data as any)?.data ?? []
+		expect(items.find((b: any) => b.id === bookingId)).toBeUndefined()
+	})
+
+	it('verify with valid token sets booking as visible in requests', async () => {
+		const scheduledAt = getFutureWibIso(3, 12, 0)
+
+		const createRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Verify Customer',
+			customerEmail: 'verify@test.com',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
+		expect(createRes.status).toBe(201)
+		const bookingId = (createRes.data as any)?.data?.id as string
+
+		const bookingRow = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId),
+			columns: { verificationToken: true }
+		})
+		expect(bookingRow?.verificationToken).toBeTruthy()
+
+		const verifyRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: bookingRow!.verificationToken! }
+		})
+		expect(verifyRes.status).toBe(200)
+		expect((verifyRes.data as any)?.data?.verified).toBe(true)
+		expect((verifyRes.data as any)?.data?.status).toBe('verified')
+
+		const reqRes = await (tClient as any).api.bookings.requests.get({
+			query: { dateFrom: scheduledAt.slice(0, 10) },
+			fetch: { headers: { cookie: apptCookie } }
+		})
+		const items = (reqRes.data as any)?.data ?? []
+		expect(items.find((b: any) => b.id === bookingId)).toBeDefined()
+	})
+
+	it('verify with invalid token returns verified=false with status invalid', async () => {
+		const verifyRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: 'invalid-token-123456' }
+		})
+		expect(verifyRes.status).toBe(200)
+		expect((verifyRes.data as any)?.data?.verified).toBe(false)
+		expect((verifyRes.data as any)?.data?.status).toBe('invalid')
+	})
+
+	it('verify with already-used token returns status already_verified', async () => {
+		const scheduledAt = getFutureWibIso(3, 13, 0)
+
+		const createRes = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Idempotent Customer',
+			customerEmail: 'idempotent@test.com',
+			serviceIds: [activeServiceId],
+			scheduledAt
+		})
+		expect(createRes.status).toBe(201)
+		const bookingId = (createRes.data as any)?.data?.id as string
+
+		const bookingRow = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId),
+			columns: { verificationToken: true }
+		})
+		expect(bookingRow?.verificationToken).toBeTruthy()
+
+		const firstVerify = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: bookingRow!.verificationToken! }
+		})
+		expect(firstVerify.status).toBe(200)
+		expect((firstVerify.data as any)?.data?.verified).toBe(true)
+		expect((firstVerify.data as any)?.data?.status).toBe('verified')
+
+		const secondVerify = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: bookingRow!.verificationToken! }
+		})
+		expect(secondVerify.status).toBe(200)
+		expect((secondVerify.data as any)?.data?.verified).toBe(true)
+		expect((secondVerify.data as any)?.data?.status).toBe(
+			'already_verified'
+		)
+	})
+
+	it('walk-in booking is auto-verified (visible immediately)', async () => {
+		const createRes = await (tClient as any).api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Auto Verified Walk-in',
+				serviceIds: [activeServiceId]
+			},
+			{ fetch: { headers: { cookie: apptCookie } } }
+		)
+		expect(createRes.status).toBe(201)
+		const bookingId = (createRes.data as any)?.data?.id as string
+
+		const detail = await (tClient as any).api
+			.bookings({ id: bookingId })
+			.get({ fetch: { headers: { cookie: apptCookie } } })
+		expect(detail.status).toBe(200)
+
+		const bookingRow = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId),
+			columns: { verifiedAt: true }
+		})
+		expect(bookingRow?.verifiedAt).toBeTruthy()
+		expect(bookingRow?.verifiedAt instanceof Date).toBe(true)
 	})
 })

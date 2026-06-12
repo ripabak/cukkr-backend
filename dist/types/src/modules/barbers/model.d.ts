@@ -1,13 +1,11 @@
 export declare namespace BarberModel {
     const BarberInviteInput: import("@sinclair/typebox").TObject<{
-        email: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
-        phone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        email: import("@sinclair/typebox").TString;
     }>;
     type BarberInviteInput = typeof BarberInviteInput.static;
     const BarberInviteResponse: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         email: import("@sinclair/typebox").TString;
-        phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         role: import("@sinclair/typebox").TString;
         status: import("@sinclair/typebox").TString;
         expiresAt: import("@sinclair/typebox").TDate;
@@ -21,7 +19,6 @@ export declare namespace BarberModel {
         userId: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         name: import("@sinclair/typebox").TString;
         email: import("@sinclair/typebox").TString;
-        phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         role: import("@sinclair/typebox").TString;
         status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"active">, import("@sinclair/typebox").TLiteral<"pending">]>;
@@ -57,8 +54,7 @@ export declare namespace BarberModel {
     type BarberRemoveResponse = typeof BarberRemoveResponse.static;
     const BulkInviteInput: import("@sinclair/typebox").TObject<{
         targets: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
-            email: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
-            phone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+            email: import("@sinclair/typebox").TString;
         }>>;
     }>;
     type BulkInviteInput = typeof BulkInviteInput.static;
@@ -66,7 +62,6 @@ export declare namespace BarberModel {
         invited: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
             email: import("@sinclair/typebox").TString;
-            phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             role: import("@sinclair/typebox").TString;
             status: import("@sinclair/typebox").TString;
             expiresAt: import("@sinclair/typebox").TDate;

@@ -6,6 +6,21 @@ import {
 } from '../../core/format-response'
 import { PublicBookingModel } from './model'
 import { PublicBookingService } from './service'
+import { t } from 'elysia'
+
+const VerifyAppointmentQuery = t.Object({
+	token: t.String({ minLength: 1 })
+})
+
+const VerifyAppointmentResponse = t.Object({
+	verified: t.Boolean(),
+	bookingId: t.Nullable(t.String()),
+	status: t.Union([
+		t.Literal('verified'),
+		t.Literal('already_verified'),
+		t.Literal('invalid')
+	])
+})
 
 export const publicBookingHandler = new Elysia({
 	prefix: '/public/booking',
@@ -74,17 +89,22 @@ export const publicBookingHandler = new Elysia({
 	)
 	.post(
 		'/:slug/appointment',
-		async ({ params: { slug }, body, path, set }) => {
+		async ({ params: { slug }, body, path, set, request }) => {
 			set.status = 201
+			const origin =
+				request.headers.get('origin') ??
+				`${request.headers.get('x-forwarded-proto') ?? 'https'}://${request.headers.get('host') ?? 'localhost'}`
 			const data = await PublicBookingService.createAppointment(
 				slug,
-				body
+				body,
+				origin
 			)
 			return formatResponse({
 				path,
-				data,
+				data: data.appointment,
 				status: 201,
-				message: 'Appointment created successfully'
+				message:
+					'Appointment created. Please check your email to confirm.'
 			})
 		},
 		{
@@ -93,5 +113,29 @@ export const publicBookingHandler = new Elysia({
 			response: FormatResponseSchema(
 				PublicBookingModel.Schemas.AppointmentCreatedResponse
 			)
+		}
+	)
+	.get(
+		'/:slug/appointment/verify',
+		async ({ params: { slug }, query: { token }, path }) => {
+			await PublicBookingService.getOrgIdBySlug(slug)
+
+			const result = await PublicBookingService.verifyAppointment(token)
+
+			return formatResponse({
+				path,
+				data: result,
+				message:
+					result.status === 'verified'
+						? 'Appointment confirmed successfully'
+						: result.status === 'already_verified'
+							? 'Appointment has already been confirmed'
+							: 'Invalid or expired verification link'
+			})
+		},
+		{
+			params: PublicBookingModel.Schemas.SlugParam,
+			query: VerifyAppointmentQuery,
+			response: FormatResponseSchema(VerifyAppointmentResponse)
 		}
 	)

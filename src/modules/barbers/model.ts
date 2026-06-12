@@ -3,8 +3,7 @@ import { t } from 'elysia'
 export namespace BarberModel {
 	export const BarberInviteInput = t.Object(
 		{
-			email: t.Optional(t.String({ format: 'email', maxLength: 254 })),
-			phone: t.Optional(t.String({ pattern: '^\\+[1-9]\\d{1,14}$' }))
+			email: t.String({ format: 'email', maxLength: 254 })
 		},
 		{ additionalProperties: false }
 	)
@@ -13,7 +12,6 @@ export namespace BarberModel {
 	export const BarberInviteResponse = t.Object({
 		id: t.String(),
 		email: t.String(),
-		phone: t.Nullable(t.String()),
 		role: t.String(),
 		status: t.String(),
 		expiresAt: t.Date(),
@@ -32,7 +30,6 @@ export namespace BarberModel {
 		userId: t.Nullable(t.String()),
 		name: t.String(),
 		email: t.String(),
-		phone: t.Nullable(t.String()),
 		avatarUrl: t.Nullable(t.String()),
 		role: t.String(),
 		status: BarberListStatus,
@@ -88,12 +85,7 @@ export namespace BarberModel {
 			targets: t.Array(
 				t.Object(
 					{
-						email: t.Optional(
-							t.String({ format: 'email', maxLength: 254 })
-						),
-						phone: t.Optional(
-							t.String({ pattern: '^\\+[1-9]\\d{1,14}$' })
-						)
+						email: t.String({ format: 'email', maxLength: 254 })
 					},
 					{ additionalProperties: false }
 				),

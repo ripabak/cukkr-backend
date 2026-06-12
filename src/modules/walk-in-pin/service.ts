@@ -138,12 +138,12 @@ export abstract class WalkInPinService {
 			{
 				type: 'walk_in',
 				customerName: input.customerName,
-				customerPhone: input.customerPhone,
 				customerEmail: input.customerEmail,
 				serviceIds: input.serviceIds,
 				barberId: input.barberId,
 				notes: input.notes
-			}
+			},
+			'customer'
 		)
 
 		await NotificationService.createBookingNotifications(detail)

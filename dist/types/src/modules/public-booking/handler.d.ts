@@ -131,7 +131,6 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                         body: {
                             notes?: string | null | undefined;
                             barberId?: string | null | undefined;
-                            customerPhone?: string | null | undefined;
                             customerEmail?: string | null | undefined;
                             customerName: string;
                             serviceIds: string[];
@@ -176,6 +175,7 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -201,6 +201,7 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;
@@ -230,10 +231,9 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                         body: {
                             notes?: string | null | undefined;
                             barberId?: string | null | undefined;
-                            customerPhone?: string | null | undefined;
-                            customerEmail?: string | null | undefined;
                             scheduledAt: string;
                             customerName: string;
+                            customerEmail: string;
                             serviceIds: string[];
                         };
                         params: {
@@ -277,6 +277,57 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                 found?: unknown;
                                 property?: string;
                                 expected?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    public: {
+        booking: {
+            ":slug": {
+                appointment: {
+                    verify: {
+                        get: {
+                            body: unknown;
+                            params: {
+                                slug: string;
+                            };
+                            query: {
+                                token: string;
+                            };
+                            headers: unknown;
+                            response: {
+                                200: {
+                                    meta?: {
+                                        limit: number;
+                                        page: number;
+                                        totalItems: number;
+                                        totalPages: number;
+                                        hasNext: boolean;
+                                        hasPrev: boolean;
+                                    } | undefined;
+                                    message: string;
+                                    data: {
+                                        status: "verified" | "already_verified" | "invalid";
+                                        bookingId: string | null;
+                                        verified: boolean;
+                                    };
+                                    status: string | number;
+                                    path: string;
+                                    timeStamp: string;
+                                };
+                                422: {
+                                    type: "validation";
+                                    on: string;
+                                    summary?: string;
+                                    message?: string;
+                                    found?: unknown;
+                                    property?: string;
+                                    expected?: string;
+                                };
                             };
                         };
                     };

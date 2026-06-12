@@ -11,7 +11,6 @@ export declare namespace BookingModel {
     const WalkInBookingCreateInput: import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"walk_in">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -22,7 +21,6 @@ export declare namespace BookingModel {
     const AppointmentBookingCreateInput: import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -37,7 +35,6 @@ export declare namespace BookingModel {
     const BookingCreateInput: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"walk_in">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -46,7 +43,6 @@ export declare namespace BookingModel {
     }>, import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerPhone: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
@@ -120,6 +116,7 @@ export declare namespace BookingModel {
         }>, import("@sinclair/typebox").TNull]>;
         scheduledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         createdAt: import("@sinclair/typebox").TDate;
+        source: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"customer">, import("@sinclair/typebox").TLiteral<"staff">]>;
     }>;
     type BookingSummaryResponse = typeof BookingSummaryResponse.static;
     const BookingDetailResponse: import("@sinclair/typebox").TObject<{
@@ -167,6 +164,8 @@ export declare namespace BookingModel {
         startedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         completedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         cancelledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
+        source: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"customer">, import("@sinclair/typebox").TLiteral<"staff">]>;
+        createdByName: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         createdById: import("@sinclair/typebox").TString;
         createdAt: import("@sinclair/typebox").TDate;
         updatedAt: import("@sinclair/typebox").TDate;
@@ -193,6 +192,22 @@ export declare namespace BookingModel {
         waiting: import("@sinclair/typebox").TNumber;
     }>;
     type BookingHomeSummaryResponse = typeof BookingHomeSummaryResponse.static;
+    const BookingDateMarkersQuery: import("@sinclair/typebox").TObject<{
+        dateFrom: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        dateTo: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+    }>;
+    type BookingDateMarkersQuery = typeof BookingDateMarkersQuery.static;
+    const BookingDateMarkerEntry: import("@sinclair/typebox").TObject<{
+        requested: import("@sinclair/typebox").TBoolean;
+        waiting: import("@sinclair/typebox").TBoolean;
+    }>;
+    const BookingDateMarkersResponse: import("@sinclair/typebox").TObject<{
+        markers: import("@sinclair/typebox").TRecord<import("@sinclair/typebox").TString, import("@sinclair/typebox").TObject<{
+            requested: import("@sinclair/typebox").TBoolean;
+            waiting: import("@sinclair/typebox").TBoolean;
+        }>>;
+    }>;
+    type BookingDateMarkersResponse = typeof BookingDateMarkersResponse.static;
 }
 export type BookingType = (typeof BOOKING_TYPES)[number];
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];

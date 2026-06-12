@@ -1,4 +1,15 @@
-import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm'
+import {
+	and,
+	count,
+	desc,
+	eq,
+	ilike,
+	isNotNull,
+	isNull,
+	ne,
+	or,
+	sql
+} from 'drizzle-orm'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
@@ -42,9 +53,20 @@ export abstract class CustomerManagementService {
 				)
 			: undefined
 
+		const contactCondition = (() => {
+			if (query.hasContact === true) {
+				return or(isNotNull(customer.email), isNotNull(customer.phone))
+			}
+			if (query.hasContact === false) {
+				return and(isNull(customer.email), isNull(customer.phone))
+			}
+			return undefined
+		})()
+
 		const whereClause = and(
 			eq(customer.organizationId, orgId),
-			searchConditions
+			searchConditions,
+			contactCondition
 		)
 
 		const totalBookingsSql = sql<number>`
@@ -225,7 +247,7 @@ export abstract class CustomerManagementService {
 	static async getCustomerBookings(
 		orgId: string,
 		customerId: string,
-		query: { page?: number; limit?: number; type?: string }
+		query: { page?: number; limit?: number; type?: string; status?: string }
 	): Promise<PaginatedResult<CustomerBookingItemResponse>> {
 		const pagination = normalizePagination(query)
 
@@ -245,10 +267,18 @@ export abstract class CustomerManagementService {
 				? eq(booking.type, query.type)
 				: undefined
 
+		const statusCondition =
+			query.status && query.status !== 'all'
+				? eq(booking.status, query.status)
+				: query.status === 'all'
+					? undefined
+					: ne(booking.status, 'requested')
+
 		const whereCondition = and(
 			eq(booking.customerId, customerId),
 			eq(booking.organizationId, orgId),
-			typeCondition
+			typeCondition,
+			statusCondition
 		)
 
 		const [bookings, countResult] = await Promise.all([

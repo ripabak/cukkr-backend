@@ -8,6 +8,7 @@ export declare namespace CustomerManagementModel {
         page: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TNumber>;
         sort: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"recent">, import("@sinclair/typebox").TLiteral<"bookings_desc">, import("@sinclair/typebox").TLiteral<"spend_desc">, import("@sinclair/typebox").TLiteral<"name_asc">]>>;
         search: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        hasContact: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TBoolean>;
     }>;
     type CustomerListQuery = typeof CustomerListQuery.static;
     const CustomerListItemResponse: import("@sinclair/typebox").TObject<{

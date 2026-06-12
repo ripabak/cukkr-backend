@@ -559,67 +559,6 @@ export declare const authHandler: Elysia<"/auth", {
     response: {};
 }, {
     auth: {};
-} & {
-    auth: {
-        phone: {
-            "send-otp": {
-                post: {
-                    body: {
-                        phone?: string | undefined;
-                        step: "old" | "new";
-                    };
-                    params: {};
-                    query: {};
-                    headers: {};
-                    response: {
-                        200: {
-                            success: boolean;
-                        };
-                        422: {
-                            type: "validation";
-                            on: string;
-                            summary?: string;
-                            message?: string;
-                            found?: unknown;
-                            property?: string;
-                            expected?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-} & {
-    auth: {
-        phone: {
-            "verify-otp": {
-                post: {
-                    body: {
-                        otp: string;
-                        step: "old" | "new";
-                    };
-                    params: {};
-                    query: {};
-                    headers: {};
-                    response: {
-                        200: {
-                            success: boolean;
-                            phoneUpdated: boolean;
-                        };
-                        422: {
-                            type: "validation";
-                            on: string;
-                            summary?: string;
-                            message?: string;
-                            found?: unknown;
-                            property?: string;
-                            expected?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
 }, {
     derive: {};
     resolve: {};

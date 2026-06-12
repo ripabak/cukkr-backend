@@ -566,7 +566,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                 notes?: string | null | undefined;
                 barberId?: string | null | undefined;
                 scheduledAt?: string | null | undefined;
-                customerPhone?: string | null | undefined;
                 customerEmail?: string | null | undefined;
                 type: "walk_in";
                 customerName: string;
@@ -574,7 +573,6 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             } | {
                 notes?: string | null | undefined;
                 barberId?: string | null | undefined;
-                customerPhone?: string | null | undefined;
                 customerEmail?: string | null | undefined;
                 type: "appointment";
                 scheduledAt: string;
@@ -618,6 +616,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                         startedAt: Date | null;
                         completedAt: Date | null;
                         cancelledAt: Date | null;
+                        source: "customer" | "staff";
                         createdById: string;
                         handledByBarber: {
                             name: string;
@@ -643,6 +642,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             role: string;
                             memberId: string;
                         } | null;
+                        createdByName: string | null;
                     };
                     status: string | number;
                     path: string;
@@ -710,6 +710,53 @@ export declare const bookingsHandler: Elysia<"/bookings", {
     };
 } & {
     bookings: {
+        "date-markers": {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    dateFrom?: string | undefined;
+                    dateTo?: string | undefined;
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            markers: {
+                                [x: string]: {
+                                    requested: boolean;
+                                    waiting: boolean;
+                                };
+                            };
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    bookings: {
         requests: {
             get: {
                 body: {};
@@ -738,6 +785,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             referenceNumber: string;
                             scheduledAt: Date | null;
+                            source: "customer" | "staff";
                             barber: {
                                 name: string;
                                 email: string;
@@ -796,6 +844,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                         status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                         referenceNumber: string;
                         scheduledAt: Date | null;
+                        source: "customer" | "staff";
                         barber: {
                             name: string;
                             email: string;
@@ -881,6 +930,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             startedAt: Date | null;
                             completedAt: Date | null;
                             cancelledAt: Date | null;
+                            source: "customer" | "staff";
                             createdById: string;
                             handledByBarber: {
                                 name: string;
@@ -906,6 +956,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 role: string;
                                 memberId: string;
                             } | null;
+                            createdByName: string | null;
                         } | null;
                         status: string | number;
                         path: string;
@@ -968,6 +1019,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             startedAt: Date | null;
                             completedAt: Date | null;
                             cancelledAt: Date | null;
+                            source: "customer" | "staff";
                             createdById: string;
                             handledByBarber: {
                                 name: string;
@@ -993,6 +1045,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 role: string;
                                 memberId: string;
                             } | null;
+                            createdByName: string | null;
                         };
                         status: string | number;
                         path: string;
@@ -1059,6 +1112,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1084,6 +1138,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             };
                             status: string | number;
                             path: string;
@@ -1148,6 +1203,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1173,6 +1229,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             };
                             status: string | number;
                             path: string;
@@ -1239,6 +1296,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1264,6 +1322,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             };
                             status: string | number;
                             path: string;
@@ -1330,6 +1389,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1355,6 +1415,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             };
                             status: string | number;
                             path: string;

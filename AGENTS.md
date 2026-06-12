@@ -124,6 +124,26 @@ tests/
   // ✅ Auth + org only, no role restriction
   { requireAuth: true, requireOrganization: true }
   ```
+
+### Role Hierarchy & Permission Rules
+
+| Role | Level | Typical Access |
+|------|-------|---------------|
+| `owner` | Full control | Create/delete barbershop, invite/remove barbers, manage services, open hours, analytics, all booking operations |
+| `admin` | Management | All `owner` operations *except*: delete barbershop, upload logo/image, change timezone (owner-only endpoints). Can CRUD services, manage open hours, view analytics, accept/decline bookings |
+| `member` | Staff (barber) | View-only for services & analytics. Can create bookings, update booking status (start/complete/cancel), view customer info, generate walk-in PIN, view open hours |
+
+**Rule of thumb for choosing the macro:**
+
+| Scenario | Macro |
+|---|---|
+| Any authenticated org member can do this | `requireAuth: true, requireOrganization: true` |
+| Only management (owner/admin) can do this | `requireRoles: ['owner', 'admin']` |
+| Only the barbershop creator can do this | `requireRoles: ['owner']` |
+
+> **When adding a new endpoint, always ask:** *Should a barber be able to do this?*  
+> If the answer is no, use `requireRoles: ['owner', 'admin']` instead of `requireAuth + requireOrganization`.
+
 - **Always make tests for new features:** For every new feature or changes, create a new test or update existing test file in the `tests/modules/` directory.
 - **Don't edit product example module:** The product-example module is a template and should not be edited. Use it as a reference to create new modules.
 - **After changes, always run lint:fix and format:** Before committing, always run `bun run lint:fix` and `bun run format` to ensure your code is clean and consistent. If there are any lint errors, fix them.

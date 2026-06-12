@@ -586,7 +586,6 @@ export declare const barbersHandler: Elysia<"/barbers", {
                         id: string;
                         name: string;
                         email: string;
-                        phone: string | null;
                         createdAt: Date;
                         userId: string | null;
                         role: string;

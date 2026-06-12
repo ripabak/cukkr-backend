@@ -61,6 +61,25 @@ export const bookingsHandler = new Elysia({
 		}
 	)
 	.get(
+		'/date-markers',
+		async ({ query, path, activeOrganizationId }) => {
+			const data = await BookingService.getDateMarkers(
+				activeOrganizationId,
+				query
+			)
+
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			query: BookingModel.BookingDateMarkersQuery,
+			response: FormatResponseSchema(
+				BookingModel.BookingDateMarkersResponse
+			)
+		}
+	)
+	.get(
 		'/requests',
 		async ({ query, path, activeOrganizationId }) => {
 			const data = await BookingService.listRequestedBookings(

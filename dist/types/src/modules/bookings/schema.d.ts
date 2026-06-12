@@ -332,6 +332,40 @@ export declare const booking: import("drizzle-orm/pg-core").PgTableWithColumns<{
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        verifiedAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "verified_at";
+            tableName: "booking";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        verificationToken: import("drizzle-orm/pg-core").PgColumn<{
+            name: "verification_token";
+            tableName: "booking";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         startedAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "started_at";
             tableName: "booking";
@@ -379,6 +413,23 @@ export declare const booking: import("drizzle-orm/pg-core").PgTableWithColumns<{
             isAutoincrement: false;
             hasRuntimeDefault: false;
             enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        source: import("drizzle-orm/pg-core").PgColumn<{
+            name: "source";
+            tableName: "booking";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
             baseColumn: never;
             identity: undefined;
             generated: undefined;

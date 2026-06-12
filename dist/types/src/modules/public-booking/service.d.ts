@@ -5,5 +5,13 @@ export declare abstract class PublicBookingService {
     static getFormData(slug: string): Promise<PublicBookingModel.FormDataResponse>;
     static validatePin(slug: string, pin: string, ip: string): Promise<WalkInPinModel.ValidatePinResponse>;
     static createWalkIn(slug: string, validationToken: string, input: Omit<WalkInPinModel.WalkInBookingBody, 'validationToken'>): Promise<BookingModel.BookingDetailResponse>;
-    static createAppointment(slug: string, input: PublicBookingModel.AppointmentCreateInput): Promise<PublicBookingModel.AppointmentCreatedResponse>;
+    static createAppointment(slug: string, input: PublicBookingModel.AppointmentCreateInput, baseUrl: string): Promise<{
+        appointment: PublicBookingModel.AppointmentCreatedResponse;
+    }>;
+    static verifyAppointment(token: string): Promise<{
+        verified: boolean;
+        bookingId: string | null;
+        status: 'verified' | 'already_verified' | 'invalid';
+    }>;
+    static getOrgIdBySlug(slug: string): Promise<string>;
 }

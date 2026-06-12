@@ -28,9 +28,6 @@ export namespace WalkInPinModel {
 		{
 			validationToken: t.String({ minLength: 1 }),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerPhone: t.Optional(
-				t.Nullable(t.String({ minLength: 1, maxLength: 20 }))
-			),
 			customerEmail: t.Optional(
 				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
 			),

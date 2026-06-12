@@ -44,9 +44,6 @@ export namespace BookingModel {
 		{
 			type: t.Literal('walk_in'),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerPhone: t.Optional(
-				t.Nullable(t.String({ minLength: 1, maxLength: 20 }))
-			),
 			customerEmail: t.Optional(
 				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
 			),
@@ -69,9 +66,6 @@ export namespace BookingModel {
 		{
 			type: t.Literal('appointment'),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerPhone: t.Optional(
-				t.Nullable(t.String({ minLength: 1, maxLength: 20 }))
-			),
 			customerEmail: t.Optional(
 				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
 			),
@@ -189,7 +183,8 @@ export namespace BookingModel {
 		totalDuration: t.Number(),
 		barber: t.Nullable(BarberSummaryResponse),
 		scheduledAt: t.Nullable(t.Date()),
-		createdAt: t.Date()
+		createdAt: t.Date(),
+		source: t.Union([t.Literal('customer'), t.Literal('staff')])
 	})
 	export type BookingSummaryResponse = typeof BookingSummaryResponse.static
 
@@ -209,6 +204,8 @@ export namespace BookingModel {
 		startedAt: t.Nullable(t.Date()),
 		completedAt: t.Nullable(t.Date()),
 		cancelledAt: t.Nullable(t.Date()),
+		source: t.Union([t.Literal('customer'), t.Literal('staff')]),
+		createdByName: t.Nullable(t.String()),
 		createdById: t.String(),
 		createdAt: t.Date(),
 		updatedAt: t.Date()
@@ -247,6 +244,26 @@ export namespace BookingModel {
 	})
 	export type BookingHomeSummaryResponse =
 		typeof BookingHomeSummaryResponse.static
+
+	export const BookingDateMarkersQuery = t.Object(
+		{
+			dateFrom: t.Optional(t.String({ format: 'date' })),
+			dateTo: t.Optional(t.String({ format: 'date' }))
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingDateMarkersQuery = typeof BookingDateMarkersQuery.static
+
+	export const BookingDateMarkerEntry = t.Object({
+		requested: t.Boolean(),
+		waiting: t.Boolean()
+	})
+
+	export const BookingDateMarkersResponse = t.Object({
+		markers: t.Record(t.String(), BookingDateMarkerEntry)
+	})
+	export type BookingDateMarkersResponse =
+		typeof BookingDateMarkersResponse.static
 }
 
 export type BookingType = (typeof BOOKING_TYPES)[number]

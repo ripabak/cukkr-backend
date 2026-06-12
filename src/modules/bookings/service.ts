@@ -16,6 +16,10 @@ import { AppError } from '../../core/error'
 import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import {
+	sendBookingAcceptedEmail,
+	sendBookingDeclinedEmail
+} from '../../lib/mail'
+import {
 	getDateKey,
 	getDayOfWeek,
 	getTimeString,
@@ -23,7 +27,7 @@ import {
 	toLocalDate
 } from '../../lib/timezone'
 import { fetchOrgTimezone } from '../auth/organization-metadata'
-import { member, user } from '../auth/schema'
+import { member, organization, user } from '../auth/schema'
 import { OpenHoursService } from '../open-hours/service'
 import { service as serviceTable } from '../services/schema'
 import { BookingModel } from './model'
@@ -49,6 +53,7 @@ type BookingReadRow = BookingRow & {
 	barber: (MemberRow & { user: UserRow }) | null
 	handledByBarber: (MemberRow & { user: UserRow }) | null
 	services: BookingServiceRow[]
+	createdBy: UserRow | null
 }
 
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -96,25 +101,6 @@ export abstract class BookingService {
 		)
 
 		return { start, end }
-	}
-
-	private static normalizePhone(phone?: string | null): string | null {
-		if (!phone) return null
-
-		const trimmed = phone.trim()
-		if (!trimmed) return null
-
-		if (trimmed.startsWith('+')) {
-			const digits = trimmed.slice(1).replace(/\D/g, '')
-			return digits ? `+${digits}` : null
-		}
-
-		const digits = trimmed.replace(/\D/g, '')
-		if (!digits) return null
-		if (digits.startsWith('0')) return `+62${digits.slice(1)}`
-		if (digits.startsWith('62')) return `+${digits}`
-
-		return `+${digits}`
 	}
 
 	private static normalizeEmail(email?: string | null): string | null {
@@ -400,7 +386,8 @@ export abstract class BookingService {
 			),
 			barber: BookingService.mapBarber(row.barber),
 			scheduledAt: row.scheduledAt,
-			createdAt: row.createdAt
+			createdAt: row.createdAt,
+			source: row.source as 'customer' | 'staff'
 		}
 	}
 
@@ -443,6 +430,8 @@ export abstract class BookingService {
 			startedAt: row.startedAt,
 			completedAt: row.completedAt,
 			cancelledAt: row.cancelledAt,
+			source: row.source as 'customer' | 'staff',
+			createdByName: row.createdBy?.name ?? null,
 			createdById: row.createdById,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt
@@ -475,7 +464,8 @@ export abstract class BookingService {
 
 		const conditions = [
 			eq(booking.organizationId, organizationId),
-			dayCondition
+			dayCondition,
+			isNotNull(booking.verifiedAt)
 		]
 		if (query.status && query.status !== 'all') {
 			conditions.push(eq(booking.status, query.status))
@@ -498,7 +488,8 @@ export abstract class BookingService {
 						user: true
 					}
 				},
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -544,6 +535,7 @@ export abstract class BookingService {
 			eq(booking.organizationId, organizationId),
 			eq(booking.status, 'requested'),
 			eq(booking.type, 'appointment'),
+			isNotNull(booking.verifiedAt),
 			isNotNull(booking.scheduledAt),
 			gte(booking.scheduledAt, start),
 			lt(booking.scheduledAt, end)
@@ -559,7 +551,8 @@ export abstract class BookingService {
 				customer: true,
 				barber: { with: { user: true } },
 				handledByBarber: { with: { user: true } },
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -576,7 +569,8 @@ export abstract class BookingService {
 		organizationId: string,
 		createdById: string,
 		input: BookingModel.BookingCreateInput,
-		status: BookingStatus
+		status: BookingStatus,
+		source: 'customer' | 'staff'
 	): Promise<BookingModel.BookingDetailResponse> {
 		const timezone = await fetchOrgTimezone(organizationId)
 		const scheduledAt = await BookingService.validateScheduledAt(
@@ -594,32 +588,31 @@ export abstract class BookingService {
 		)
 		const bookingId = await db.transaction(async (tx) => {
 			const now = new Date()
-			const normalizedPhone = BookingService.normalizePhone(
-				input.customerPhone
-			)
 			const normalizedEmail = BookingService.normalizeEmail(
-				input.customerEmail
+				input.customerEmail ?? null
 			)
-			const matchers = [
-				normalizedPhone
-					? eq(customer.phone, normalizedPhone)
-					: undefined,
-				normalizedEmail
-					? eq(customer.email, normalizedEmail)
-					: undefined
-			].filter(Boolean)
 
-			const existingCustomer =
-				matchers.length > 0
-					? await tx.query.customer.findFirst({
-							where: and(
-								eq(customer.organizationId, organizationId),
-								matchers.length === 1
-									? matchers[0]!
-									: or(...matchers)
-							)
-						})
-					: null
+			const existingCustomer = normalizedEmail
+				? await tx.query.customer.findFirst({
+						where: and(
+							eq(customer.organizationId, organizationId),
+							eq(customer.email, normalizedEmail)
+						)
+					})
+				: null
+
+			if (
+				existingCustomer &&
+				existingCustomer.name !== input.customerName
+			) {
+				await tx
+					.update(customer)
+					.set({
+						name: input.customerName,
+						updatedAt: now
+					})
+					.where(eq(customer.id, existingCustomer.id))
+			}
 
 			const customerRow =
 				existingCustomer ??
@@ -630,15 +623,18 @@ export abstract class BookingService {
 							id: nanoid(),
 							organizationId,
 							name: input.customerName,
-							phone: normalizedPhone,
+							phone: null,
 							email: normalizedEmail,
-							isVerified: Boolean(
-								normalizedPhone || normalizedEmail
-							),
+							isVerified: Boolean(normalizedEmail),
 							notes: null
 						})
 						.returning()
 				)[0]
+
+			const isAppointment = input.type === 'appointment'
+			const isPublicAppointment = isAppointment && status === 'requested'
+			const verificationToken = isPublicAppointment ? nanoid(32) : null
+			const verifiedAt = isPublicAppointment ? null : now
 
 			const bookingDate = getDateKey(now, timezone)
 			const [counterRow] = await tx
@@ -672,10 +668,13 @@ export abstract class BookingService {
 				referenceNumber,
 				type: input.type,
 				status,
+				source,
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
 				notes: input.notes ?? null,
+				verifiedAt,
+				verificationToken,
 				startedAt: null,
 				completedAt: null,
 				cancelledAt: null,
@@ -713,13 +712,15 @@ export abstract class BookingService {
 	static async createBooking(
 		organizationId: string,
 		createdById: string,
-		input: BookingModel.BookingCreateInput
+		input: BookingModel.BookingCreateInput,
+		source: 'customer' | 'staff' = 'staff'
 	): Promise<BookingModel.BookingDetailResponse> {
 		return BookingService.doCreateBooking(
 			organizationId,
 			createdById,
 			input,
-			'waiting'
+			'waiting',
+			source
 		)
 	}
 
@@ -732,7 +733,8 @@ export abstract class BookingService {
 			organizationId,
 			createdById,
 			input,
-			'requested'
+			'requested',
+			'customer'
 		)
 	}
 
@@ -757,7 +759,8 @@ export abstract class BookingService {
 						user: true
 					}
 				},
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -799,7 +802,8 @@ export abstract class BookingService {
 				customer: true,
 				barber: { with: { user: true } },
 				handledByBarber: { with: { user: true } },
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -921,6 +925,22 @@ export abstract class BookingService {
 
 		const result = await BookingService.getBooking(organizationId, id)
 		bookingEventBus.notify(organizationId)
+
+		if (result.customer.email) {
+			const [orgRow] = await db
+				.select({ name: organization.name })
+				.from(organization)
+				.where(eq(organization.id, organizationId))
+				.limit(1)
+
+			sendBookingAcceptedEmail({
+				to: result.customer.email,
+				customerName: result.customer.name,
+				barbershopName: orgRow?.name ?? 'the barbershop',
+				referenceNumber: result.referenceNumber
+			}).catch(console.error)
+		}
+
 		return result
 	}
 
@@ -966,6 +986,23 @@ export abstract class BookingService {
 
 		const result = await BookingService.getBooking(organizationId, id)
 		bookingEventBus.notify(organizationId)
+
+		if (result.customer.email) {
+			const [orgRow] = await db
+				.select({ name: organization.name })
+				.from(organization)
+				.where(eq(organization.id, organizationId))
+				.limit(1)
+
+			sendBookingDeclinedEmail({
+				to: result.customer.email,
+				customerName: result.customer.name,
+				barbershopName: orgRow?.name ?? 'the barbershop',
+				referenceNumber: result.referenceNumber,
+				reason: input.reason ?? null
+			}).catch(console.error)
+		}
+
 		return result
 	}
 
@@ -1065,7 +1102,8 @@ export abstract class BookingService {
 				and(
 					eq(booking.organizationId, organizationId),
 					rangeCondition,
-					sql`${booking.status} NOT IN ('cancelled')`
+					sql`${booking.status} NOT IN ('cancelled')`,
+					isNotNull(booking.verifiedAt)
 				)
 			)
 
@@ -1091,5 +1129,139 @@ export abstract class BookingService {
 			inProgress,
 			waiting
 		}
+	}
+
+	static async getDateMarkers(
+		organizationId: string,
+		query: BookingModel.BookingDateMarkersQuery
+	): Promise<BookingModel.BookingDateMarkersResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
+
+		const today = new Date()
+		const localToday = toLocalDate(today, timezone)
+		const year = localToday.getUTCFullYear()
+		const month = String(localToday.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(localToday.getUTCDate()).padStart(2, '0')
+		const defaultDate = `${year}-${month}-${day}`
+
+		const dateFrom = query.dateFrom ?? defaultDate
+		const dateTo = query.dateTo ?? defaultDate
+
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
+			)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom, timezone)
+		const { end } = BookingService.buildDayRange(dateTo, timezone)
+
+		const rangeCondition = or(
+			and(
+				eq(booking.type, 'appointment'),
+				isNotNull(booking.scheduledAt),
+				gte(booking.scheduledAt, start),
+				lt(booking.scheduledAt, end)
+			),
+			and(
+				eq(booking.type, 'walk_in'),
+				gte(booking.createdAt, start),
+				lt(booking.createdAt, end)
+			)
+		)
+
+		const rows = await db
+			.select({
+				status: booking.status,
+				type: booking.type,
+				scheduledAt: booking.scheduledAt,
+				createdAt: booking.createdAt
+			})
+			.from(booking)
+			.where(
+				and(
+					eq(booking.organizationId, organizationId),
+					rangeCondition,
+					sql`${booking.status} IN ('requested', 'waiting')`,
+					isNotNull(booking.verifiedAt)
+				)
+			)
+
+		const markers: Record<
+			string,
+			{ requested: boolean; waiting: boolean }
+		> = {}
+
+		for (const row of rows) {
+			const refDate =
+				row.type === 'appointment' && row.scheduledAt
+					? row.scheduledAt
+					: row.createdAt
+
+			const localDate = toLocalDate(refDate, timezone)
+			const y = localDate.getUTCFullYear()
+			const m = String(localDate.getUTCMonth() + 1).padStart(2, '0')
+			const d = String(localDate.getUTCDate()).padStart(2, '0')
+			const dateKey = `${y}-${m}-${d}`
+
+			if (!markers[dateKey]) {
+				markers[dateKey] = { requested: false, waiting: false }
+			}
+
+			if (row.status === 'requested') {
+				markers[dateKey].requested = true
+			} else if (row.status === 'waiting') {
+				markers[dateKey].waiting = true
+			}
+		}
+
+		return { markers }
+	}
+
+	static async verifyAppointmentEmail(token: string): Promise<{
+		verified: boolean
+		bookingId: string | null
+		status: 'verified' | 'already_verified' | 'invalid'
+	}> {
+		const existing = await db.query.booking.findFirst({
+			where: eq(booking.verificationToken, token)
+		})
+
+		if (!existing) {
+			return { verified: false, bookingId: null, status: 'invalid' }
+		}
+
+		if (existing.verifiedAt) {
+			return {
+				verified: true,
+				bookingId: existing.id,
+				status: 'already_verified'
+			}
+		}
+
+		const now = new Date()
+		await db
+			.update(booking)
+			.set({
+				verifiedAt: now,
+				updatedAt: now
+			})
+			.where(eq(booking.id, existing.id))
+
+		bookingEventBus.notify(existing.organizationId)
+
+		return { verified: true, bookingId: existing.id, status: 'verified' }
+	}
+
+	static async getBookingVerificationToken(
+		bookingId: string
+	): Promise<string | null> {
+		const row = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId),
+			columns: { verificationToken: true }
+		})
+
+		return row?.verificationToken ?? null
 	}
 }

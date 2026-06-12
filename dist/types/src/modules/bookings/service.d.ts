@@ -1,7 +1,6 @@
 import { BookingModel } from './model';
 export declare abstract class BookingService {
     private static buildDayRange;
-    private static normalizePhone;
     private static normalizeEmail;
     private static calculateDiscountedPrice;
     private static validateBarberAssignment;
@@ -17,7 +16,7 @@ export declare abstract class BookingService {
     static listBookings(organizationId: string, query: BookingModel.BookingListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     static listRequestedBookings(organizationId: string, query: BookingModel.BookingRequestListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     private static doCreateBooking;
-    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput): Promise<BookingModel.BookingDetailResponse>;
+    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput, source?: 'customer' | 'staff'): Promise<BookingModel.BookingDetailResponse>;
     static createAppointmentRequest(organizationId: string, createdById: string, input: BookingModel.AppointmentBookingCreateInput): Promise<BookingModel.BookingDetailResponse>;
     static getBooking(organizationId: string, id: string): Promise<BookingModel.BookingDetailResponse>;
     static getInProgressBooking(organizationId: string, userId: string): Promise<BookingModel.BookingDetailResponse | null>;
@@ -26,4 +25,11 @@ export declare abstract class BookingService {
     static declineBooking(organizationId: string, id: string, input: BookingModel.BookingDeclineInput): Promise<BookingModel.BookingDetailResponse>;
     static reassignBooking(organizationId: string, id: string, input: BookingModel.BookingReassignInput): Promise<BookingModel.BookingDetailResponse>;
     static getHomeSummary(organizationId: string, query: BookingModel.BookingHomeSummaryQuery): Promise<BookingModel.BookingHomeSummaryResponse>;
+    static getDateMarkers(organizationId: string, query: BookingModel.BookingDateMarkersQuery): Promise<BookingModel.BookingDateMarkersResponse>;
+    static verifyAppointmentEmail(token: string): Promise<{
+        verified: boolean;
+        bookingId: string | null;
+        status: 'verified' | 'already_verified' | 'invalid';
+    }>;
+    static getBookingVerificationToken(bookingId: string): Promise<string | null>;
 }

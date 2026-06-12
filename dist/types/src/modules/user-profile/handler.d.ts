@@ -582,7 +582,6 @@ export declare const userProfileHandler: Elysia<"/me", {
                         name: string;
                         email: string;
                         emailVerified: boolean;
-                        phone: string | null;
                         bio: string | null;
                         createdAt: Date;
                         updatedAt: Date;
@@ -631,7 +630,6 @@ export declare const userProfileHandler: Elysia<"/me", {
                         name: string;
                         email: string;
                         emailVerified: boolean;
-                        phone: string | null;
                         bio: string | null;
                         createdAt: Date;
                         updatedAt: Date;
@@ -690,100 +688,6 @@ export declare const userProfileHandler: Elysia<"/me", {
                         found?: unknown;
                         property?: string;
                         expected?: string;
-                    };
-                };
-            };
-        };
-    };
-} & {
-    me: {
-        "change-phone": {
-            post: {
-                body: {
-                    phone: string;
-                };
-                params: {};
-                query: {};
-                headers: {};
-                response: {
-                    200: {
-                        meta?: {
-                            limit: number;
-                            page: number;
-                            totalItems: number;
-                            totalPages: number;
-                            hasNext: boolean;
-                            hasPrev: boolean;
-                        } | undefined;
-                        message: string;
-                        data: {
-                            message: string;
-                        };
-                        status: string | number;
-                        path: string;
-                        timeStamp: string;
-                    };
-                    422: {
-                        type: "validation";
-                        on: string;
-                        summary?: string;
-                        message?: string;
-                        found?: unknown;
-                        property?: string;
-                        expected?: string;
-                    };
-                };
-            };
-        };
-    };
-} & {
-    me: {
-        "change-phone": {
-            verify: {
-                post: {
-                    body: {
-                        phone: string;
-                        otp: string;
-                    };
-                    params: {};
-                    query: {};
-                    headers: {};
-                    response: {
-                        200: {
-                            meta?: {
-                                limit: number;
-                                page: number;
-                                totalItems: number;
-                                totalPages: number;
-                                hasNext: boolean;
-                                hasPrev: boolean;
-                            } | undefined;
-                            message: string;
-                            data: {
-                                id: string;
-                                name: string;
-                                email: string;
-                                emailVerified: boolean;
-                                phone: string | null;
-                                bio: string | null;
-                                createdAt: Date;
-                                updatedAt: Date;
-                                role: string | null;
-                                avatarUrl: string | null;
-                            };
-                            status: string | number;
-                            path: string;
-                            timeStamp: string;
-                        };
-                        422: {
-                            type: "validation";
-                            on: string;
-                            summary?: string;
-                            message?: string;
-                            found?: unknown;
-                            property?: string;
-                            expected?: string;
-                        };
                     };
                 };
             };
