@@ -192,6 +192,22 @@ export declare namespace BookingModel {
         waiting: import("@sinclair/typebox").TNumber;
     }>;
     type BookingHomeSummaryResponse = typeof BookingHomeSummaryResponse.static;
+    const BookingDateMarkersQuery: import("@sinclair/typebox").TObject<{
+        dateFrom: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+        dateTo: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
+    }>;
+    type BookingDateMarkersQuery = typeof BookingDateMarkersQuery.static;
+    const BookingDateMarkerEntry: import("@sinclair/typebox").TObject<{
+        requested: import("@sinclair/typebox").TBoolean;
+        waiting: import("@sinclair/typebox").TBoolean;
+    }>;
+    const BookingDateMarkersResponse: import("@sinclair/typebox").TObject<{
+        markers: import("@sinclair/typebox").TRecord<import("@sinclair/typebox").TString, import("@sinclair/typebox").TObject<{
+            requested: import("@sinclair/typebox").TBoolean;
+            waiting: import("@sinclair/typebox").TBoolean;
+        }>>;
+    }>;
+    type BookingDateMarkersResponse = typeof BookingDateMarkersResponse.static;
 }
 export type BookingType = (typeof BOOKING_TYPES)[number];
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];

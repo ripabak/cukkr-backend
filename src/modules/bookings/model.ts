@@ -244,6 +244,26 @@ export namespace BookingModel {
 	})
 	export type BookingHomeSummaryResponse =
 		typeof BookingHomeSummaryResponse.static
+
+	export const BookingDateMarkersQuery = t.Object(
+		{
+			dateFrom: t.Optional(t.String({ format: 'date' })),
+			dateTo: t.Optional(t.String({ format: 'date' }))
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingDateMarkersQuery = typeof BookingDateMarkersQuery.static
+
+	export const BookingDateMarkerEntry = t.Object({
+		requested: t.Boolean(),
+		waiting: t.Boolean()
+	})
+
+	export const BookingDateMarkersResponse = t.Object({
+		markers: t.Record(t.String(), BookingDateMarkerEntry)
+	})
+	export type BookingDateMarkersResponse =
+		typeof BookingDateMarkersResponse.static
 }
 
 export type BookingType = (typeof BOOKING_TYPES)[number]

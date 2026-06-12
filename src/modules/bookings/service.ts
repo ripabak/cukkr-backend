@@ -1131,6 +1131,94 @@ export abstract class BookingService {
 		}
 	}
 
+	static async getDateMarkers(
+		organizationId: string,
+		query: BookingModel.BookingDateMarkersQuery
+	): Promise<BookingModel.BookingDateMarkersResponse> {
+		const timezone = await fetchOrgTimezone(organizationId)
+
+		const today = new Date()
+		const localToday = toLocalDate(today, timezone)
+		const year = localToday.getUTCFullYear()
+		const month = String(localToday.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(localToday.getUTCDate()).padStart(2, '0')
+		const defaultDate = `${year}-${month}-${day}`
+
+		const dateFrom = query.dateFrom ?? defaultDate
+		const dateTo = query.dateTo ?? defaultDate
+
+		if (dateTo < dateFrom) {
+			throw new AppError(
+				'dateTo must be greater than or equal to dateFrom',
+				'BAD_REQUEST'
+			)
+		}
+
+		const { start } = BookingService.buildDayRange(dateFrom, timezone)
+		const { end } = BookingService.buildDayRange(dateTo, timezone)
+
+		const rangeCondition = or(
+			and(
+				eq(booking.type, 'appointment'),
+				isNotNull(booking.scheduledAt),
+				gte(booking.scheduledAt, start),
+				lt(booking.scheduledAt, end)
+			),
+			and(
+				eq(booking.type, 'walk_in'),
+				gte(booking.createdAt, start),
+				lt(booking.createdAt, end)
+			)
+		)
+
+		const rows = await db
+			.select({
+				status: booking.status,
+				type: booking.type,
+				scheduledAt: booking.scheduledAt,
+				createdAt: booking.createdAt
+			})
+			.from(booking)
+			.where(
+				and(
+					eq(booking.organizationId, organizationId),
+					rangeCondition,
+					sql`${booking.status} IN ('requested', 'waiting')`,
+					isNotNull(booking.verifiedAt)
+				)
+			)
+
+		const markers: Record<
+			string,
+			{ requested: boolean; waiting: boolean }
+		> = {}
+
+		for (const row of rows) {
+			const refDate =
+				row.type === 'appointment' && row.scheduledAt
+					? row.scheduledAt
+					: row.createdAt
+
+			const localDate = toLocalDate(refDate, timezone)
+			const y = localDate.getUTCFullYear()
+			const m = String(localDate.getUTCMonth() + 1).padStart(2, '0')
+			const d = String(localDate.getUTCDate()).padStart(2, '0')
+			const dateKey = `${y}-${m}-${d}`
+
+			if (!markers[dateKey]) {
+				markers[dateKey] = { requested: false, waiting: false }
+			}
+
+			if (row.status === 'requested') {
+				markers[dateKey].requested = true
+			} else if (row.status === 'waiting') {
+				markers[dateKey].waiting = true
+			}
+		}
+
+		return { markers }
+	}
+
 	static async verifyAppointmentEmail(token: string): Promise<{
 		verified: boolean
 		bookingId: string | null

@@ -25,6 +25,7 @@ export declare abstract class BookingService {
     static declineBooking(organizationId: string, id: string, input: BookingModel.BookingDeclineInput): Promise<BookingModel.BookingDetailResponse>;
     static reassignBooking(organizationId: string, id: string, input: BookingModel.BookingReassignInput): Promise<BookingModel.BookingDetailResponse>;
     static getHomeSummary(organizationId: string, query: BookingModel.BookingHomeSummaryQuery): Promise<BookingModel.BookingHomeSummaryResponse>;
+    static getDateMarkers(organizationId: string, query: BookingModel.BookingDateMarkersQuery): Promise<BookingModel.BookingDateMarkersResponse>;
     static verifyAppointmentEmail(token: string): Promise<{
         verified: boolean;
         bookingId: string | null;

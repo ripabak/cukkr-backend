@@ -710,6 +710,53 @@ export declare const bookingsHandler: Elysia<"/bookings", {
     };
 } & {
     bookings: {
+        "date-markers": {
+            get: {
+                body: {};
+                params: {};
+                query: {
+                    dateFrom?: string | undefined;
+                    dateTo?: string | undefined;
+                };
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            markers: {
+                                [x: string]: {
+                                    requested: boolean;
+                                    waiting: boolean;
+                                };
+                            };
+                        };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    bookings: {
         requests: {
             get: {
                 body: {};
