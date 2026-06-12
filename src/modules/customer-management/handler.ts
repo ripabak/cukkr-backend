@@ -6,6 +6,7 @@ import {
 } from '../../core/format-response'
 import { buildPaginationMeta } from '../../core/pagination'
 import { authMiddleware } from '../../middleware/auth-middleware'
+import { BookingListStatusEnum } from '../bookings/model'
 import { CustomerManagementModel } from './model'
 import { CustomerManagementService } from './service'
 
@@ -83,7 +84,8 @@ export const customersHandler = new Elysia({
 			query: t.Object({
 				page: t.Optional(t.Numeric()),
 				limit: t.Optional(t.Numeric()),
-				type: t.Optional(CustomerManagementModel.BookingTypeFilter)
+				type: t.Optional(CustomerManagementModel.BookingTypeFilter),
+				status: t.Optional(BookingListStatusEnum)
 			}),
 			response: FormatResponseSchema(
 				t.Array(CustomerManagementModel.CustomerBookingItemResponse)

@@ -13,6 +13,7 @@ export declare abstract class CustomerManagementService {
         page?: number;
         limit?: number;
         type?: string;
+        status?: string;
     }): Promise<PaginatedResult<CustomerBookingItemResponse>>;
 }
 export {};

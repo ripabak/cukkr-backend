@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, ne, or, sql } from 'drizzle-orm'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
@@ -225,7 +225,7 @@ export abstract class CustomerManagementService {
 	static async getCustomerBookings(
 		orgId: string,
 		customerId: string,
-		query: { page?: number; limit?: number; type?: string }
+		query: { page?: number; limit?: number; type?: string; status?: string }
 	): Promise<PaginatedResult<CustomerBookingItemResponse>> {
 		const pagination = normalizePagination(query)
 
@@ -245,10 +245,18 @@ export abstract class CustomerManagementService {
 				? eq(booking.type, query.type)
 				: undefined
 
+		const statusCondition =
+			query.status && query.status !== 'all'
+				? eq(booking.status, query.status)
+				: query.status === 'all'
+					? undefined
+					: ne(booking.status, 'requested')
+
 		const whereCondition = and(
 			eq(booking.customerId, customerId),
 			eq(booking.organizationId, orgId),
-			typeCondition
+			typeCondition,
+			statusCondition
 		)
 
 		const [bookings, countResult] = await Promise.all([

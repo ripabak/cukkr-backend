@@ -2158,6 +2158,7 @@ export declare const app: Elysia<"", {
                         };
                         query: {
                             type?: "all" | "walk_in" | "appointment" | undefined;
+                            status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                             limit?: number | undefined;
                             page?: number | undefined;
                         };
