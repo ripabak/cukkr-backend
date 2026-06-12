@@ -21,7 +21,7 @@ export declare namespace BookingModel {
     const AppointmentBookingCreateInput: import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerEmail: import("@sinclair/typebox").TString;
+        customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         scheduledAt: import("@sinclair/typebox").TString;
@@ -43,7 +43,7 @@ export declare namespace BookingModel {
     }>, import("@sinclair/typebox").TObject<{
         type: import("@sinclair/typebox").TLiteral<"appointment">;
         customerName: import("@sinclair/typebox").TString;
-        customerEmail: import("@sinclair/typebox").TString;
+        customerEmail: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         scheduledAt: import("@sinclair/typebox").TString;
@@ -116,6 +116,7 @@ export declare namespace BookingModel {
         }>, import("@sinclair/typebox").TNull]>;
         scheduledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         createdAt: import("@sinclair/typebox").TDate;
+        source: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"customer">, import("@sinclair/typebox").TLiteral<"staff">]>;
     }>;
     type BookingSummaryResponse = typeof BookingSummaryResponse.static;
     const BookingDetailResponse: import("@sinclair/typebox").TObject<{
@@ -163,6 +164,8 @@ export declare namespace BookingModel {
         startedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         completedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         cancelledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
+        source: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"customer">, import("@sinclair/typebox").TLiteral<"staff">]>;
+        createdByName: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         createdById: import("@sinclair/typebox").TString;
         createdAt: import("@sinclair/typebox").TDate;
         updatedAt: import("@sinclair/typebox").TDate;

@@ -16,7 +16,7 @@ export declare abstract class BookingService {
     static listBookings(organizationId: string, query: BookingModel.BookingListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     static listRequestedBookings(organizationId: string, query: BookingModel.BookingRequestListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     private static doCreateBooking;
-    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput): Promise<BookingModel.BookingDetailResponse>;
+    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput, source?: 'customer' | 'staff'): Promise<BookingModel.BookingDetailResponse>;
     static createAppointmentRequest(organizationId: string, createdById: string, input: BookingModel.AppointmentBookingCreateInput): Promise<BookingModel.BookingDetailResponse>;
     static getBooking(organizationId: string, id: string): Promise<BookingModel.BookingDetailResponse>;
     static getInProgressBooking(organizationId: string, userId: string): Promise<BookingModel.BookingDetailResponse | null>;

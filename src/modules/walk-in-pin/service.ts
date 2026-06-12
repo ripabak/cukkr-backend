@@ -142,7 +142,8 @@ export abstract class WalkInPinService {
 				serviceIds: input.serviceIds,
 				barberId: input.barberId,
 				notes: input.notes
-			}
+			},
+			'customer'
 		)
 
 		await NotificationService.createBookingNotifications(detail)

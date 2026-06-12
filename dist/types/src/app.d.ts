@@ -1178,10 +1178,10 @@ export declare const app: Elysia<"", {
                 } | {
                     notes?: string | null | undefined;
                     barberId?: string | null | undefined;
+                    customerEmail?: string | null | undefined;
                     type: "appointment";
                     scheduledAt: string;
                     customerName: string;
-                    customerEmail: string;
                     serviceIds: string[];
                 };
                 params: {};
@@ -1221,6 +1221,7 @@ export declare const app: Elysia<"", {
                             startedAt: Date | null;
                             completedAt: Date | null;
                             cancelledAt: Date | null;
+                            source: "customer" | "staff";
                             createdById: string;
                             handledByBarber: {
                                 name: string;
@@ -1246,6 +1247,7 @@ export declare const app: Elysia<"", {
                                 role: string;
                                 memberId: string;
                             } | null;
+                            createdByName: string | null;
                         };
                         status: string | number;
                         path: string;
@@ -1341,6 +1343,7 @@ export declare const app: Elysia<"", {
                                 status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 referenceNumber: string;
                                 scheduledAt: Date | null;
+                                source: "customer" | "staff";
                                 barber: {
                                     name: string;
                                     email: string;
@@ -1399,6 +1402,7 @@ export declare const app: Elysia<"", {
                             status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             referenceNumber: string;
                             scheduledAt: Date | null;
+                            source: "customer" | "staff";
                             barber: {
                                 name: string;
                                 email: string;
@@ -1484,6 +1488,7 @@ export declare const app: Elysia<"", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1509,6 +1514,7 @@ export declare const app: Elysia<"", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             } | null;
                             status: string | number;
                             path: string;
@@ -1571,6 +1577,7 @@ export declare const app: Elysia<"", {
                                 startedAt: Date | null;
                                 completedAt: Date | null;
                                 cancelledAt: Date | null;
+                                source: "customer" | "staff";
                                 createdById: string;
                                 handledByBarber: {
                                     name: string;
@@ -1596,6 +1603,7 @@ export declare const app: Elysia<"", {
                                     role: string;
                                     memberId: string;
                                 } | null;
+                                createdByName: string | null;
                             };
                             status: string | number;
                             path: string;
@@ -1662,6 +1670,7 @@ export declare const app: Elysia<"", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -1687,6 +1696,7 @@ export declare const app: Elysia<"", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;
@@ -1751,6 +1761,7 @@ export declare const app: Elysia<"", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -1776,6 +1787,7 @@ export declare const app: Elysia<"", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;
@@ -1842,6 +1854,7 @@ export declare const app: Elysia<"", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -1867,6 +1880,7 @@ export declare const app: Elysia<"", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;
@@ -1933,6 +1947,7 @@ export declare const app: Elysia<"", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -1958,6 +1973,7 @@ export declare const app: Elysia<"", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;
@@ -3778,6 +3794,7 @@ export declare const app: Elysia<"", {
                                         startedAt: Date | null;
                                         completedAt: Date | null;
                                         cancelledAt: Date | null;
+                                        source: "customer" | "staff";
                                         createdById: string;
                                         handledByBarber: {
                                             name: string;
@@ -3803,6 +3820,7 @@ export declare const app: Elysia<"", {
                                             role: string;
                                             memberId: string;
                                         } | null;
+                                        createdByName: string | null;
                                     };
                                     status: string | number;
                                     path: string;

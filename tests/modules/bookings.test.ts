@@ -348,6 +348,7 @@ async function seedBookingRecord(args: {
 		scheduledAt: args.scheduledAt ?? null,
 		notes: args.notes ?? null,
 		verifiedAt: args.createdAt,
+		source: 'staff',
 		createdById: args.createdById,
 		createdAt: args.createdAt,
 		updatedAt: args.createdAt,

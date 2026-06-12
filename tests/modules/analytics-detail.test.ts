@@ -134,6 +134,7 @@ async function seedBooking(args: SeedBookingArgs): Promise<string> {
 		startedAt: null,
 		completedAt: args.completedAt !== undefined ? args.completedAt : now,
 		cancelledAt: null,
+		source: 'staff',
 		createdById: args.createdById
 	})
 	await db.insert(bookingService).values({

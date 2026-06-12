@@ -66,7 +66,9 @@ export namespace BookingModel {
 		{
 			type: t.Literal('appointment'),
 			customerName: t.String({ minLength: 1, maxLength: 100 }),
-			customerEmail: t.String({ format: 'email', maxLength: 254 }),
+			customerEmail: t.Optional(
+				t.Nullable(t.String({ format: 'email', maxLength: 254 }))
+			),
 			serviceIds: t.Array(t.String({ minLength: 1 }), {
 				minItems: 1,
 				uniqueItems: true
@@ -181,7 +183,8 @@ export namespace BookingModel {
 		totalDuration: t.Number(),
 		barber: t.Nullable(BarberSummaryResponse),
 		scheduledAt: t.Nullable(t.Date()),
-		createdAt: t.Date()
+		createdAt: t.Date(),
+		source: t.Union([t.Literal('customer'), t.Literal('staff')])
 	})
 	export type BookingSummaryResponse = typeof BookingSummaryResponse.static
 
@@ -201,6 +204,8 @@ export namespace BookingModel {
 		startedAt: t.Nullable(t.Date()),
 		completedAt: t.Nullable(t.Date()),
 		cancelledAt: t.Nullable(t.Date()),
+		source: t.Union([t.Literal('customer'), t.Literal('staff')]),
+		createdByName: t.Nullable(t.String()),
 		createdById: t.String(),
 		createdAt: t.Date(),
 		updatedAt: t.Date()

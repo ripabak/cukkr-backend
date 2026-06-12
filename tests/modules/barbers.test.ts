@@ -219,6 +219,7 @@ async function seedBookingForBarber(args: {
 		startedAt: null,
 		completedAt: null,
 		cancelledAt: null,
+		source: 'staff',
 		createdById: args.createdById,
 		createdAt: now,
 		updatedAt: now

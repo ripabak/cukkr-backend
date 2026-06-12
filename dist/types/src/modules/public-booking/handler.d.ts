@@ -175,6 +175,7 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                     startedAt: Date | null;
                                     completedAt: Date | null;
                                     cancelledAt: Date | null;
+                                    source: "customer" | "staff";
                                     createdById: string;
                                     handledByBarber: {
                                         name: string;
@@ -200,6 +201,7 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                         role: string;
                                         memberId: string;
                                     } | null;
+                                    createdByName: string | null;
                                 };
                                 status: string | number;
                                 path: string;

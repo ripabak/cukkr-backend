@@ -417,6 +417,23 @@ export declare const booking: import("drizzle-orm/pg-core").PgTableWithColumns<{
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        source: import("drizzle-orm/pg-core").PgColumn<{
+            name: "source";
+            tableName: "booking";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdById: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_by_id";
             tableName: "booking";

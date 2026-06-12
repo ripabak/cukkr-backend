@@ -53,6 +53,7 @@ type BookingReadRow = BookingRow & {
 	barber: (MemberRow & { user: UserRow }) | null
 	handledByBarber: (MemberRow & { user: UserRow }) | null
 	services: BookingServiceRow[]
+	createdBy: UserRow | null
 }
 
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -385,7 +386,8 @@ export abstract class BookingService {
 			),
 			barber: BookingService.mapBarber(row.barber),
 			scheduledAt: row.scheduledAt,
-			createdAt: row.createdAt
+			createdAt: row.createdAt,
+			source: row.source as 'customer' | 'staff'
 		}
 	}
 
@@ -428,6 +430,8 @@ export abstract class BookingService {
 			startedAt: row.startedAt,
 			completedAt: row.completedAt,
 			cancelledAt: row.cancelledAt,
+			source: row.source as 'customer' | 'staff',
+			createdByName: row.createdBy?.name ?? null,
 			createdById: row.createdById,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt
@@ -484,7 +488,8 @@ export abstract class BookingService {
 						user: true
 					}
 				},
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -546,7 +551,8 @@ export abstract class BookingService {
 				customer: true,
 				barber: { with: { user: true } },
 				handledByBarber: { with: { user: true } },
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -563,7 +569,8 @@ export abstract class BookingService {
 		organizationId: string,
 		createdById: string,
 		input: BookingModel.BookingCreateInput,
-		status: BookingStatus
+		status: BookingStatus,
+		source: 'customer' | 'staff'
 	): Promise<BookingModel.BookingDetailResponse> {
 		const timezone = await fetchOrgTimezone(organizationId)
 		const scheduledAt = await BookingService.validateScheduledAt(
@@ -594,6 +601,19 @@ export abstract class BookingService {
 					})
 				: null
 
+			if (
+				existingCustomer &&
+				existingCustomer.name !== input.customerName
+			) {
+				await tx
+					.update(customer)
+					.set({
+						name: input.customerName,
+						updatedAt: now
+					})
+					.where(eq(customer.id, existingCustomer.id))
+			}
+
 			const customerRow =
 				existingCustomer ??
 				(
@@ -612,8 +632,9 @@ export abstract class BookingService {
 				)[0]
 
 			const isAppointment = input.type === 'appointment'
-			const verificationToken = isAppointment ? nanoid(32) : null
-			const verifiedAt = isAppointment ? null : now
+			const isPublicAppointment = isAppointment && status === 'requested'
+			const verificationToken = isPublicAppointment ? nanoid(32) : null
+			const verifiedAt = isPublicAppointment ? null : now
 
 			const bookingDate = getDateKey(now, timezone)
 			const [counterRow] = await tx
@@ -647,6 +668,7 @@ export abstract class BookingService {
 				referenceNumber,
 				type: input.type,
 				status,
+				source,
 				customerId: customerRow.id,
 				barberId,
 				scheduledAt,
@@ -690,13 +712,15 @@ export abstract class BookingService {
 	static async createBooking(
 		organizationId: string,
 		createdById: string,
-		input: BookingModel.BookingCreateInput
+		input: BookingModel.BookingCreateInput,
+		source: 'customer' | 'staff' = 'staff'
 	): Promise<BookingModel.BookingDetailResponse> {
 		return BookingService.doCreateBooking(
 			organizationId,
 			createdById,
 			input,
-			'waiting'
+			'waiting',
+			source
 		)
 	}
 
@@ -709,7 +733,8 @@ export abstract class BookingService {
 			organizationId,
 			createdById,
 			input,
-			'requested'
+			'requested',
+			'customer'
 		)
 	}
 
@@ -734,7 +759,8 @@ export abstract class BookingService {
 						user: true
 					}
 				},
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 
@@ -776,7 +802,8 @@ export abstract class BookingService {
 				customer: true,
 				barber: { with: { user: true } },
 				handledByBarber: { with: { user: true } },
-				services: true
+				services: true,
+				createdBy: true
 			}
 		})
 

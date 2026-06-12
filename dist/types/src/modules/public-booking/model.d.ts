@@ -162,6 +162,8 @@ export declare namespace PublicBookingModel {
             startedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
             completedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
             cancelledAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
+            source: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"customer">, import("@sinclair/typebox").TLiteral<"staff">]>;
+            createdByName: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             createdById: import("@sinclair/typebox").TString;
             createdAt: import("@sinclair/typebox").TDate;
             updatedAt: import("@sinclair/typebox").TDate;

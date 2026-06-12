@@ -76,6 +76,7 @@ export const booking = pgTable(
 		startedAt: timestamp('started_at', { withTimezone: true }),
 		completedAt: timestamp('completed_at', { withTimezone: true }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+		source: text('source').notNull(),
 		createdById: text('created_by_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'restrict' }),
