@@ -2054,6 +2054,7 @@ export declare const app: Elysia<"", {
                     search?: string | undefined;
                     limit?: number | undefined;
                     page?: number | undefined;
+                    hasContact?: boolean | undefined;
                 };
                 headers: {};
                 response: {

@@ -569,6 +569,7 @@ export declare const customersHandler: Elysia<"/customers", {
                 search?: string | undefined;
                 limit?: number | undefined;
                 page?: number | undefined;
+                hasContact?: boolean | undefined;
             };
             headers: {};
             response: {

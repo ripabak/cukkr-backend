@@ -1,4 +1,15 @@
-import { and, count, desc, eq, ilike, ne, or, sql } from 'drizzle-orm'
+import {
+	and,
+	count,
+	desc,
+	eq,
+	ilike,
+	isNotNull,
+	isNull,
+	ne,
+	or,
+	sql
+} from 'drizzle-orm'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
@@ -42,9 +53,20 @@ export abstract class CustomerManagementService {
 				)
 			: undefined
 
+		const contactCondition = (() => {
+			if (query.hasContact === true) {
+				return or(isNotNull(customer.email), isNotNull(customer.phone))
+			}
+			if (query.hasContact === false) {
+				return and(isNull(customer.email), isNull(customer.phone))
+			}
+			return undefined
+		})()
+
 		const whereClause = and(
 			eq(customer.organizationId, orgId),
-			searchConditions
+			searchConditions,
+			contactCondition
 		)
 
 		const totalBookingsSql = sql<number>`

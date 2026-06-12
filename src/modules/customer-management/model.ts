@@ -21,7 +21,8 @@ export namespace CustomerManagementModel {
 					t.Literal('spend_desc'),
 					t.Literal('name_asc')
 				])
-			)
+			),
+			hasContact: t.Optional(t.BooleanString())
 		})
 	])
 	export type CustomerListQuery = typeof CustomerListQuery.static
