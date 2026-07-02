@@ -130,7 +130,7 @@ tests/
 | Role | Level | Typical Access |
 |------|-------|---------------|
 | `owner` | Full control | Create/delete barbershop, invite/remove barbers, manage services, open hours, analytics, all booking operations |
-| `admin` | Management | All `owner` operations *except*: delete barbershop, upload logo/image, change timezone (owner-only endpoints). Can CRUD services, manage open hours, view analytics, accept/decline bookings |
+| `admin` | Management | All `owner` operations *except*: delete barbershop, upload logo/image, change timezone (owner-only endpoints). Can CRUD services, edit open hours, view analytics, accept/decline bookings |
 | `member` | Staff (barber) | View-only for services & analytics. Can create bookings, update booking status (start/complete/cancel), view customer info, generate walk-in PIN, view open hours |
 
 **Rule of thumb for choosing the macro:**
