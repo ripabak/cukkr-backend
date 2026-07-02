@@ -52,7 +52,7 @@ export const openHoursHandler = new Elysia({
 			})
 		},
 		{
-			requireRoles: ['owner'],
+			requireRoles: ['owner', 'admin'],
 			body: OpenHoursModel.UpdateOpenHoursBody,
 			response: FormatResponseSchema(OpenHoursModel.OpenHoursWeekResponse)
 		}
