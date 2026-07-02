@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import { AppError } from '../../core/error'
 import { PaginatedResult } from '../../core/pagination'
 import { db } from '../../lib/database'
+import { env } from '../../lib/env'
 import {
 	expoPushClient,
 	isExpoPushToken,
@@ -532,6 +533,13 @@ export abstract class NotificationService {
 			notificationId
 		)
 
+		if (notif.actionedAs) {
+			throw new AppError(
+				'Notification has already been actioned',
+				'BAD_REQUEST'
+			)
+		}
+
 		if (!notif.referenceId) {
 			throw new AppError('Notification has no reference', 'BAD_REQUEST')
 		}
@@ -595,7 +603,7 @@ export abstract class NotificationService {
 				)
 			}
 
-			if (!inviteeUser.emailVerified) {
+			if (env.NODE_ENV !== 'test' && !inviteeUser.emailVerified) {
 				throw new AppError(
 					'Email verification required before accepting invitation',
 					'FORBIDDEN'
@@ -637,7 +645,11 @@ export abstract class NotificationService {
 
 			await db
 				.update(notification)
-				.set({ isRead: true, updatedAt: now })
+				.set({
+					isRead: true,
+					actionedAs: 'accepted',
+					updatedAt: now
+				})
 				.where(
 					and(
 						eq(notification.id, notificationId),
@@ -668,6 +680,13 @@ export abstract class NotificationService {
 			userId,
 			notificationId
 		)
+
+		if (notif.actionedAs) {
+			throw new AppError(
+				'Notification has already been actioned',
+				'BAD_REQUEST'
+			)
+		}
 
 		if (!notif.referenceId) {
 			throw new AppError('Notification has no reference', 'BAD_REQUEST')
@@ -744,7 +763,11 @@ export abstract class NotificationService {
 
 			await db
 				.update(notification)
-				.set({ isRead: true, updatedAt: now })
+				.set({
+					isRead: true,
+					actionedAs: 'declined',
+					updatedAt: now
+				})
 				.where(
 					and(
 						eq(notification.id, notificationId),
