@@ -542,6 +542,18 @@ export abstract class NotificationService {
 			referenceType === 'booking' &&
 			notif.type === 'appointment_requested'
 		) {
+			const isMember = await db.query.member.findFirst({
+				where: and(
+					eq(member.userId, userId),
+					eq(member.organizationId, notif.organizationId)
+				)
+			})
+			if (!isMember) {
+				throw new AppError(
+					'You are no longer a member of this organization',
+					'FORBIDDEN'
+				)
+			}
 			await BookingService.acceptBooking(
 				notif.organizationId,
 				notif.referenceId
@@ -573,15 +585,30 @@ export abstract class NotificationService {
 			if (!inv) {
 				throw new AppError('Invitation not found', 'NOT_FOUND')
 			}
-			if (inv.status !== 'pending') {
-				throw new AppError(
-					'Invitation has already been actioned',
-					'BAD_REQUEST'
-				)
+			if (inv.expiresAt < new Date() || inv.status !== 'pending') {
+				throw new AppError('Invitation not found', 'NOT_FOUND')
 			}
 			if (inv.email.toLowerCase() !== inviteeUser.email.toLowerCase()) {
 				throw new AppError(
 					'Invitation does not belong to this user',
+					'FORBIDDEN'
+				)
+			}
+
+			if (!inviteeUser.emailVerified) {
+				throw new AppError(
+					'Email verification required before accepting invitation',
+					'FORBIDDEN'
+				)
+			}
+
+			const [membershipResult] = await db
+				.select({ count: count() })
+				.from(member)
+				.where(eq(member.organizationId, inv.organizationId))
+			if ((membershipResult?.count ?? 0) >= 100) {
+				throw new AppError(
+					'Organization membership limit reached',
 					'FORBIDDEN'
 				)
 			}
@@ -652,6 +679,18 @@ export abstract class NotificationService {
 			referenceType === 'booking' &&
 			notif.type === 'appointment_requested'
 		) {
+			const isMember = await db.query.member.findFirst({
+				where: and(
+					eq(member.userId, userId),
+					eq(member.organizationId, notif.organizationId)
+				)
+			})
+			if (!isMember) {
+				throw new AppError(
+					'You are no longer a member of this organization',
+					'FORBIDDEN'
+				)
+			}
 			await BookingService.declineBooking(
 				notif.organizationId,
 				notif.referenceId,
