@@ -34,8 +34,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(
 				AnalyticsModel.AnalyticsResponseSchema
@@ -55,8 +54,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(AnalyticsModel.RevenueStatsSchema)
 		}
@@ -79,8 +77,7 @@ export const analyticsHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: t.Composite([
 				AnalyticsModel.AnalyticsQueryParam,
 				PaginationQuerySchema,
@@ -106,8 +103,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(
 				AnalyticsModel.CustomerAnalyticsStatsSchema
@@ -132,8 +128,7 @@ export const analyticsHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: t.Composite([
 				AnalyticsModel.AnalyticsQueryParam,
 				PaginationQuerySchema,
@@ -159,8 +154,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(
 				AnalyticsModel.BarberAnalyticsResponseSchema
@@ -178,8 +172,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(
 				t.Array(AnalyticsModel.BarberListItemSchema)
@@ -199,8 +192,7 @@ export const analyticsHandler = new Elysia({
 			return formatResponse({ path, data })
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: AnalyticsModel.AnalyticsQueryParam,
 			response: FormatResponseSchema(
 				AnalyticsModel.ServiceAnalyticsStatsSchema
@@ -224,8 +216,7 @@ export const analyticsHandler = new Elysia({
 			})
 		},
 		{
-			requireAuth: true,
-			requireOrganization: true,
+			requireRoles: ['owner', 'admin'],
 			query: t.Composite([
 				AnalyticsModel.AnalyticsQueryParam,
 				PaginationQuerySchema
