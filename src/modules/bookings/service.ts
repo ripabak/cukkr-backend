@@ -58,7 +58,7 @@ type BookingReadRow = BookingRow & {
 
 const CHECKSUM_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const createReferenceChecksum = customAlphabet(CHECKSUM_ALPHABET, 2)
-const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'member'])
+const ASSIGNABLE_MEMBER_ROLES = new Set(['owner', 'admin', 'member'])
 const WALK_IN_TRANSITIONS: Partial<Record<BookingStatus, BookingStatus[]>> = {
 	waiting: ['in_progress', 'cancelled'],
 	in_progress: ['completed', 'waiting', 'cancelled']
