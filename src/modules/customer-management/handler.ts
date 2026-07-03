@@ -118,3 +118,23 @@ export const customersHandler = new Elysia({
 			)
 		}
 	)
+
+	// GET /api/customers/:id/chart — monthly booking counts (last 6 months)
+	.get(
+		'/:id/chart',
+		async ({ params: { id }, path, activeOrganizationId }) => {
+			const data = await CustomerManagementService.getCustomerChart(
+				activeOrganizationId,
+				id
+			)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			requireOrganization: true,
+			params: CustomerManagementModel.CustomerIdParam,
+			response: FormatResponseSchema(
+				CustomerManagementModel.CustomerChartResponse
+			)
+		}
+	)

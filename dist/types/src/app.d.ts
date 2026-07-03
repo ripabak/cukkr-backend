@@ -2263,6 +2263,50 @@ export declare const app: Elysia<"", {
                 };
             };
         };
+    } & {
+        customers: {
+            ":id": {
+                chart: {
+                    get: {
+                        body: {};
+                        params: {
+                            id: string;
+                        };
+                        query: {};
+                        headers: {};
+                        response: {
+                            200: {
+                                meta?: {
+                                    limit: number;
+                                    page: number;
+                                    totalItems: number;
+                                    totalPages: number;
+                                    hasNext: boolean;
+                                    hasPrev: boolean;
+                                } | undefined;
+                                message: string;
+                                data: {
+                                    value: number;
+                                    label: string;
+                                }[];
+                                status: string | number;
+                                path: string;
+                                timeStamp: string;
+                            };
+                            422: {
+                                type: "validation";
+                                on: string;
+                                summary?: string;
+                                message?: string;
+                                found?: unknown;
+                                property?: string;
+                                expected?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
     };
 } & {
     api: {

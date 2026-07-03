@@ -223,6 +223,71 @@ export abstract class CustomerManagementService {
 		}
 	}
 
+	static async getCustomerChart(
+		orgId: string,
+		customerId: string
+	): Promise<CustomerManagementModel.CustomerChartPoint[]> {
+		const existing = await db.query.customer.findFirst({
+			where: and(
+				eq(customer.id, customerId),
+				eq(customer.organizationId, orgId)
+			)
+		})
+
+		if (!existing) {
+			throw new AppError('Customer not found', 'NOT_FOUND')
+		}
+
+		const months = Array.from({ length: 6 }, (_, i) => {
+			const d = new Date()
+			d.setMonth(d.getMonth() - (5 - i))
+			d.setDate(1)
+			d.setHours(0, 0, 0, 0)
+			return d
+		})
+
+		const monthLabels = [
+			'Jan',
+			'Feb',
+			'Mar',
+			'Apr',
+			'May',
+			'Jun',
+			'Jul',
+			'Aug',
+			'Sep',
+			'Oct',
+			'Nov',
+			'Dec'
+		]
+
+		const results = await Promise.all(
+			months.map(async (monthStart) => {
+				const monthEnd = new Date(monthStart)
+				monthEnd.setMonth(monthEnd.getMonth() + 1)
+
+				const [row] = await db
+					.select({ count: sql<number>`COUNT(*)::int` })
+					.from(booking)
+					.where(
+						and(
+							eq(booking.customerId, customerId),
+							eq(booking.organizationId, orgId),
+							sql`${booking.createdAt} >= ${monthStart.toISOString()}`,
+							sql`${booking.createdAt} < ${monthEnd.toISOString()}`
+						)
+					)
+
+				return {
+					label: monthLabels[monthStart.getMonth()],
+					value: row?.count ?? 0
+				}
+			})
+		)
+
+		return results
+	}
+
 	static async updateNotes(
 		orgId: string,
 		id: string,
