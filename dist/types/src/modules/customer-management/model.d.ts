@@ -107,4 +107,14 @@ export declare namespace CustomerManagementModel {
         }>;
     }>;
     type PaginatedBookingHistoryResponse = typeof PaginatedBookingHistoryResponse.static;
+    const CustomerChartPoint: import("@sinclair/typebox").TObject<{
+        label: import("@sinclair/typebox").TString;
+        value: import("@sinclair/typebox").TNumber;
+    }>;
+    type CustomerChartPoint = typeof CustomerChartPoint.static;
+    const CustomerChartResponse: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
+        label: import("@sinclair/typebox").TString;
+        value: import("@sinclair/typebox").TNumber;
+    }>>;
+    type CustomerChartResponse = typeof CustomerChartResponse.static;
 }

@@ -98,4 +98,13 @@ export namespace CustomerManagementModel {
 	})
 	export type PaginatedBookingHistoryResponse =
 		typeof PaginatedBookingHistoryResponse.static
+
+	export const CustomerChartPoint = t.Object({
+		label: t.String(),
+		value: t.Number()
+	})
+	export type CustomerChartPoint = typeof CustomerChartPoint.static
+
+	export const CustomerChartResponse = t.Array(CustomerChartPoint)
+	export type CustomerChartResponse = typeof CustomerChartResponse.static
 }
