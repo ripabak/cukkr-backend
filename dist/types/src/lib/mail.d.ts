@@ -35,5 +35,11 @@ export declare function sendBookingDeclinedEmail({ to, customerName, barbershopN
     referenceNumber: string;
     reason?: string | null;
 }): Promise<void>;
+export declare function sendBookingExpiredEmail({ to, customerName, barbershopName, referenceNumber }: {
+    to: string;
+    customerName: string;
+    barbershopName: string;
+    referenceNumber: string;
+}): Promise<void>;
 export declare function verifySmtp(): Promise<boolean>;
 export {};

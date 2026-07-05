@@ -6,7 +6,7 @@ export declare const app: Elysia<"", {
         beforeTime?: bigint | undefined;
         logger: import("logixlysia").Logger;
         pino: import("logixlysia").Pino;
-        cron: Record<"notification-cleanup", import("croner").Cron>;
+        cron: Record<"notification-cleanup", import("croner").Cron> & Record<"stale-booking-cancellation", import("croner").Cron>;
     };
     derive: import("logixlysia").EmptyElysiaSlot;
     resolve: import("logixlysia").EmptyElysiaSlot;

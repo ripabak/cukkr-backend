@@ -17,7 +17,8 @@ import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import {
 	sendBookingAcceptedEmail,
-	sendBookingDeclinedEmail
+	sendBookingDeclinedEmail,
+	sendBookingExpiredEmail
 } from '../../lib/mail'
 import {
 	getDateKey,
@@ -1263,5 +1264,82 @@ export abstract class BookingService {
 		})
 
 		return row?.verificationToken ?? null
+	}
+
+	static async cancelStaleBookings(): Promise<{ cancelled: number }> {
+		const now = new Date()
+		const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+
+		const staleBookings = await db
+			.update(booking)
+			.set({
+				status: 'cancelled',
+				cancelledAt: now,
+				notes: 'Booking expired — appointment time has passed without action',
+				updatedAt: now
+			})
+			.where(
+				and(
+					inArray(booking.status, ['requested', 'waiting']),
+					lt(booking.scheduledAt, oneHourAgo),
+					isNotNull(booking.scheduledAt)
+				)
+			)
+			.returning({
+				id: booking.id,
+				organizationId: booking.organizationId,
+				customerId: booking.customerId,
+				referenceNumber: booking.referenceNumber
+			})
+
+		if (staleBookings.length === 0) {
+			return { cancelled: 0 }
+		}
+
+		// Group by organizationId for SSE events
+		const orgBookings = new Map<string, typeof staleBookings>()
+		for (const row of staleBookings) {
+			const existing = orgBookings.get(row.organizationId) ?? []
+			existing.push(row)
+			orgBookings.set(row.organizationId, existing)
+		}
+
+		for (const orgId of orgBookings.keys()) {
+			bookingEventBus.notify(orgId)
+		}
+
+		// Batch fetch customer emails and organization names
+		const customerIds = [...new Set(staleBookings.map((b) => b.customerId))]
+		const orgIds = [...new Set(staleBookings.map((b) => b.organizationId))]
+
+		const [customers, orgs] = await Promise.all([
+			db.query.customer.findMany({
+				where: inArray(customer.id, customerIds),
+				columns: { id: true, email: true, name: true }
+			}),
+			db.query.organization.findMany({
+				where: inArray(organization.id, orgIds),
+				columns: { id: true, name: true }
+			})
+		])
+
+		const customerMap = new Map(customers.map((c) => [c.id, c]))
+		const orgMap = new Map(orgs.map((o) => [o.id, o]))
+
+		for (const row of staleBookings) {
+			const customerRow = customerMap.get(row.customerId)
+			const orgRow = orgMap.get(row.organizationId)
+
+			if (customerRow?.email && orgRow?.name) {
+				sendBookingExpiredEmail({
+					to: customerRow.email,
+					customerName: customerRow.name,
+					barbershopName: orgRow.name,
+					referenceNumber: row.referenceNumber
+				}).catch(console.error)
+			}
+		}
+
+		return { cancelled: staleBookings.length }
 	}
 }

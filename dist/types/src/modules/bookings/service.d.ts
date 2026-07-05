@@ -32,4 +32,7 @@ export declare abstract class BookingService {
         status: 'verified' | 'already_verified' | 'invalid';
     }>;
     static getBookingVerificationToken(bookingId: string): Promise<string | null>;
+    static cancelStaleBookings(): Promise<{
+        cancelled: number;
+    }>;
 }
