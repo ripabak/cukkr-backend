@@ -15,10 +15,12 @@ import { customAlphabet, nanoid } from 'nanoid'
 import { AppError } from '../../core/error'
 import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
+import { env } from '../../lib/env'
 import {
 	sendBookingAcceptedEmail,
 	sendBookingDeclinedEmail,
-	sendBookingExpiredEmail
+	sendBookingExpiredEmail,
+	sendIdentityVerificationEmail
 } from '../../lib/mail'
 import {
 	getDateKey,
@@ -406,7 +408,10 @@ export abstract class BookingService {
 				name: row.customer.name,
 				phone: row.customer.phone,
 				email: row.customer.email,
-				isVerified: row.customer.isVerified,
+				emailVerified: row.customer.emailVerified,
+				phoneVerified: row.customer.phoneVerified,
+				emailVerifiedAt: row.customer.emailVerifiedAt,
+				phoneVerifiedAt: row.customer.phoneVerifiedAt,
 				notes: row.customer.notes,
 				createdAt: row.customer.createdAt,
 				updatedAt: row.customer.updatedAt
@@ -626,7 +631,8 @@ export abstract class BookingService {
 							name: input.customerName,
 							phone: null,
 							email: normalizedEmail,
-							isVerified: Boolean(normalizedEmail),
+							emailVerified: false,
+							phoneVerified: false,
 							notes: null
 						})
 						.returning()
@@ -704,6 +710,40 @@ export abstract class BookingService {
 			organizationId,
 			bookingId
 		)
+
+		const custEmail = bookingDetail.customer.email
+		const custEmailVerified = bookingDetail.customer.emailVerified
+		const isPublicAppointment =
+			source === 'customer' && input.type === 'appointment'
+
+		if (!isPublicAppointment && custEmail && !custEmailVerified) {
+			const token = nanoid(32)
+			await db
+				.update(customer)
+				.set({
+					emailVerificationToken: token,
+					updatedAt: new Date()
+				})
+				.where(eq(customer.id, bookingDetail.customer.id))
+
+			const orgInfo = await db.query.organization.findFirst({
+				where: eq(organization.id, organizationId),
+				columns: { name: true, slug: true }
+			})
+
+			const verifyUrl = `${env.WEB_URL}/${orgInfo?.slug}/identity/verify?token=${token}`
+			await sendIdentityVerificationEmail({
+				to: custEmail,
+				customerName: bookingDetail.customer.name,
+				barbershopName: orgInfo?.name ?? 'the barbershop',
+				verifyUrl
+			}).catch((err) => {
+				console.error(
+					'Failed to send identity verification email:',
+					err
+				)
+			})
+		}
 
 		bookingEventBus.notify(organizationId)
 
@@ -1249,6 +1289,16 @@ export abstract class BookingService {
 				updatedAt: now
 			})
 			.where(eq(booking.id, existing.id))
+
+		await db
+			.update(customer)
+			.set({
+				emailVerified: true,
+				emailVerifiedAt: now,
+				emailVerificationToken: null,
+				updatedAt: now
+			})
+			.where(eq(customer.id, existing.customerId))
 
 		bookingEventBus.notify(existing.organizationId)
 

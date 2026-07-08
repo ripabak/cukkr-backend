@@ -22,6 +22,12 @@ export declare function sendAppointmentVerificationEmail({ to, customerName, bar
     barbershopName: string;
     verifyUrl: string;
 }): Promise<void>;
+export declare function sendIdentityVerificationEmail({ to, customerName, barbershopName, verifyUrl }: {
+    to: string;
+    customerName: string;
+    barbershopName: string;
+    verifyUrl: string;
+}): Promise<void>;
 export declare function sendBookingAcceptedEmail({ to, customerName, barbershopName, referenceNumber }: {
     to: string;
     customerName: string;

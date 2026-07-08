@@ -23,7 +23,16 @@ export const customer = pgTable(
 		name: text('name').notNull(),
 		phone: text('phone'),
 		email: text('email'),
-		isVerified: boolean('is_verified').default(false).notNull(),
+		emailVerified: boolean('email_verified').default(false).notNull(),
+		phoneVerified: boolean('phone_verified').default(false).notNull(),
+		emailVerifiedAt: timestamp('email_verified_at', {
+			withTimezone: true
+		}),
+		phoneVerifiedAt: timestamp('phone_verified_at', {
+			withTimezone: true
+		}),
+		emailVerificationToken: text('email_verification_token'),
+		phoneVerificationToken: text('phone_verification_token'),
 		notes: text('notes'),
 		createdAt: timestamp('created_at', { withTimezone: true })
 			.defaultNow()

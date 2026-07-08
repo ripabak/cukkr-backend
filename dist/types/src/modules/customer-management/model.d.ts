@@ -16,7 +16,8 @@ export declare namespace CustomerManagementModel {
         name: import("@sinclair/typebox").TString;
         email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
-        isVerified: import("@sinclair/typebox").TBoolean;
+        emailVerified: import("@sinclair/typebox").TBoolean;
+        phoneVerified: import("@sinclair/typebox").TBoolean;
         totalBookings: import("@sinclair/typebox").TNumber;
         totalSpend: import("@sinclair/typebox").TNumber;
         lastVisitAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
@@ -28,8 +29,9 @@ export declare namespace CustomerManagementModel {
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        emailVerified: import("@sinclair/typebox").TBoolean;
         phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
-        isVerified: import("@sinclair/typebox").TBoolean;
+        phoneVerified: import("@sinclair/typebox").TBoolean;
         totalBookings: import("@sinclair/typebox").TNumber;
         totalSpend: import("@sinclair/typebox").TNumber;
         lastVisitAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
@@ -69,7 +71,8 @@ export declare namespace CustomerManagementModel {
             name: import("@sinclair/typebox").TString;
             email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
-            isVerified: import("@sinclair/typebox").TBoolean;
+            emailVerified: import("@sinclair/typebox").TBoolean;
+            phoneVerified: import("@sinclair/typebox").TBoolean;
             totalBookings: import("@sinclair/typebox").TNumber;
             totalSpend: import("@sinclair/typebox").TNumber;
             lastVisitAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;

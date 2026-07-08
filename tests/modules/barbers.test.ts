@@ -201,7 +201,8 @@ async function seedBookingForBarber(args: {
 		name: 'Booking Customer',
 		phone: '+628111111111',
 		email: `${nanoid()}@example.com`,
-		isVerified: true,
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 

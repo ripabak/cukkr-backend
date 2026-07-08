@@ -139,3 +139,27 @@ export const publicBookingHandler = new Elysia({
 			response: FormatResponseSchema(VerifyAppointmentResponse)
 		}
 	)
+	.get(
+		'/:slug/identity/verify',
+		async ({ params: { slug }, query: { token }, path }) => {
+			await PublicBookingService.getOrgIdBySlug(slug)
+
+			const result = await PublicBookingService.verifyIdentity(token)
+
+			return formatResponse({
+				path,
+				data: result,
+				message:
+					result.status === 'verified'
+						? 'Identity verified successfully'
+						: result.status === 'already_verified'
+							? 'Identity has already been verified'
+							: 'Invalid or expired verification link'
+			})
+		},
+		{
+			params: PublicBookingModel.Schemas.SlugParam,
+			query: t.Object({ token: t.String({ minLength: 1 }) }),
+			response: FormatResponseSchema(VerifyAppointmentResponse)
+		}
+	)

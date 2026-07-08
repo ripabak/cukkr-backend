@@ -50,6 +50,13 @@
       "when": 1781253755993,
       "tag": "20260612084235_add-booking-source",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783521553597,
+      "tag": "20260708143913_add-customer-contact-verification",
+      "breakpoints": true
     }
   ]
 }

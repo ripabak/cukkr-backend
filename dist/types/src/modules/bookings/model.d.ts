@@ -85,7 +85,10 @@ export declare namespace BookingModel {
         name: import("@sinclair/typebox").TString;
         phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
-        isVerified: import("@sinclair/typebox").TBoolean;
+        emailVerified: import("@sinclair/typebox").TBoolean;
+        phoneVerified: import("@sinclair/typebox").TBoolean;
+        emailVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
+        phoneVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
         notes: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         createdAt: import("@sinclair/typebox").TDate;
         updatedAt: import("@sinclair/typebox").TDate;
@@ -130,7 +133,10 @@ export declare namespace BookingModel {
             name: import("@sinclair/typebox").TString;
             phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
-            isVerified: import("@sinclair/typebox").TBoolean;
+            emailVerified: import("@sinclair/typebox").TBoolean;
+            phoneVerified: import("@sinclair/typebox").TBoolean;
+            emailVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
+            phoneVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
             notes: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             createdAt: import("@sinclair/typebox").TDate;
             updatedAt: import("@sinclair/typebox").TDate;

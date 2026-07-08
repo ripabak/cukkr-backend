@@ -1209,10 +1209,13 @@ export declare const app: Elysia<"", {
                                 id: string;
                                 name: string;
                                 email: string | null;
+                                emailVerified: boolean;
                                 phone: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
-                                isVerified: boolean;
+                                phoneVerified: boolean;
+                                emailVerifiedAt: Date | null;
+                                phoneVerifiedAt: Date | null;
                                 notes: string | null;
                             };
                             notes: string | null;
@@ -1523,10 +1526,13 @@ export declare const app: Elysia<"", {
                                     id: string;
                                     name: string;
                                     email: string | null;
+                                    emailVerified: boolean;
                                     phone: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
-                                    isVerified: boolean;
+                                    phoneVerified: boolean;
+                                    emailVerifiedAt: Date | null;
+                                    phoneVerifiedAt: Date | null;
                                     notes: string | null;
                                 };
                                 notes: string | null;
@@ -1612,10 +1618,13 @@ export declare const app: Elysia<"", {
                                     id: string;
                                     name: string;
                                     email: string | null;
+                                    emailVerified: boolean;
                                     phone: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
-                                    isVerified: boolean;
+                                    phoneVerified: boolean;
+                                    emailVerifiedAt: Date | null;
+                                    phoneVerifiedAt: Date | null;
                                     notes: string | null;
                                 };
                                 notes: string | null;
@@ -1705,10 +1714,13 @@ export declare const app: Elysia<"", {
                                         id: string;
                                         name: string;
                                         email: string | null;
+                                        emailVerified: boolean;
                                         phone: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
-                                        isVerified: boolean;
+                                        phoneVerified: boolean;
+                                        emailVerifiedAt: Date | null;
+                                        phoneVerifiedAt: Date | null;
                                         notes: string | null;
                                     };
                                     notes: string | null;
@@ -1796,10 +1808,13 @@ export declare const app: Elysia<"", {
                                         id: string;
                                         name: string;
                                         email: string | null;
+                                        emailVerified: boolean;
                                         phone: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
-                                        isVerified: boolean;
+                                        phoneVerified: boolean;
+                                        emailVerifiedAt: Date | null;
+                                        phoneVerifiedAt: Date | null;
                                         notes: string | null;
                                     };
                                     notes: string | null;
@@ -1889,10 +1904,13 @@ export declare const app: Elysia<"", {
                                         id: string;
                                         name: string;
                                         email: string | null;
+                                        emailVerified: boolean;
                                         phone: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
-                                        isVerified: boolean;
+                                        phoneVerified: boolean;
+                                        emailVerifiedAt: Date | null;
+                                        phoneVerifiedAt: Date | null;
                                         notes: string | null;
                                     };
                                     notes: string | null;
@@ -1982,10 +2000,13 @@ export declare const app: Elysia<"", {
                                         id: string;
                                         name: string;
                                         email: string | null;
+                                        emailVerified: boolean;
                                         phone: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
-                                        isVerified: boolean;
+                                        phoneVerified: boolean;
+                                        emailVerifiedAt: Date | null;
+                                        phoneVerifiedAt: Date | null;
                                         notes: string | null;
                                     };
                                     notes: string | null;
@@ -2072,8 +2093,9 @@ export declare const app: Elysia<"", {
                             id: string;
                             name: string;
                             email: string | null;
+                            emailVerified: boolean;
                             phone: string | null;
-                            isVerified: boolean;
+                            phoneVerified: boolean;
                             totalBookings: number;
                             totalSpend: number;
                             lastVisitAt: Date | null;
@@ -2119,9 +2141,10 @@ export declare const app: Elysia<"", {
                                 id: string;
                                 name: string;
                                 email: string | null;
+                                emailVerified: boolean;
                                 phone: string | null;
                                 createdAt: Date;
-                                isVerified: boolean;
+                                phoneVerified: boolean;
                                 notes: string | null;
                                 totalBookings: number;
                                 totalSpend: number;
@@ -2233,9 +2256,10 @@ export declare const app: Elysia<"", {
                                     id: string;
                                     name: string;
                                     email: string | null;
+                                    emailVerified: boolean;
                                     phone: string | null;
                                     createdAt: Date;
-                                    isVerified: boolean;
+                                    phoneVerified: boolean;
                                     notes: string | null;
                                     totalBookings: number;
                                     totalSpend: number;
@@ -3875,10 +3899,13 @@ export declare const app: Elysia<"", {
                                             id: string;
                                             name: string;
                                             email: string | null;
+                                            emailVerified: boolean;
                                             phone: string | null;
                                             createdAt: Date;
                                             updatedAt: Date;
-                                            isVerified: boolean;
+                                            phoneVerified: boolean;
+                                            emailVerifiedAt: Date | null;
+                                            phoneVerifiedAt: Date | null;
                                             notes: string | null;
                                         };
                                         notes: string | null;
@@ -4031,6 +4058,39 @@ export declare const app: Elysia<"", {
                                         path: string;
                                         timeStamp: string;
                                     };
+                                    422: {
+                                        type: "validation";
+                                        on: string;
+                                        summary?: string;
+                                        message?: string;
+                                        found?: unknown;
+                                        property?: string;
+                                        expected?: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        public: {
+            booking: {
+                ":slug": {
+                    identity: {
+                        verify: {
+                            get: {
+                                body: unknown;
+                                params: {
+                                    slug: string;
+                                };
+                                query: {
+                                    token: string;
+                                };
+                                headers: unknown;
+                                response: {
+                                    200: Response;
                                     422: {
                                         type: "validation";
                                         on: string;

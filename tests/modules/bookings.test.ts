@@ -280,7 +280,8 @@ async function seedCustomer(args: {
 		name: row.name,
 		phone: row.phone,
 		email: row.email,
-		isVerified: Boolean(row.phone || row.email),
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 

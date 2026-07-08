@@ -157,7 +157,10 @@ export namespace BookingModel {
 		name: t.String(),
 		phone: t.Nullable(t.String()),
 		email: t.Nullable(t.String()),
-		isVerified: t.Boolean(),
+		emailVerified: t.Boolean(),
+		phoneVerified: t.Boolean(),
+		emailVerifiedAt: t.Nullable(t.Date()),
+		phoneVerifiedAt: t.Nullable(t.Date()),
 		notes: t.Nullable(t.String()),
 		createdAt: t.Date(),
 		updatedAt: t.Date()

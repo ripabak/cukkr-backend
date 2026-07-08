@@ -163,10 +163,13 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                         id: string;
                                         name: string;
                                         email: string | null;
+                                        emailVerified: boolean;
                                         phone: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
-                                        isVerified: boolean;
+                                        phoneVerified: boolean;
+                                        emailVerifiedAt: Date | null;
+                                        phoneVerifiedAt: Date | null;
                                         notes: string | null;
                                     };
                                     notes: string | null;
@@ -319,6 +322,39 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                     path: string;
                                     timeStamp: string;
                                 };
+                                422: {
+                                    type: "validation";
+                                    on: string;
+                                    summary?: string;
+                                    message?: string;
+                                    found?: unknown;
+                                    property?: string;
+                                    expected?: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    public: {
+        booking: {
+            ":slug": {
+                identity: {
+                    verify: {
+                        get: {
+                            body: unknown;
+                            params: {
+                                slug: string;
+                            };
+                            query: {
+                                token: string;
+                            };
+                            headers: unknown;
+                            response: {
+                                200: Response;
                                 422: {
                                     type: "validation";
                                     on: string;
