@@ -77,7 +77,8 @@ async function seedCustomer(organizationId: string): Promise<string> {
 		name: 'Analytics Test Customer',
 		phone: null,
 		email: null,
-		isVerified: false,
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 	return id

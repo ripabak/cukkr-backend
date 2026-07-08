@@ -5,7 +5,7 @@ import { db } from '../../lib/database'
 import { sendAppointmentVerificationEmail } from '../../lib/mail'
 import { member, organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
-import { booking } from '../bookings/schema'
+import { booking, customer } from '../bookings/schema'
 import type { BookingModel } from '../bookings/model'
 import { NotificationService } from '../notifications/service'
 import { service } from '../services/schema'
@@ -192,6 +192,41 @@ export abstract class PublicBookingService {
 		}
 
 		return result
+	}
+
+	static async verifyIdentity(token: string): Promise<{
+		verified: boolean
+		bookingId: null
+		status: 'verified' | 'already_verified' | 'invalid'
+	}> {
+		const custRow = await db.query.customer.findFirst({
+			where: eq(customer.emailVerificationToken, token)
+		})
+
+		if (!custRow) {
+			return { verified: false, bookingId: null, status: 'invalid' }
+		}
+
+		if (custRow.emailVerified) {
+			return {
+				verified: true,
+				bookingId: null,
+				status: 'already_verified'
+			}
+		}
+
+		const now = new Date()
+		await db
+			.update(customer)
+			.set({
+				emailVerified: true,
+				emailVerifiedAt: now,
+				emailVerificationToken: null,
+				updatedAt: now
+			})
+			.where(eq(customer.id, custRow.id))
+
+		return { verified: true, bookingId: null, status: 'verified' }
 	}
 
 	static async getOrgIdBySlug(slug: string): Promise<string> {

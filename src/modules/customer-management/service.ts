@@ -55,10 +55,28 @@ export abstract class CustomerManagementService {
 
 		const contactCondition = (() => {
 			if (query.hasContact === true) {
-				return or(isNotNull(customer.email), isNotNull(customer.phone))
+				return or(
+					and(
+						isNotNull(customer.email),
+						eq(customer.emailVerified, true)
+					),
+					and(
+						isNotNull(customer.phone),
+						eq(customer.phoneVerified, true)
+					)
+				)
 			}
 			if (query.hasContact === false) {
-				return and(isNull(customer.email), isNull(customer.phone))
+				return and(
+					or(
+						isNull(customer.email),
+						eq(customer.emailVerified, false)
+					),
+					or(
+						isNull(customer.phone),
+						eq(customer.phoneVerified, false)
+					)
+				)
 			}
 			return undefined
 		})()
@@ -99,7 +117,8 @@ export abstract class CustomerManagementService {
 					name: customer.name,
 					email: customer.email,
 					phone: customer.phone,
-					isVerified: customer.isVerified,
+					emailVerified: customer.emailVerified,
+					phoneVerified: customer.phoneVerified,
 					totalBookings: totalBookingsSql,
 					totalSpend: totalSpendSql,
 					lastVisitAt: lastVisitAtSql
@@ -116,7 +135,8 @@ export abstract class CustomerManagementService {
 					customer.name,
 					customer.email,
 					customer.phone,
-					customer.isVerified
+					customer.emailVerified,
+					customer.phoneVerified
 				)
 				.orderBy(orderByClause)
 				.limit(pagination.take)
@@ -129,7 +149,8 @@ export abstract class CustomerManagementService {
 			name: row.name,
 			email: row.email,
 			phone: row.phone,
-			isVerified: row.isVerified,
+			emailVerified: row.emailVerified,
+			phoneVerified: row.phoneVerified,
 			totalBookings: Number(row.totalBookings),
 			totalSpend: Number(row.totalSpend),
 			lastVisitAt: row.lastVisitAt
@@ -174,7 +195,8 @@ export abstract class CustomerManagementService {
 				name: customer.name,
 				email: customer.email,
 				phone: customer.phone,
-				isVerified: customer.isVerified,
+				emailVerified: customer.emailVerified,
+				phoneVerified: customer.phoneVerified,
 				notes: customer.notes,
 				createdAt: customer.createdAt,
 				totalBookings: totalBookingsSql,
@@ -194,7 +216,8 @@ export abstract class CustomerManagementService {
 				customer.name,
 				customer.email,
 				customer.phone,
-				customer.isVerified,
+				customer.emailVerified,
+				customer.phoneVerified,
 				customer.notes,
 				customer.createdAt
 			)
@@ -210,7 +233,8 @@ export abstract class CustomerManagementService {
 			name: row.name,
 			email: row.email,
 			phone: row.phone,
-			isVerified: row.isVerified,
+			emailVerified: row.emailVerified,
+			phoneVerified: row.phoneVerified,
 			notes: row.notes,
 			createdAt: row.createdAt,
 			totalBookings: Number(row.totalBookings),

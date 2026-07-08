@@ -95,7 +95,8 @@ async function seedCustomer(args: {
 		name: args.name,
 		phone: args.phone ?? null,
 		email: args.email ?? null,
-		isVerified: Boolean(args.phone || args.email),
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 	return id
@@ -387,28 +388,29 @@ describe('Customer Management Tests', () => {
 		})
 	})
 
-	// --- AC-02a: No contact → isVerified = false ---
-	describe('AC-02a: Customer with no contact → isVerified = false', () => {
-		it('Noverif User should have isVerified = false', async () => {
+	// --- AC-02a: No contact → emailVerified = false ---
+	describe('AC-02a: Customer with no contact → emailVerified = false', () => {
+		it('Noverif User should have emailVerified = false', async () => {
 			const { status, data } = await tClient.api.customers.get({
 				fetch: { headers: { cookie: ownerACookie } }
 			})
 			expect(status).toBe(200)
 			const noverif = (data?.data ?? []).find((c) => c.id === noverifId)
 			expect(noverif).toBeDefined()
-			expect(noverif?.isVerified).toBe(false)
+			expect(noverif?.emailVerified).toBe(false)
+			expect(noverif?.phoneVerified).toBe(false)
 		})
 	})
 
-	// --- AC-02b: Email set → isVerified = true ---
-	describe('AC-02b: Customer with email → isVerified = true', () => {
-		it('Budi (has email) should have isVerified = true', async () => {
+	// --- AC-02b: Email set but not verified → emailVerified = false ---
+	describe('AC-02b: Customer with email → emailVerified = false until verified', () => {
+		it('Budi (has email) should have emailVerified = false', async () => {
 			const { status, data } = await tClient.api.customers.get({
 				fetch: { headers: { cookie: ownerACookie } }
 			})
 			expect(status).toBe(200)
 			const budi = (data?.data ?? []).find((c) => c.id === budiId)
-			expect(budi?.isVerified).toBe(true)
+			expect(budi?.emailVerified).toBe(false)
 		})
 	})
 
@@ -423,7 +425,7 @@ describe('Customer Management Tests', () => {
 			expect(detail?.id).toBe(budiId)
 			expect(detail?.name).toBe('Budi Santoso')
 			expect(detail?.email).toBe('budi@example.com')
-			expect(detail?.isVerified).toBe(true)
+			expect(detail?.emailVerified).toBe(false)
 			expect(detail?.totalBookings).toBe(3)
 			expect(detail?.totalSpend).toBe(120000)
 			expect(detail?.notes).toBeNull()

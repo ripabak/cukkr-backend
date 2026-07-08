@@ -442,7 +442,8 @@ async function seedBarbershop(
 				organizationId: org.id,
 				name: c.name,
 				phone: `+62${c.phone.slice(1)}`, // Normalisasi ke format +62
-				isVerified: true,
+				emailVerified: false,
+				phoneVerified: false,
 				createdAt: now,
 				updatedAt: now
 			}))

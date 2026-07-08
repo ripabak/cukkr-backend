@@ -75,7 +75,8 @@ async function seedCustomer(
 		name,
 		phone: null,
 		email: null,
-		isVerified: false,
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 	return id

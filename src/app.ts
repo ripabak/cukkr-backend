@@ -25,6 +25,7 @@ import { publicHandler } from './modules/public/handler'
 import { publicBookingHandler } from './modules/public-booking/handler'
 import { typeShareEdenElysia } from 'type-share-eden-elysia'
 import { NotificationService } from './modules/notifications/service'
+import { BookingService } from './modules/bookings/service'
 
 export const app = new Elysia()
 	.use(
@@ -77,6 +78,15 @@ export const app = new Elysia()
 				void NotificationService.cleanupOldNotifications().catch(
 					console.error
 				)
+			}
+		})
+	)
+	.use(
+		cron({
+			name: 'stale-booking-cancellation',
+			pattern: '*/5 * * * *', // Every 5 minutes
+			run() {
+				void BookingService.cancelStaleBookings().catch(console.error)
 			}
 		})
 	)

@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
 import { expoPushClient } from '../../src/lib/push'
+import { BookingService } from '../../src/modules/bookings/service'
 import { member } from '../../src/modules/auth/schema'
 import {
 	booking,
@@ -279,7 +280,8 @@ async function seedCustomer(args: {
 		name: row.name,
 		phone: row.phone,
 		email: row.email,
-		isVerified: Boolean(row.phone || row.email),
+		emailVerified: false,
+		phoneVerified: false,
 		notes: null
 	})
 
@@ -1890,5 +1892,87 @@ describe('Booking Date Markers Endpoint', () => {
 		})
 
 		expect(status).toBe(400)
+	})
+})
+
+describe('Booking Stale Cancellation Cron', () => {
+	const now = new Date()
+
+	function hoursAgo(hours: number): Date {
+		return new Date(now.getTime() - hours * 60 * 60 * 1000)
+	}
+
+	it('cancels stale requested/waiting bookings and leaves within-grace ones untouched', async () => {
+		const owner = await createOwnerWithOrg('stale-cancel-1')
+
+		// Stale requested — scheduledAt 2 hours ago (beyond 1h grace period)
+		const staleRequested = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: hoursAgo(3),
+			scheduledAt: hoursAgo(2),
+			customerName: 'Stale Requested',
+			serviceNames: ['Stale Req']
+		})
+
+		// Stale waiting — scheduledAt 2 hours ago (beyond 1h grace period)
+		const staleWaiting = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'waiting',
+			createdAt: hoursAgo(3),
+			scheduledAt: hoursAgo(2),
+			customerName: 'Stale Waiting',
+			serviceNames: ['Stale Wait']
+		})
+
+		// Within grace — scheduledAt 30 minutes ago (still within 1h grace period)
+		const withinGrace = await seedBookingRecord({
+			organizationId: owner.orgId,
+			createdById: owner.ownerUserId,
+			barberId: owner.ownerMemberId,
+			type: 'appointment',
+			status: 'requested',
+			createdAt: hoursAgo(1),
+			scheduledAt: hoursAgo(0.5),
+			customerName: 'Within Grace',
+			serviceNames: ['Grace']
+		})
+
+		await BookingService.cancelStaleBookings()
+
+		// Stale requested → cancelled
+		const staleReqRow = await db.query.booking.findFirst({
+			where: eq(booking.id, staleRequested.bookingId)
+		})
+		expect(staleReqRow?.status).toBe('cancelled')
+		expect(staleReqRow?.cancelledAt).not.toBeNull()
+		expect(staleReqRow?.notes).toBe(
+			'Booking expired — appointment time has passed without action'
+		)
+
+		// Stale waiting → cancelled
+		const staleWaitRow = await db.query.booking.findFirst({
+			where: eq(booking.id, staleWaiting.bookingId)
+		})
+		expect(staleWaitRow?.status).toBe('cancelled')
+		expect(staleWaitRow?.cancelledAt).not.toBeNull()
+
+		// Within grace → still requested
+		const graceRow = await db.query.booking.findFirst({
+			where: eq(booking.id, withinGrace.bookingId)
+		})
+		expect(graceRow?.status).toBe('requested')
+		expect(graceRow?.cancelledAt).toBeNull()
+	})
+
+	it('handles clean state without error', async () => {
+		const result = await BookingService.cancelStaleBookings()
+		expect(result.cancelled).toBeGreaterThanOrEqual(0)
 	})
 })

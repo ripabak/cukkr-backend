@@ -22,6 +22,12 @@ export declare function sendAppointmentVerificationEmail({ to, customerName, bar
     barbershopName: string;
     verifyUrl: string;
 }): Promise<void>;
+export declare function sendIdentityVerificationEmail({ to, customerName, barbershopName, verifyUrl }: {
+    to: string;
+    customerName: string;
+    barbershopName: string;
+    verifyUrl: string;
+}): Promise<void>;
 export declare function sendBookingAcceptedEmail({ to, customerName, barbershopName, referenceNumber }: {
     to: string;
     customerName: string;
@@ -34,6 +40,12 @@ export declare function sendBookingDeclinedEmail({ to, customerName, barbershopN
     barbershopName: string;
     referenceNumber: string;
     reason?: string | null;
+}): Promise<void>;
+export declare function sendBookingExpiredEmail({ to, customerName, barbershopName, referenceNumber }: {
+    to: string;
+    customerName: string;
+    barbershopName: string;
+    referenceNumber: string;
 }): Promise<void>;
 export declare function verifySmtp(): Promise<boolean>;
 export {};

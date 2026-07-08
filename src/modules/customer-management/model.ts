@@ -32,7 +32,8 @@ export namespace CustomerManagementModel {
 		name: t.String(),
 		email: t.Nullable(t.String()),
 		phone: t.Nullable(t.String()),
-		isVerified: t.Boolean(),
+		emailVerified: t.Boolean(),
+		phoneVerified: t.Boolean(),
 		totalBookings: t.Number(),
 		totalSpend: t.Number(),
 		lastVisitAt: t.Nullable(t.Date())

@@ -25,6 +25,8 @@ const envSchema = z.object({
 
 	CLIENT_URL: z.url(),
 
+	WEB_URL: z.url(),
+
 	// SMTP Configuration
 	SMTP_HOST: z.string().optional(),
 	SMTP_PORT: z.coerce.number().optional(),
