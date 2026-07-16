@@ -377,7 +377,9 @@ export abstract class CustomerManagementService {
 				limit: pagination.take,
 				offset: pagination.skip,
 				with: {
-					services: true
+					services: true,
+					barber: { with: { user: true } },
+					handledByBarber: { with: { user: true } }
 				}
 			}),
 			db.select({ count: count() }).from(booking).where(whereCondition)
@@ -393,7 +395,9 @@ export abstract class CustomerManagementService {
 				name: s.serviceName,
 				price: s.price
 			})),
-			totalAmount: b.services.reduce((sum, s) => sum + s.price, 0)
+			totalAmount: b.services.reduce((sum, s) => sum + s.price, 0),
+			handledByName:
+				b.handledByBarber?.user.name ?? b.barber?.user.name ?? null
 		}))
 
 		return {

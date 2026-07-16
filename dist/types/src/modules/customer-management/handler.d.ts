@@ -703,6 +703,7 @@ export declare const customersHandler: Elysia<"/customers", {
                                     price: number;
                                 }[];
                                 totalAmount: number;
+                                handledByName: string | null;
                             }[];
                             status: string | number;
                             path: string;

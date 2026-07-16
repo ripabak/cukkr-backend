@@ -63,6 +63,7 @@ export declare namespace CustomerManagementModel {
             price: import("@sinclair/typebox").TNumber;
         }>>;
         totalAmount: import("@sinclair/typebox").TNumber;
+        handledByName: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>;
     type CustomerBookingItemResponse = typeof CustomerBookingItemResponse.static;
     const PaginatedCustomerListResponse: import("@sinclair/typebox").TObject<{
@@ -99,6 +100,7 @@ export declare namespace CustomerManagementModel {
                 price: import("@sinclair/typebox").TNumber;
             }>>;
             totalAmount: import("@sinclair/typebox").TNumber;
+            handledByName: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         }>>;
         meta: import("@sinclair/typebox").TObject<{
             page: import("@sinclair/typebox").TNumber;

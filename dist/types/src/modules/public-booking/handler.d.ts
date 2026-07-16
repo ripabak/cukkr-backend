@@ -354,7 +354,25 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                             };
                             headers: unknown;
                             response: {
-                                200: Response;
+                                200: {
+                                    meta?: {
+                                        limit: number;
+                                        page: number;
+                                        totalItems: number;
+                                        totalPages: number;
+                                        hasNext: boolean;
+                                        hasPrev: boolean;
+                                    } | undefined;
+                                    message: string;
+                                    data: {
+                                        status: "verified" | "already_verified" | "invalid";
+                                        bookingId: string | null;
+                                        verified: boolean;
+                                    };
+                                    status: string | number;
+                                    path: string;
+                                    timeStamp: string;
+                                };
                                 422: {
                                     type: "validation";
                                     on: string;

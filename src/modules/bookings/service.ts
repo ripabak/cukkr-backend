@@ -732,7 +732,7 @@ export abstract class BookingService {
 			})
 
 			const verifyUrl = `${env.WEB_URL}/${orgInfo?.slug}/identity/verify?token=${token}`
-			await sendIdentityVerificationEmail({
+			sendIdentityVerificationEmail({
 				to: custEmail,
 				customerName: bookingDetail.customer.name,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
