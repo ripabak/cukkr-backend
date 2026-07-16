@@ -6,6 +6,7 @@ export declare const env: {
     BETTER_AUTH_URL: string;
     CORS_ORIGIN: string[];
     CLIENT_URL: string;
+    WEB_URL: string;
     SMTP_SECURE: boolean;
     WALK_IN_TOKEN_SECRET: string;
     VAPID_PUBLIC_KEY: string;

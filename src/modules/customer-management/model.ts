@@ -81,7 +81,8 @@ export namespace CustomerManagementModel {
 		status: t.String(),
 		type: t.String(),
 		services: t.Array(CustomerBookingServiceItem),
-		totalAmount: t.Number()
+		totalAmount: t.Number(),
+		handledByName: t.Nullable(t.String())
 	})
 	export type CustomerBookingItemResponse =
 		typeof CustomerBookingItemResponse.static
