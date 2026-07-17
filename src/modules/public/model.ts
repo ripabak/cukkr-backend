@@ -17,6 +17,13 @@ const PublicServiceItem = t.Object({
 	isDefault: t.Boolean()
 })
 
+const PublicOpenHoursDay = t.Object({
+	dayOfWeek: t.Integer({ minimum: 0, maximum: 6 }),
+	isOpen: t.Boolean(),
+	openTime: t.Nullable(t.String()),
+	closeTime: t.Nullable(t.String())
+})
+
 const PublicBarbershopResponse = t.Object({
 	id: t.String(),
 	name: t.String(),
@@ -25,7 +32,8 @@ const PublicBarbershopResponse = t.Object({
 	address: t.Nullable(t.String()),
 	logoUrl: t.Nullable(t.String()),
 	services: t.Array(PublicServiceItem),
-	barbers: t.Array(PublicBarberItem)
+	barbers: t.Array(PublicBarberItem),
+	openHours: t.Array(PublicOpenHoursDay)
 })
 
 const WalkInFormDataResponse = t.Object({
@@ -84,6 +92,7 @@ export namespace PublicModel {
 	export type PublicServiceItem = typeof PublicServiceItem.static
 	export type PublicBarbershopResponse =
 		typeof PublicBarbershopResponse.static
+	export type PublicOpenHoursDay = typeof PublicOpenHoursDay.static
 	export type WalkInFormDataResponse = typeof WalkInFormDataResponse.static
 	export type PublicSlugParam = typeof PublicSlugParam.static
 	export type PublicAvailabilityQuery = typeof PublicAvailabilityQuery.static
@@ -98,6 +107,7 @@ export namespace PublicModel {
 		PublicBarberItem,
 		PublicServiceItem,
 		PublicBarbershopResponse,
+		PublicOpenHoursDay,
 		WalkInFormDataResponse,
 		PublicSlugParam,
 		PublicAvailabilityQuery,

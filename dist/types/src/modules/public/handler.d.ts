@@ -58,6 +58,12 @@ export declare const publicHandler: Elysia<"/public", {
                                     name: string;
                                     avatarUrl: string | null;
                                 }[];
+                                openHours: {
+                                    dayOfWeek: number;
+                                    isOpen: boolean;
+                                    openTime: string | null;
+                                    closeTime: string | null;
+                                }[];
                             };
                             status: string | number;
                             path: string;

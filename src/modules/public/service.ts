@@ -103,7 +103,7 @@ export abstract class PublicService {
 			throw new AppError('Barbershop not found', 'NOT_FOUND')
 		}
 
-		const [services, members] = await Promise.all([
+		const [services, members, openHours] = await Promise.all([
 			db.query.service.findMany({
 				where: and(
 					eq(service.organizationId, org.id),
@@ -116,7 +116,8 @@ export abstract class PublicService {
 					eq(member.role, 'member')
 				),
 				with: { user: true }
-			})
+			}),
+			OpenHoursService.getWeeklyScheduleForOrganization(org.id)
 		])
 
 		return {
@@ -140,7 +141,8 @@ export abstract class PublicService {
 				id: m.id,
 				name: m.user.name,
 				avatarUrl: m.user.image ?? null
-			}))
+			})),
+			openHours
 		}
 	}
 
