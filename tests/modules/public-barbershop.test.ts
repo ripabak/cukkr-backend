@@ -83,6 +83,8 @@ describe('Public Barbershop API', () => {
 		expect(shop.slug).toBe(slug)
 		expect(Array.isArray(shop.services)).toBe(true)
 		expect(Array.isArray(shop.barbers)).toBe(true)
+		expect(Array.isArray(shop.openHours)).toBe(true)
+		expect(shop.openHours).toHaveLength(7)
 	})
 
 	it('only returns active services', async () => {

@@ -13,6 +13,12 @@ declare const PublicServiceItem: import("@sinclair/typebox").TObject<{
     imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     isDefault: import("@sinclair/typebox").TBoolean;
 }>;
+declare const PublicOpenHoursDay: import("@sinclair/typebox").TObject<{
+    dayOfWeek: import("@sinclair/typebox").TInteger;
+    isOpen: import("@sinclair/typebox").TBoolean;
+    openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+}>;
 declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
     name: import("@sinclair/typebox").TString;
@@ -34,6 +40,12 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    }>>;
+    openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
+        dayOfWeek: import("@sinclair/typebox").TInteger;
+        isOpen: import("@sinclair/typebox").TBoolean;
+        openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
 }>;
 declare const WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
@@ -90,6 +102,7 @@ export declare namespace PublicModel {
     type PublicBarberItem = typeof PublicBarberItem.static;
     type PublicServiceItem = typeof PublicServiceItem.static;
     type PublicBarbershopResponse = typeof PublicBarbershopResponse.static;
+    type PublicOpenHoursDay = typeof PublicOpenHoursDay.static;
     type WalkInFormDataResponse = typeof WalkInFormDataResponse.static;
     type PublicSlugParam = typeof PublicSlugParam.static;
     type PublicAvailabilityQuery = typeof PublicAvailabilityQuery.static;
@@ -134,6 +147,18 @@ export declare namespace PublicModel {
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
+            openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
+                dayOfWeek: import("@sinclair/typebox").TInteger;
+                isOpen: import("@sinclair/typebox").TBoolean;
+                openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            }>>;
+        }>;
+        PublicOpenHoursDay: import("@sinclair/typebox").TObject<{
+            dayOfWeek: import("@sinclair/typebox").TInteger;
+            isOpen: import("@sinclair/typebox").TBoolean;
+            openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         }>;
         WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
             services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
