@@ -89,15 +89,11 @@ export const publicBookingHandler = new Elysia({
 	)
 	.post(
 		'/:slug/appointment',
-		async ({ params: { slug }, body, path, set, request }) => {
+		async ({ params: { slug }, body, path, set }) => {
 			set.status = 201
-			const origin =
-				request.headers.get('origin') ??
-				`${request.headers.get('x-forwarded-proto') ?? 'https'}://${request.headers.get('host') ?? 'localhost'}`
 			const data = await PublicBookingService.createAppointment(
 				slug,
-				body,
-				origin
+				body
 			)
 			return formatResponse({
 				path,

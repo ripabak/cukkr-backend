@@ -1204,7 +1204,7 @@ export declare const app: Elysia<"", {
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             customer: {
                                 id: string;
                                 name: string;
@@ -1390,7 +1390,7 @@ export declare const app: Elysia<"", {
                                 type: "walk_in" | "appointment";
                                 id: string;
                                 createdAt: Date;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 referenceNumber: string;
                                 scheduledAt: Date | null;
                                 source: "customer" | "staff";
@@ -1429,7 +1429,7 @@ export declare const app: Elysia<"", {
                 params: {};
                 query: {
                     sort?: "oldest_first" | "recently_added" | undefined;
-                    status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
+                    status?: "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                     barberId?: string | undefined;
                     date: string;
                 };
@@ -1449,7 +1449,7 @@ export declare const app: Elysia<"", {
                             type: "walk_in" | "appointment";
                             id: string;
                             createdAt: Date;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             referenceNumber: string;
                             scheduledAt: Date | null;
                             source: "customer" | "staff";
@@ -1521,7 +1521,7 @@ export declare const app: Elysia<"", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
@@ -1613,7 +1613,7 @@ export declare const app: Elysia<"", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
@@ -1685,7 +1685,7 @@ export declare const app: Elysia<"", {
                     patch: {
                         body: {
                             cancelReason?: string | null | undefined;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                         };
                         params: {
                             id: string;
@@ -1709,7 +1709,7 @@ export declare const app: Elysia<"", {
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
-                                    status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                    status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                     customer: {
                                         id: string;
                                         name: string;
@@ -1803,7 +1803,7 @@ export declare const app: Elysia<"", {
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
-                                    status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                    status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                     customer: {
                                         id: string;
                                         name: string;
@@ -1899,7 +1899,7 @@ export declare const app: Elysia<"", {
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
-                                    status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                    status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                     customer: {
                                         id: string;
                                         name: string;
@@ -1995,7 +1995,7 @@ export declare const app: Elysia<"", {
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
-                                    status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                    status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                     customer: {
                                         id: string;
                                         name: string;
@@ -2182,7 +2182,7 @@ export declare const app: Elysia<"", {
                         };
                         query: {
                             type?: "all" | "walk_in" | "appointment" | undefined;
-                            status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
+                            status?: "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                             limit?: number | undefined;
                             page?: number | undefined;
                         };
@@ -3901,7 +3901,7 @@ export declare const app: Elysia<"", {
                                         createdAt: Date;
                                         updatedAt: Date;
                                         organizationId: string;
-                                        status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                        status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                         customer: {
                                             id: string;
                                             name: string;

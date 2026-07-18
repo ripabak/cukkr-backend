@@ -676,7 +676,7 @@ export declare const customersHandler: Elysia<"/customers", {
                     };
                     query: {
                         type?: "all" | "walk_in" | "appointment" | undefined;
-                        status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
+                        status?: "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                         limit?: number | undefined;
                         page?: number | undefined;
                     };

@@ -599,7 +599,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                         createdAt: Date;
                         updatedAt: Date;
                         organizationId: string;
-                        status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                        status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                         customer: {
                             id: string;
                             name: string;
@@ -785,7 +785,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             type: "walk_in" | "appointment";
                             id: string;
                             createdAt: Date;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             referenceNumber: string;
                             scheduledAt: Date | null;
                             source: "customer" | "staff";
@@ -824,7 +824,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
             params: {};
             query: {
                 sort?: "oldest_first" | "recently_added" | undefined;
-                status?: "pending" | "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
+                status?: "all" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled" | undefined;
                 barberId?: string | undefined;
                 date: string;
             };
@@ -844,7 +844,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                         type: "walk_in" | "appointment";
                         id: string;
                         createdAt: Date;
-                        status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                        status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                         referenceNumber: string;
                         scheduledAt: Date | null;
                         source: "customer" | "staff";
@@ -916,7 +916,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             customer: {
                                 id: string;
                                 name: string;
@@ -1008,7 +1008,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
-                            status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                            status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                             customer: {
                                 id: string;
                                 name: string;
@@ -1080,7 +1080,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                 patch: {
                     body: {
                         cancelReason?: string | null | undefined;
-                        status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                        status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                     };
                     params: {
                         id: string;
@@ -1104,7 +1104,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
@@ -1198,7 +1198,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
@@ -1294,7 +1294,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
@@ -1390,7 +1390,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
-                                status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                 customer: {
                                     id: string;
                                     name: string;
