@@ -5,6 +5,7 @@ import { AppError } from '../../core/error'
 import { PaginatedResult } from '../../core/pagination'
 import { db } from '../../lib/database'
 import { env } from '../../lib/env'
+import { t, type Language } from '../../lib/i18n'
 import {
 	expoPushClient,
 	isExpoPushToken,
@@ -894,29 +895,55 @@ export abstract class NotificationService {
 			bookingDetail.organizationId
 		)
 
-		const title = orgName
-		const body =
-			bookingDetail.type === 'appointment'
-				? `${bookingDetail.customer.name} requested an appointment.`
-				: `${bookingDetail.customer.name} has arrived as a walk-in customer.`
-
-		await NotificationService.createNotificationsForRecipients({
-			organizationId: bookingDetail.organizationId,
-			recipientUserIds,
-			type:
-				bookingDetail.type === 'appointment'
-					? 'appointment_requested'
-					: 'walk_in_arrival',
-			title,
-			body,
-			referenceId: bookingDetail.id,
-			referenceType: 'booking',
-			data: {
-				customerName: bookingDetail.customer.name,
-				bookingType: bookingDetail.type,
-				organizationId: bookingDetail.organizationId
-			}
+		// Fetch language for each recipient user
+		const userRows = await db.query.user.findMany({
+			where: inArray(user.id, recipientUserIds),
+			columns: { id: true, language: true }
 		})
+		const langByUserId = new Map(
+			userRows.map((u) => [u.id, (u.language ?? 'id') as Language])
+		)
+
+		// Group recipients by language
+		const recipientsByLang = new Map<Language, string[]>()
+		for (const userId of recipientUserIds) {
+			const lang = langByUserId.get(userId) ?? 'id'
+			const existing = recipientsByLang.get(lang) ?? []
+			existing.push(userId)
+			recipientsByLang.set(lang, existing)
+		}
+
+		for (const [lang, userIds] of recipientsByLang) {
+			const notificationKey =
+				bookingDetail.type === 'appointment'
+					? 'notification.appointmentRequested'
+					: 'notification.walkInArrival'
+
+			const title = t(lang, `${notificationKey}.title`, {
+				organizationName: orgName
+			})
+			const body = t(lang, `${notificationKey}.body`, {
+				customerName: bookingDetail.customer.name
+			})
+
+			await NotificationService.createNotificationsForRecipients({
+				organizationId: bookingDetail.organizationId,
+				recipientUserIds: userIds,
+				type:
+					bookingDetail.type === 'appointment'
+						? 'appointment_requested'
+						: 'walk_in_arrival',
+				title,
+				body,
+				referenceId: bookingDetail.id,
+				referenceType: 'booking',
+				data: {
+					customerName: bookingDetail.customer.name,
+					bookingType: bookingDetail.type,
+					organizationId: bookingDetail.organizationId
+				}
+			})
+		}
 	}
 
 	static async cleanupOldNotifications(): Promise<{ deletedCount: number }> {

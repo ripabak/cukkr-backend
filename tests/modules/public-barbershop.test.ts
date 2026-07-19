@@ -9,7 +9,7 @@ import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
 import { openHour } from '../../src/modules/open-hours/schema'
 import { service } from '../../src/modules/services/schema'
-import { booking } from '../../src/modules/bookings/schema'
+import { booking, customer } from '../../src/modules/bookings/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -488,5 +488,72 @@ describe('Public Appointment Booking Flow', () => {
 		})
 		expect(bookingRow?.verifiedAt).toBeTruthy()
 		expect(bookingRow?.verifiedAt instanceof Date).toBe(true)
+	})
+
+	it('updates customer.language after appointment email verification', async () => {
+		const email = `lang-test-${nanoid()}@test.com`
+		const scheduledAt1 = getFutureWibIso(3, 14, 0)
+		const scheduledAt2 = getFutureWibIso(3, 15, 0)
+
+		const res1 = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Lang Test Customer',
+			customerEmail: email,
+			serviceIds: [activeServiceId],
+			scheduledAt: scheduledAt1,
+			lang: 'en'
+		})
+		expect(res1.status).toBe(201)
+		const bookingId1 = (res1.data as any)?.data?.id as string
+
+		const tokenRow1 = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId1),
+			columns: { verificationToken: true, customerId: true }
+		})
+		expect(tokenRow1?.verificationToken).toBeTruthy()
+		const customerId = tokenRow1!.customerId!
+
+		await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: tokenRow1!.verificationToken! }
+		})
+
+		const custAfterEn = await db.query.customer.findFirst({
+			where: eq(customer.id, customerId),
+			columns: { language: true }
+		})
+		expect(custAfterEn?.language).toBe('en')
+
+		const res2 = await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.post({
+			customerName: 'Lang Test Customer',
+			customerEmail: email,
+			serviceIds: [activeServiceId],
+			scheduledAt: scheduledAt2,
+			lang: 'id'
+		})
+		expect(res2.status).toBe(201)
+		const bookingId2 = (res2.data as any)?.data?.id as string
+
+		const tokenRow2 = await db.query.booking.findFirst({
+			where: eq(booking.id, bookingId2),
+			columns: { verificationToken: true }
+		})
+		expect(tokenRow2?.verificationToken).toBeTruthy()
+
+		await (tClient as any).api.public.booking[
+			apptSlug
+		].appointment.verify.get({
+			query: { token: tokenRow2!.verificationToken! }
+		})
+
+		const custAfterId = await db.query.customer.findFirst({
+			where: eq(customer.id, customerId),
+			columns: { language: true }
+		})
+		expect(custAfterId?.language).toBe('id')
 	})
 })

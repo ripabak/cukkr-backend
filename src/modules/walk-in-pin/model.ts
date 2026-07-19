@@ -36,7 +36,8 @@ export namespace WalkInPinModel {
 				uniqueItems: true
 			}),
 			barberId: t.Optional(t.Nullable(t.String({ minLength: 1 }))),
-			notes: t.Optional(t.Nullable(t.String({ maxLength: 500 })))
+			notes: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
+			lang: t.Optional(t.String({ default: 'id' }))
 		},
 		{ additionalProperties: false }
 	)

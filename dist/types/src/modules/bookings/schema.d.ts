@@ -87,6 +87,23 @@ export declare const customer: import("drizzle-orm/pg-core").PgTableWithColumns<
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        language: import("drizzle-orm/pg-core").PgColumn<{
+            name: "language";
+            tableName: "customer";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         emailVerified: import("drizzle-orm/pg-core").PgColumn<{
             name: "email_verified";
             tableName: "customer";

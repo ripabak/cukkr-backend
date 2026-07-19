@@ -31,6 +31,7 @@ declare const WalkInBookingBody: import("@sinclair/typebox").TObject<{
     serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
     barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
     notes: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+    lang: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
 }>;
 declare const AppointmentCreateInput: import("@sinclair/typebox").TObject<{
     customerName: import("@sinclair/typebox").TString;
@@ -39,6 +40,7 @@ declare const AppointmentCreateInput: import("@sinclair/typebox").TObject<{
     barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
     scheduledAt: import("@sinclair/typebox").TString;
     notes: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+    lang: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
 }>;
 declare const AppointmentCreatedResponse: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
@@ -95,6 +97,7 @@ export declare namespace PublicBookingModel {
             serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
             barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
             notes: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+            lang: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
         }>;
         AppointmentCreateInput: import("@sinclair/typebox").TObject<{
             customerName: import("@sinclair/typebox").TString;
@@ -103,6 +106,7 @@ export declare namespace PublicBookingModel {
             barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
             scheduledAt: import("@sinclair/typebox").TString;
             notes: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+            lang: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
         }>;
         AppointmentCreatedResponse: import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
@@ -128,6 +132,7 @@ export declare namespace PublicBookingModel {
                 name: import("@sinclair/typebox").TString;
                 phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                language: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 emailVerified: import("@sinclair/typebox").TBoolean;
                 phoneVerified: import("@sinclair/typebox").TBoolean;
                 emailVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;

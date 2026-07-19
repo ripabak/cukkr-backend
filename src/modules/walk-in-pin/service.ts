@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
 import { env } from '../../lib/env'
+import type { Language } from '../../lib/i18n'
 import { organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import { BookingModel } from '../bookings/model'
@@ -143,7 +144,8 @@ export abstract class WalkInPinService {
 				barberId: input.barberId,
 				notes: input.notes
 			},
-			'customer'
+			'customer',
+			(input.lang ?? 'id') as Language
 		)
 
 		await NotificationService.createBookingNotifications(detail)

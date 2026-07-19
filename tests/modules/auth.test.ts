@@ -70,6 +70,15 @@ describe('S-02: Login, Session & Logout', () => {
 		expect(res.data).toHaveProperty('user')
 	})
 
+	it('should have language field defaulting to id in session', async () => {
+		const res = await (tClient as any).auth.api['get-session'].get({
+			headers: { cookie: authCookie }
+		})
+		expect(res.status).toBe(200)
+		expect(res.data).toHaveProperty('user')
+		expect((res.data as any)?.user?.language).toBe('id')
+	})
+
 	it('should return null session without a cookie', async () => {
 		const res = await (tClient as any).auth.api['get-session'].get()
 		expect(res.status).toBe(200)

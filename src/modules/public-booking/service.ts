@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
 import { sendAppointmentVerificationEmail } from '../../lib/mail'
+import type { Language } from '../../lib/i18n'
 import { member, organization } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import { booking, customer } from '../bookings/schema'
@@ -97,6 +98,7 @@ export abstract class PublicBookingService {
 		appointment: PublicBookingModel.AppointmentCreatedResponse
 	}> {
 		const org = await resolveOrgBySlug(slug)
+		const lang = (input.lang ?? 'id') as Language
 
 		const ownerMember = await db.query.member.findFirst({
 			where: and(
@@ -115,7 +117,8 @@ export abstract class PublicBookingService {
 		const detail = await BookingService.createAppointmentRequest(
 			org.id,
 			ownerMember.userId,
-			{ type: 'appointment', ...input }
+			{ type: 'appointment', ...input },
+			lang
 		)
 
 		const token = await BookingService.getBookingVerificationToken(
@@ -133,7 +136,8 @@ export abstract class PublicBookingService {
 				to: input.customerEmail,
 				customerName: input.customerName,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
-				verifyUrl
+				verifyUrl,
+				language: lang
 			}).catch((err) => {
 				console.error(
 					'Failed to send appointment verification email:',

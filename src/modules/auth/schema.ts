@@ -16,6 +16,7 @@ export const user = pgTable('user', {
 	image: text('image'),
 	phone: text('phone').unique(),
 	bio: text('bio'),
+	language: text('language').default('id'),
 	createdAt: timestamp('created_at', { withTimezone: true })
 		.defaultNow()
 		.notNull(),

@@ -47,7 +47,8 @@ const WalkInBookingBody = t.Object(
 			uniqueItems: true
 		}),
 		barberId: t.Optional(t.Nullable(t.String({ minLength: 1 }))),
-		notes: t.Optional(t.Nullable(t.String({ maxLength: 500 })))
+		notes: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
+		lang: t.Optional(t.String({ default: 'id' }))
 	},
 	{ additionalProperties: false }
 )
@@ -62,7 +63,8 @@ const AppointmentCreateInput = t.Object(
 		}),
 		barberId: t.Optional(t.Nullable(t.String({ minLength: 1 }))),
 		scheduledAt: t.String({ format: 'date-time' }),
-		notes: t.Optional(t.Nullable(t.String({ maxLength: 500 })))
+		notes: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
+		lang: t.Optional(t.String({ default: 'id' }))
 	},
 	{ additionalProperties: false }
 )

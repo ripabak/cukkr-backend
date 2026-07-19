@@ -23,6 +23,7 @@ export const customer = pgTable(
 		name: text('name').notNull(),
 		phone: text('phone'),
 		email: text('email'),
+		language: text('language').default('id'),
 		emailVerified: boolean('email_verified').default(false).notNull(),
 		phoneVerified: boolean('phone_verified').default(false).notNull(),
 		emailVerifiedAt: timestamp('email_verified_at', {
@@ -80,6 +81,7 @@ export const booking = pgTable(
 		),
 		scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
 		notes: text('notes'),
+		language: text('language').default('id'),
 		verifiedAt: timestamp('verified_at', { withTimezone: true }),
 		verificationToken: text('verification_token'),
 		startedAt: timestamp('started_at', { withTimezone: true }),
