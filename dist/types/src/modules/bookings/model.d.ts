@@ -85,6 +85,7 @@ export declare namespace BookingModel {
         name: import("@sinclair/typebox").TString;
         phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        language: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         emailVerified: import("@sinclair/typebox").TBoolean;
         phoneVerified: import("@sinclair/typebox").TBoolean;
         emailVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;
@@ -133,6 +134,7 @@ export declare namespace BookingModel {
             name: import("@sinclair/typebox").TString;
             phone: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             email: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            language: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             emailVerified: import("@sinclair/typebox").TBoolean;
             phoneVerified: import("@sinclair/typebox").TBoolean;
             emailVerifiedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TDate, import("@sinclair/typebox").TNull]>;

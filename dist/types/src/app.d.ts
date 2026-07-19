@@ -1211,6 +1211,7 @@ export declare const app: Elysia<"", {
                                 email: string | null;
                                 emailVerified: boolean;
                                 phone: string | null;
+                                language: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 phoneVerified: boolean;
@@ -1528,6 +1529,7 @@ export declare const app: Elysia<"", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;
@@ -1620,6 +1622,7 @@ export declare const app: Elysia<"", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;
@@ -1716,6 +1719,7 @@ export declare const app: Elysia<"", {
                                         email: string | null;
                                         emailVerified: boolean;
                                         phone: string | null;
+                                        language: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
                                         phoneVerified: boolean;
@@ -1810,6 +1814,7 @@ export declare const app: Elysia<"", {
                                         email: string | null;
                                         emailVerified: boolean;
                                         phone: string | null;
+                                        language: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
                                         phoneVerified: boolean;
@@ -1906,6 +1911,7 @@ export declare const app: Elysia<"", {
                                         email: string | null;
                                         emailVerified: boolean;
                                         phone: string | null;
+                                        language: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
                                         phoneVerified: boolean;
@@ -2002,6 +2008,7 @@ export declare const app: Elysia<"", {
                                         email: string | null;
                                         emailVerified: boolean;
                                         phone: string | null;
+                                        language: string | null;
                                         createdAt: Date;
                                         updatedAt: Date;
                                         phoneVerified: boolean;
@@ -3916,6 +3923,7 @@ export declare const app: Elysia<"", {
                                 notes?: string | null | undefined;
                                 barberId?: string | null | undefined;
                                 customerEmail?: string | null | undefined;
+                                lang?: string | undefined;
                                 customerName: string;
                                 serviceIds: string[];
                                 validationToken: string;
@@ -3949,6 +3957,7 @@ export declare const app: Elysia<"", {
                                             email: string | null;
                                             emailVerified: boolean;
                                             phone: string | null;
+                                            language: string | null;
                                             createdAt: Date;
                                             updatedAt: Date;
                                             phoneVerified: boolean;
@@ -4018,6 +4027,7 @@ export declare const app: Elysia<"", {
                             body: {
                                 notes?: string | null | undefined;
                                 barberId?: string | null | undefined;
+                                lang?: string | undefined;
                                 scheduledAt: string;
                                 customerName: string;
                                 customerEmail: string;

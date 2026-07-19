@@ -611,6 +611,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             email: string | null;
                             emailVerified: boolean;
                             phone: string | null;
+                            language: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             phoneVerified: boolean;
@@ -928,6 +929,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 email: string | null;
                                 emailVerified: boolean;
                                 phone: string | null;
+                                language: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 phoneVerified: boolean;
@@ -1020,6 +1022,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 email: string | null;
                                 emailVerified: boolean;
                                 phone: string | null;
+                                language: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 phoneVerified: boolean;
@@ -1116,6 +1119,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;
@@ -1210,6 +1214,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;
@@ -1306,6 +1311,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;
@@ -1402,6 +1408,7 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                     email: string | null;
                                     emailVerified: boolean;
                                     phone: string | null;
+                                    language: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     phoneVerified: boolean;

@@ -1,3 +1,4 @@
+import { type Language } from '../../lib/i18n';
 import { BookingModel } from './model';
 export declare abstract class BookingService {
     private static buildDayRange;
@@ -16,8 +17,8 @@ export declare abstract class BookingService {
     static listBookings(organizationId: string, query: BookingModel.BookingListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     static listRequestedBookings(organizationId: string, query: BookingModel.BookingRequestListQuery): Promise<BookingModel.BookingSummaryResponse[]>;
     private static doCreateBooking;
-    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput, source?: 'customer' | 'staff'): Promise<BookingModel.BookingDetailResponse>;
-    static createAppointmentRequest(organizationId: string, createdById: string, input: BookingModel.AppointmentBookingCreateInput): Promise<BookingModel.BookingDetailResponse>;
+    static createBooking(organizationId: string, createdById: string, input: BookingModel.BookingCreateInput, source?: 'customer' | 'staff', lang?: Language): Promise<BookingModel.BookingDetailResponse>;
+    static createAppointmentRequest(organizationId: string, createdById: string, input: BookingModel.AppointmentBookingCreateInput, lang?: Language): Promise<BookingModel.BookingDetailResponse>;
     static getBooking(organizationId: string, id: string): Promise<BookingModel.BookingDetailResponse>;
     static getInProgressBooking(organizationId: string, userId: string): Promise<BookingModel.BookingDetailResponse | null>;
     static updateBookingStatus(organizationId: string, id: string, input: BookingModel.BookingStatusUpdateInput, userId: string): Promise<BookingModel.BookingDetailResponse>;

@@ -16,6 +16,7 @@ import { AppError } from '../../core/error'
 import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import { env } from '../../lib/env'
+import { type Language } from '../../lib/i18n'
 import { notification } from '../notifications/schema'
 import {
 	sendBookingAcceptedEmail,
@@ -409,6 +410,7 @@ export abstract class BookingService {
 				name: row.customer.name,
 				phone: row.customer.phone,
 				email: row.customer.email,
+				language: row.customer.language,
 				emailVerified: row.customer.emailVerified,
 				phoneVerified: row.customer.phoneVerified,
 				emailVerifiedAt: row.customer.emailVerifiedAt,
@@ -577,7 +579,8 @@ export abstract class BookingService {
 		createdById: string,
 		input: BookingModel.BookingCreateInput,
 		status: BookingStatus,
-		source: 'customer' | 'staff'
+		source: 'customer' | 'staff',
+		lang: Language = 'id'
 	): Promise<BookingModel.BookingDetailResponse> {
 		const timezone = await fetchOrgTimezone(organizationId)
 		const scheduledAt = await BookingService.validateScheduledAt(
@@ -632,6 +635,7 @@ export abstract class BookingService {
 							name: input.customerName,
 							phone: null,
 							email: normalizedEmail,
+							language: lang,
 							emailVerified: false,
 							phoneVerified: false,
 							notes: null
@@ -732,13 +736,15 @@ export abstract class BookingService {
 				columns: { name: true, slug: true }
 			})
 
+			const customerLanguage =
+				(bookingDetail.customer.language as Language) ?? 'id'
 			const verifyUrl = `${env.WEB_URL}/${orgInfo?.slug}/identity/verify?token=${token}`
 			sendIdentityVerificationEmail({
 				to: custEmail,
 				customerName: bookingDetail.customer.name,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
 				verifyUrl,
-				language: 'id'
+				language: customerLanguage
 			}).catch((err) => {
 				console.error(
 					'Failed to send identity verification email:',
@@ -756,28 +762,32 @@ export abstract class BookingService {
 		organizationId: string,
 		createdById: string,
 		input: BookingModel.BookingCreateInput,
-		source: 'customer' | 'staff' = 'staff'
+		source: 'customer' | 'staff' = 'staff',
+		lang: Language = 'id'
 	): Promise<BookingModel.BookingDetailResponse> {
 		return BookingService.doCreateBooking(
 			organizationId,
 			createdById,
 			input,
 			'waiting',
-			source
+			source,
+			lang
 		)
 	}
 
 	static async createAppointmentRequest(
 		organizationId: string,
 		createdById: string,
-		input: BookingModel.AppointmentBookingCreateInput
+		input: BookingModel.AppointmentBookingCreateInput,
+		lang: Language = 'id'
 	): Promise<BookingModel.BookingDetailResponse> {
 		return BookingService.doCreateBooking(
 			organizationId,
 			createdById,
 			input,
 			'requested',
-			'customer'
+			'customer',
+			lang
 		)
 	}
 
@@ -988,12 +998,15 @@ export abstract class BookingService {
 				.where(eq(organization.id, organizationId))
 				.limit(1)
 
+			const customerLanguage =
+				(result.customer.language as Language) ?? 'id'
+
 			sendBookingAcceptedEmail({
 				to: result.customer.email,
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
 				referenceNumber: result.referenceNumber,
-				language: 'id'
+				language: customerLanguage
 			}).catch(console.error)
 		}
 
@@ -1062,13 +1075,16 @@ export abstract class BookingService {
 				.where(eq(organization.id, organizationId))
 				.limit(1)
 
+			const customerLanguage =
+				(result.customer.language as Language) ?? 'id'
+
 			sendBookingDeclinedEmail({
 				to: result.customer.email,
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
 				referenceNumber: result.referenceNumber,
 				reason: input.reason ?? null,
-				language: 'id'
+				language: customerLanguage
 			}).catch(console.error)
 		}
 
@@ -1393,7 +1409,7 @@ export abstract class BookingService {
 		const [customers, orgs] = await Promise.all([
 			db.query.customer.findMany({
 				where: inArray(customer.id, customerIds),
-				columns: { id: true, email: true, name: true }
+				columns: { id: true, email: true, name: true, language: true }
 			}),
 			db.query.organization.findMany({
 				where: inArray(organization.id, orgIds),
@@ -1414,7 +1430,7 @@ export abstract class BookingService {
 					customerName: customerRow.name,
 					barbershopName: orgRow.name,
 					referenceNumber: row.referenceNumber,
-					language: 'id'
+					language: (customerRow.language as Language) ?? 'id'
 				}).catch(console.error)
 			}
 		}

@@ -64,6 +64,13 @@
       "when": 1784477784786,
       "tag": "20260719161624_add-user-language",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784485342826,
+      "tag": "20260719182222_add-customer-language",
+      "breakpoints": true
     }
   ]
 }
