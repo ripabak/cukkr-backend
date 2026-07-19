@@ -15,6 +15,7 @@ export declare namespace NotificationModel {
     const NotificationListItem: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         organizationId: import("@sinclair/typebox").TString;
+        organizationName: import("@sinclair/typebox").TString;
         type: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"appointment_requested">, import("@sinclair/typebox").TLiteral<"walk_in_arrival">, import("@sinclair/typebox").TLiteral<"barbershop_invitation">]>;
         title: import("@sinclair/typebox").TString;
         body: import("@sinclair/typebox").TString;
@@ -30,6 +31,7 @@ export declare namespace NotificationModel {
     const NotificationListResponse: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         organizationId: import("@sinclair/typebox").TString;
+        organizationName: import("@sinclair/typebox").TString;
         type: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"appointment_requested">, import("@sinclair/typebox").TLiteral<"walk_in_arrival">, import("@sinclair/typebox").TLiteral<"barbershop_invitation">]>;
         title: import("@sinclair/typebox").TString;
         body: import("@sinclair/typebox").TString;
@@ -46,6 +48,16 @@ export declare namespace NotificationModel {
         count: import("@sinclair/typebox").TNumber;
     }>;
     type NotificationUnreadCountResponse = typeof NotificationUnreadCountResponse.static;
+    const NotificationUnreadByOrgItem: import("@sinclair/typebox").TObject<{
+        organizationId: import("@sinclair/typebox").TString;
+        count: import("@sinclair/typebox").TNumber;
+    }>;
+    type NotificationUnreadByOrgItem = typeof NotificationUnreadByOrgItem.static;
+    const NotificationUnreadByOrgResponse: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
+        organizationId: import("@sinclair/typebox").TString;
+        count: import("@sinclair/typebox").TNumber;
+    }>>;
+    type NotificationUnreadByOrgResponse = typeof NotificationUnreadByOrgResponse.static;
     const NotificationMarkReadResponse: import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         isRead: import("@sinclair/typebox").TBoolean;

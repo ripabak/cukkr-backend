@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, lt } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, lt, or } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
@@ -11,7 +11,7 @@ import {
 	type ExpoPushMessage
 } from '../../lib/push'
 import { webpush } from '../../lib/web-push'
-import { invitation, member, user } from '../auth/schema'
+import { invitation, member, organization, user } from '../auth/schema'
 import { BookingService } from '../bookings/service'
 import type { BookingModel } from '../bookings/model'
 import { NotificationModel } from './model'
@@ -44,12 +44,24 @@ export type CreateNotificationsForRecipientsInput = {
 }
 
 export abstract class NotificationService {
-	private static toNotificationListItem(
-		row: NotificationRow
-	): NotificationListItem {
+	private static toNotificationListItem(row: {
+		id: string
+		organizationId: string
+		organizationName?: string | null
+		type: string
+		title: string
+		body: string
+		referenceId: string | null
+		referenceType: string | null
+		actionedAs: string | null
+		isRead: boolean
+		createdAt: Date
+		updatedAt: Date
+	}): NotificationListItem {
 		return {
 			id: row.id,
 			organizationId: row.organizationId,
+			organizationName: row.organizationName ?? '',
 			type: row.type as NotificationListItem['type'],
 			title: row.title,
 			body: row.body,
@@ -62,6 +74,30 @@ export abstract class NotificationService {
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt
 		}
+	}
+
+	private static buildOrgScopeCondition(activeOrganizationId?: string) {
+		if (!activeOrganizationId) return undefined
+		return or(
+			and(
+				inArray(notification.type, [
+					'appointment_requested',
+					'walk_in_arrival'
+				]),
+				eq(notification.organizationId, activeOrganizationId)
+			),
+			eq(notification.type, 'barbershop_invitation')
+		)
+	}
+
+	private static async lookupOrganizationName(
+		organizationId: string
+	): Promise<string> {
+		const org = await db.query.organization.findFirst({
+			where: eq(organization.id, organizationId),
+			columns: { name: true }
+		})
+		return org?.name ?? 'Unknown'
 	}
 
 	private static deriveActionType(
@@ -277,23 +313,45 @@ export abstract class NotificationService {
 
 	static async listNotifications(
 		recipientUserId: string,
-		query: NotificationListQuery
+		query: NotificationListQuery,
+		activeOrganizationId?: string
 	): Promise<PaginatedResult<NotificationListItem>> {
 		const pagination = NotificationService.normalizePagination(query)
+		const orgScope =
+			NotificationService.buildOrgScopeCondition(activeOrganizationId)
 		const where = and(
 			eq(notification.recipientUserId, recipientUserId),
 			query.unreadOnly === true
 				? eq(notification.isRead, false)
-				: undefined
+				: undefined,
+			orgScope
 		)
 
 		const [data, countResult] = await Promise.all([
-			db.query.notification.findMany({
-				where,
-				limit: pagination.take,
-				offset: pagination.skip,
-				orderBy: desc(notification.createdAt)
-			}),
+			db
+				.select({
+					id: notification.id,
+					organizationId: notification.organizationId,
+					type: notification.type,
+					title: notification.title,
+					body: notification.body,
+					referenceId: notification.referenceId,
+					referenceType: notification.referenceType,
+					actionedAs: notification.actionedAs,
+					isRead: notification.isRead,
+					createdAt: notification.createdAt,
+					updatedAt: notification.updatedAt,
+					organizationName: organization.name
+				})
+				.from(notification)
+				.leftJoin(
+					organization,
+					eq(notification.organizationId, organization.id)
+				)
+				.where(where)
+				.limit(pagination.take)
+				.offset(pagination.skip)
+				.orderBy(desc(notification.createdAt)),
 			db.select({ count: count() }).from(notification).where(where)
 		])
 
@@ -307,15 +365,19 @@ export abstract class NotificationService {
 	}
 
 	static async getUnreadCount(
-		recipientUserId: string
+		recipientUserId: string,
+		activeOrganizationId?: string
 	): Promise<NotificationModel.NotificationUnreadCountResponse> {
+		const orgScope =
+			NotificationService.buildOrgScopeCondition(activeOrganizationId)
 		const [result] = await db
 			.select({ count: count() })
 			.from(notification)
 			.where(
 				and(
 					eq(notification.recipientUserId, recipientUserId),
-					eq(notification.isRead, false)
+					eq(notification.isRead, false),
+					orgScope
 				)
 			)
 
@@ -363,8 +425,11 @@ export abstract class NotificationService {
 	}
 
 	static async markAllAsRead(
-		recipientUserId: string
+		recipientUserId: string,
+		activeOrganizationId?: string
 	): Promise<NotificationModel.NotificationMarkAllReadResponse> {
+		const orgScope =
+			NotificationService.buildOrgScopeCondition(activeOrganizationId)
 		const updatedRows = await db
 			.update(notification)
 			.set({
@@ -374,7 +439,8 @@ export abstract class NotificationService {
 			.where(
 				and(
 					eq(notification.recipientUserId, recipientUserId),
-					eq(notification.isRead, false)
+					eq(notification.isRead, false),
+					orgScope
 				)
 			)
 			.returning({ id: notification.id })
@@ -382,6 +448,29 @@ export abstract class NotificationService {
 		return {
 			updatedCount: updatedRows.length
 		}
+	}
+
+	static async getUnreadCountByOrg(
+		recipientUserId: string
+	): Promise<NotificationModel.NotificationUnreadByOrgItem[]> {
+		const rows = await db
+			.select({
+				organizationId: notification.organizationId,
+				count: count()
+			})
+			.from(notification)
+			.where(
+				and(
+					eq(notification.recipientUserId, recipientUserId),
+					eq(notification.isRead, false)
+				)
+			)
+			.groupBy(notification.organizationId)
+
+		return rows.map((row) => ({
+			organizationId: row.organizationId,
+			count: row.count
+		}))
 	}
 
 	static async createNotificationsForRecipients(
@@ -801,10 +890,11 @@ export abstract class NotificationService {
 			return
 		}
 
-		const title =
-			bookingDetail.type === 'appointment'
-				? 'New Appointment Request'
-				: 'New Walk-In Arrival'
+		const orgName = await NotificationService.lookupOrganizationName(
+			bookingDetail.organizationId
+		)
+
+		const title = orgName
 		const body =
 			bookingDetail.type === 'appointment'
 				? `${bookingDetail.customer.name} requested an appointment.`
@@ -823,7 +913,8 @@ export abstract class NotificationService {
 			referenceType: 'booking',
 			data: {
 				customerName: bookingDetail.customer.name,
-				bookingType: bookingDetail.type
+				bookingType: bookingDetail.type,
+				organizationId: bookingDetail.organizationId
 			}
 		})
 	}
