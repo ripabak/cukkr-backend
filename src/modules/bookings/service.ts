@@ -737,7 +737,8 @@ export abstract class BookingService {
 				to: custEmail,
 				customerName: bookingDetail.customer.name,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
-				verifyUrl
+				verifyUrl,
+				language: 'id'
 			}).catch((err) => {
 				console.error(
 					'Failed to send identity verification email:',
@@ -991,7 +992,8 @@ export abstract class BookingService {
 				to: result.customer.email,
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
-				referenceNumber: result.referenceNumber
+				referenceNumber: result.referenceNumber,
+				language: 'id'
 			}).catch(console.error)
 		}
 
@@ -1065,7 +1067,8 @@ export abstract class BookingService {
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
 				referenceNumber: result.referenceNumber,
-				reason: input.reason ?? null
+				reason: input.reason ?? null,
+				language: 'id'
 			}).catch(console.error)
 		}
 
@@ -1410,7 +1413,8 @@ export abstract class BookingService {
 					to: customerRow.email,
 					customerName: customerRow.name,
 					barbershopName: orgRow.name,
-					referenceNumber: row.referenceNumber
+					referenceNumber: row.referenceNumber,
+					language: 'id'
 				}).catch(console.error)
 			}
 		}

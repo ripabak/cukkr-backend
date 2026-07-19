@@ -7,6 +7,7 @@ import { and, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { env } from './env'
 import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
+import { t, type Language } from './i18n'
 import { expo } from '@better-auth/expo'
 import { BarbershopService } from '../modules/barbershop/service'
 import { validateEmail } from '../utils/email-validation'
@@ -37,7 +38,12 @@ export const auth = betterAuth({
 			sendVerificationOnSignUp: false,
 			async sendVerificationOTP({ email, otp, type }) {
 				try {
-					await sendOtpEmail({ to: email, otp, purpose: type })
+					await sendOtpEmail({
+						to: email,
+						otp,
+						purpose: type,
+						language: 'id'
+					})
 				} catch (err) {
 					if (env.NODE_ENV !== 'test') throw err
 				}
@@ -62,27 +68,40 @@ export const auth = betterAuth({
 			},
 			allowUserToCreateOrganization: async (user) => {
 				if (env.NODE_ENV !== 'production') return true
-				const existing = await db
-					.select({ id: schema.member.id })
-					.from(schema.member)
-					.where(
-						and(
-							eq(schema.member.userId, user.id),
-							eq(schema.member.role, 'owner')
-						)
+				const orgCount = await db.$count(
+					schema.member,
+					and(
+						eq(schema.member.userId, user.id),
+						eq(schema.member.role, 'owner')
 					)
-					.limit(1)
-				return existing.length === 0
+				)
+				return orgCount < 2
 			},
 			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
 			async sendInvitationEmail(data) {
 				const inviteLink = `${env.CLIENT_URL}/d/accept-invitation?id=${data.id}`
+
+				// Get invitee language if they already have an account
+				let inviteeLanguage: Language = 'id'
+				try {
+					const inviteeUser = await db.query.user.findFirst({
+						where: eq(schema.user.email, data.email.toLowerCase()),
+						columns: { language: true }
+					})
+					if (inviteeUser?.language) {
+						inviteeLanguage = inviteeUser.language as Language
+					}
+				} catch {
+					// ignore
+				}
+
 				try {
 					await sendOrganizationInvitation({
 						to: data.email,
 						inviterName: data.inviter.user.name,
 						organizationName: data.organization.name,
-						inviteUrl: inviteLink
+						inviteUrl: inviteLink,
+						language: inviteeLanguage
 					})
 				} catch (err) {
 					console.error(
@@ -103,8 +122,21 @@ export const auth = betterAuth({
 							organizationId: data.organization.id,
 							recipientUserId: inviteeUser.id,
 							type: 'barbershop_invitation',
-							title: `${data.organization.name} Invitation`,
-							body: `${data.inviter.user.name} invited you to join ${data.organization.name}`,
+							title: t(
+								inviteeLanguage,
+								'notification.barbershopInvitation.title',
+								{
+									organizationName: data.organization.name
+								}
+							),
+							body: t(
+								inviteeLanguage,
+								'notification.barbershopInvitation.body',
+								{
+									inviterName: data.inviter.user.name,
+									organizationName: data.organization.name
+								}
+							),
 							referenceId: data.id,
 							referenceType: 'invitation'
 						})
@@ -149,6 +181,11 @@ export const auth = betterAuth({
 			bio: {
 				type: 'string',
 				required: false
+			},
+			language: {
+				type: 'string',
+				required: false,
+				defaultValue: 'id'
 			}
 		},
 		changeEmail: {

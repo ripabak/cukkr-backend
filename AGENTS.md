@@ -225,6 +225,42 @@ describe("My Module Tests", () => {
 
 ---
 
+## Multi-Language (i18n)
+
+Cukkr supports two languages: Indonesian (`id`) as default and English (`en`).
+
+### Architecture
+
+```
+src/lib/i18n/
+├── index.ts            # t() function, Language type
+├── locales/
+│   ├── id.ts           # Indonesian strings (email, notification)
+│   └── en.ts           # English strings (email, notification)
+```
+
+### Rules
+
+- **Language source**: `user.language` field on the `user` table (Drizzle schema), exposed via Better Auth `additionalFields`. Default is `'id'`.
+- **Translation function**: `t(language, key, params?)` from `src/lib/i18n`. Does deep-lookup into locale objects by dot-notated key, interpolates `{param}` placeholders, falls back to `'id'` if key not found.
+- **Email templates**: All email functions in `src/lib/mail.ts` accept `language?: Language` parameter. Use `t(language, 'email.xxx.yyy', params)` for all subject and body strings.
+- **Notification strings**: `NotificationService.createBookingNotifications` groups recipients by language and uses `t()` per group. Invitation notifications in `auth.ts` also use `t()` based on `inviteeUser.language`.
+- **When adding new email/notification**: Always add strings to both `locales/id.ts` and `locales/en.ts` with identical key structure. Always use `t()` — never hardcode.
+- **Language type**: `export type Language = 'id' | 'en'` from `src/lib/i18n`.
+- **Tests**: Test i18n in `tests/lib/i18n.test.ts`. Verify language field in `tests/modules/auth.test.ts`.
+
+### Example
+
+```typescript
+import { t, type Language } from './i18n'
+
+// Email subject
+const subject = t('id', 'email.bookingAccepted.subject', { barbershopName: 'Barber Shop' })
+
+// Notification
+const body = t(lang, 'notification.appointmentRequested.body', { customerName: 'Budi' })
+```
+
 ## Security & Configuration
 
 - All secrets live in `.env`. Use `src/lib/env.ts` to access them — never import `process.env` directly in modules.

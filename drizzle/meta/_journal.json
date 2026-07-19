@@ -57,6 +57,13 @@
       "when": 1783521553597,
       "tag": "20260708143913_add-customer-contact-verification",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784477784786,
+      "tag": "20260719161624_add-user-language",
+      "breakpoints": true
     }
   ]
 }

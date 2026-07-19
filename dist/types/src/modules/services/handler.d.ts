@@ -175,6 +175,7 @@ export declare const servicesHandler: Elysia<"/services", {
                     emailVerified: boolean;
                     name: string;
                     image?: string | null | undefined | undefined;
+                    language: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -198,6 +199,7 @@ export declare const servicesHandler: Elysia<"/services", {
                     emailVerified: boolean;
                     name: string;
                     image?: string | null | undefined | undefined;
+                    language: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -355,6 +357,7 @@ export declare const servicesHandler: Elysia<"/services", {
                     emailVerified: boolean;
                     name: string;
                     image?: string | null | undefined | undefined;
+                    language: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -525,6 +528,7 @@ export declare const servicesHandler: Elysia<"/services", {
                     emailVerified: boolean;
                     name: string;
                     image?: string | null | undefined | undefined;
+                    language: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -548,6 +552,7 @@ export declare const servicesHandler: Elysia<"/services", {
                     emailVerified: boolean;
                     name: string;
                     image?: string | null | undefined | undefined;
+                    language: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -1004,6 +1009,7 @@ export declare const servicesHandler: Elysia<"/services", {
             emailVerified: boolean;
             name: string;
             image?: string | null | undefined | undefined;
+            language: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
@@ -1031,6 +1037,7 @@ export declare const servicesHandler: Elysia<"/services", {
             emailVerified: boolean;
             name: string;
             image?: string | null | undefined | undefined;
+            language: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
