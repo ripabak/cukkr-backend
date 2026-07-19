@@ -71,6 +71,13 @@
       "when": 1784485342826,
       "tag": "20260719182222_add-customer-language",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784487837655,
+      "tag": "20260719190357_add-booking-language",
+      "breakpoints": true
     }
   ]
 }

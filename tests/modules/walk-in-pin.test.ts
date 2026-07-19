@@ -6,6 +6,7 @@ import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
 import { member } from '../../src/modules/auth/schema'
 import { walkInPin } from '../../src/modules/walk-in-pin/schema'
+import { customer } from '../../src/modules/bookings/schema'
 import { ipFailureGuard } from '../../src/utils/ip-failure-guard'
 
 const tClient = treaty(app)
@@ -359,6 +360,12 @@ describe('Walk-In PIN System', () => {
 			const booking = bookingRes.data?.data
 			expect(booking?.id).toBeDefined()
 			expect(booking?.type).toBe('walk_in')
+
+			const cust = await db.query.customer.findFirst({
+				where: eq(customer.id, booking.customer.id),
+				columns: { language: true }
+			})
+			expect(cust?.language).toBe('id')
 		})
 
 		it('multiple customers can book using the same PIN (different tokens)', async () => {

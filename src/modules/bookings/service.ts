@@ -643,6 +643,20 @@ export abstract class BookingService {
 						.returning()
 				)[0]
 
+			if (
+				existingCustomer &&
+				source === 'customer' &&
+				input.type === 'walk_in'
+			) {
+				await tx
+					.update(customer)
+					.set({
+						language: lang,
+						updatedAt: now
+					})
+					.where(eq(customer.id, existingCustomer.id))
+			}
+
 			const isAppointment = input.type === 'appointment'
 			const isPublicAppointment = isAppointment && status === 'requested'
 			const verificationToken = isPublicAppointment ? nanoid(32) : null
@@ -685,6 +699,7 @@ export abstract class BookingService {
 				barberId,
 				scheduledAt,
 				notes: input.notes ?? null,
+				language: lang,
 				verifiedAt,
 				verificationToken,
 				startedAt: null,
@@ -1340,6 +1355,7 @@ export abstract class BookingService {
 				emailVerified: true,
 				emailVerifiedAt: now,
 				emailVerificationToken: null,
+				language: existing.language ?? 'id',
 				updatedAt: now
 			})
 			.where(eq(customer.id, existing.customerId))
