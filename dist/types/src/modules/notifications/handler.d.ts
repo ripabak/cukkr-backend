@@ -593,6 +593,7 @@ export declare const notificationsHandler: Elysia<"/notifications", {
                         referenceType: "invitation" | "booking" | null;
                         actionedAs: "accepted" | "declined" | null;
                         isRead: boolean;
+                        organizationName: string;
                         actionType: "accept_decline_appointment" | "accept_decline_invite" | null;
                     }[];
                     status: string | number;
@@ -633,6 +634,46 @@ export declare const notificationsHandler: Elysia<"/notifications", {
                         data: {
                             count: number;
                         };
+                        status: string | number;
+                        path: string;
+                        timeStamp: string;
+                    };
+                    422: {
+                        type: "validation";
+                        on: string;
+                        summary?: string;
+                        message?: string;
+                        found?: unknown;
+                        property?: string;
+                        expected?: string;
+                    };
+                };
+            };
+        };
+    };
+} & {
+    notifications: {
+        "unread-count-by-org": {
+            get: {
+                body: {};
+                params: {};
+                query: {};
+                headers: {};
+                response: {
+                    200: {
+                        meta?: {
+                            limit: number;
+                            page: number;
+                            totalItems: number;
+                            totalPages: number;
+                            hasNext: boolean;
+                            hasPrev: boolean;
+                        } | undefined;
+                        message: string;
+                        data: {
+                            organizationId: string;
+                            count: number;
+                        }[];
                         status: string | number;
                         path: string;
                         timeStamp: string;

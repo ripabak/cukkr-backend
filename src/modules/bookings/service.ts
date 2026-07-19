@@ -16,6 +16,7 @@ import { AppError } from '../../core/error'
 import { bookingEventBus } from './event-bus'
 import { db } from '../../lib/database'
 import { env } from '../../lib/env'
+import { notification } from '../notifications/schema'
 import {
 	sendBookingAcceptedEmail,
 	sendBookingDeclinedEmail,
@@ -962,6 +963,18 @@ export abstract class BookingService {
 						eq(booking.organizationId, organizationId)
 					)
 				)
+
+			await tx
+				.update(notification)
+				.set({ actionedAs: 'accepted', updatedAt: now })
+				.where(
+					and(
+						eq(notification.referenceId, id),
+						eq(notification.referenceType, 'booking'),
+						eq(notification.type, 'appointment_requested'),
+						eq(notification.organizationId, organizationId)
+					)
+				)
 		})
 
 		const result = await BookingService.getBooking(organizationId, id)
@@ -1021,6 +1034,18 @@ export abstract class BookingService {
 					and(
 						eq(booking.id, id),
 						eq(booking.organizationId, organizationId)
+					)
+				)
+
+			await tx
+				.update(notification)
+				.set({ actionedAs: 'declined', updatedAt: now })
+				.where(
+					and(
+						eq(notification.referenceId, id),
+						eq(notification.referenceType, 'booking'),
+						eq(notification.type, 'appointment_requested'),
+						eq(notification.organizationId, organizationId)
 					)
 				)
 		})

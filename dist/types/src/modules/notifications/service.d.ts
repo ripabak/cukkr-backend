@@ -18,15 +18,18 @@ export type CreateNotificationsForRecipientsInput = {
 };
 export declare abstract class NotificationService {
     private static toNotificationListItem;
+    private static buildOrgScopeCondition;
+    private static lookupOrganizationName;
     private static deriveActionType;
     private static dispatchPushNotifications;
     private static dispatchWebPushNotifications;
     private static normalizePagination;
     private static getOwnedNotification;
-    static listNotifications(recipientUserId: string, query: NotificationListQuery): Promise<PaginatedResult<NotificationListItem>>;
-    static getUnreadCount(recipientUserId: string): Promise<NotificationModel.NotificationUnreadCountResponse>;
+    static listNotifications(recipientUserId: string, query: NotificationListQuery, activeOrganizationId?: string): Promise<PaginatedResult<NotificationListItem>>;
+    static getUnreadCount(recipientUserId: string, activeOrganizationId?: string): Promise<NotificationModel.NotificationUnreadCountResponse>;
     static markAsRead(recipientUserId: string, notificationId: string): Promise<NotificationMarkReadResponse>;
-    static markAllAsRead(recipientUserId: string): Promise<NotificationModel.NotificationMarkAllReadResponse>;
+    static markAllAsRead(recipientUserId: string, activeOrganizationId?: string): Promise<NotificationModel.NotificationMarkAllReadResponse>;
+    static getUnreadCountByOrg(recipientUserId: string): Promise<NotificationModel.NotificationUnreadByOrgItem[]>;
     static createNotificationsForRecipients(input: CreateNotificationsForRecipientsInput): Promise<NotificationRow[]>;
     static getOrganizationRecipientUserIds(organizationId: string): Promise<string[]>;
     static registerPushToken(userId: string, token: string): Promise<NotificationRegisterPushTokenResponse>;

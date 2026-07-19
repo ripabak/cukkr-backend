@@ -2,7 +2,6 @@ import { t } from 'elysia'
 
 export const BOOKING_TYPES = ['walk_in', 'appointment'] as const
 export const BOOKING_STATUSES = [
-	'pending',
 	'requested',
 	'waiting',
 	'in_progress',
@@ -17,7 +16,6 @@ export const BookingTypeEnum = t.Union([
 ])
 
 export const BookingStatusEnum = t.Union([
-	t.Literal('pending'),
 	t.Literal('requested'),
 	t.Literal('waiting'),
 	t.Literal('in_progress'),
@@ -27,7 +25,6 @@ export const BookingStatusEnum = t.Union([
 
 export const BookingListStatusEnum = t.Union([
 	t.Literal('all'),
-	t.Literal('pending'),
 	t.Literal('requested'),
 	t.Literal('waiting'),
 	t.Literal('in_progress'),

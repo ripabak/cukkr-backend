@@ -158,7 +158,7 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
-                                    status: "pending" | "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
+                                    status: "requested" | "waiting" | "in_progress" | "completed" | "cancelled";
                                     customer: {
                                         id: string;
                                         name: string;

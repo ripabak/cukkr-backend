@@ -122,7 +122,7 @@ export declare namespace PublicBookingModel {
             organizationId: import("@sinclair/typebox").TString;
             referenceNumber: import("@sinclair/typebox").TString;
             type: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"walk_in">, import("@sinclair/typebox").TLiteral<"appointment">]>;
-            status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+            status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
             customer: import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;

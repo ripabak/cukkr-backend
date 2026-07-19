@@ -1,9 +1,9 @@
 export declare const BOOKING_TYPES: readonly ["walk_in", "appointment"];
-export declare const BOOKING_STATUSES: readonly ["pending", "requested", "waiting", "in_progress", "completed", "cancelled"];
-export declare const BOOKING_LIST_STATUSES: readonly ["all", "pending", "requested", "waiting", "in_progress", "completed", "cancelled"];
+export declare const BOOKING_STATUSES: readonly ["requested", "waiting", "in_progress", "completed", "cancelled"];
+export declare const BOOKING_LIST_STATUSES: readonly ["all", "requested", "waiting", "in_progress", "completed", "cancelled"];
 export declare const BookingTypeEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"walk_in">, import("@sinclair/typebox").TLiteral<"appointment">]>;
-export declare const BookingStatusEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
-export declare const BookingListStatusEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+export declare const BookingStatusEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+export declare const BookingListStatusEnum: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
 export declare namespace BookingModel {
     type BookingType = (typeof BOOKING_TYPES)[number];
     type BookingStatus = (typeof BOOKING_STATUSES)[number];
@@ -51,7 +51,7 @@ export declare namespace BookingModel {
     }>]>;
     type BookingCreateInput = typeof BookingCreateInput.static;
     const BookingStatusUpdateInput: import("@sinclair/typebox").TObject<{
-        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
         cancelReason: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
     }>;
     type BookingStatusUpdateInput = typeof BookingStatusUpdateInput.static;
@@ -65,7 +65,7 @@ export declare namespace BookingModel {
     type BookingReassignInput = typeof BookingReassignInput.static;
     const BookingListQuery: import("@sinclair/typebox").TObject<{
         date: import("@sinclair/typebox").TString;
-        status: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>>;
+        status: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"all">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
         sort: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"oldest_first">, import("@sinclair/typebox").TLiteral<"recently_added">]>>;
     }>;
@@ -106,7 +106,7 @@ export declare namespace BookingModel {
         id: import("@sinclair/typebox").TString;
         referenceNumber: import("@sinclair/typebox").TString;
         type: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"walk_in">, import("@sinclair/typebox").TLiteral<"appointment">]>;
-        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
         customerName: import("@sinclair/typebox").TString;
         serviceNames: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         totalDuration: import("@sinclair/typebox").TNumber;
@@ -127,7 +127,7 @@ export declare namespace BookingModel {
         organizationId: import("@sinclair/typebox").TString;
         referenceNumber: import("@sinclair/typebox").TString;
         type: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"walk_in">, import("@sinclair/typebox").TLiteral<"appointment">]>;
-        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"pending">, import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
+        status: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TLiteral<"requested">, import("@sinclair/typebox").TLiteral<"waiting">, import("@sinclair/typebox").TLiteral<"in_progress">, import("@sinclair/typebox").TLiteral<"completed">, import("@sinclair/typebox").TLiteral<"cancelled">]>;
         customer: import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
             name: import("@sinclair/typebox").TString;

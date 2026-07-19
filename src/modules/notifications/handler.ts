@@ -17,9 +17,13 @@ export const notificationsHandler = new Elysia({
 	.use(authMiddleware)
 	.get(
 		'/',
-		async ({ query, path, user }) => {
+		async ({ query, path, user, session }) => {
 			const { data, totalItems, pagination } =
-				await NotificationService.listNotifications(user.id, query)
+				await NotificationService.listNotifications(
+					user.id,
+					query,
+					session?.activeOrganizationId ?? undefined
+				)
 
 			return formatResponse({
 				path,
@@ -37,8 +41,11 @@ export const notificationsHandler = new Elysia({
 	)
 	.get(
 		'/unread-count',
-		async ({ path, user }) => {
-			const data = await NotificationService.getUnreadCount(user.id)
+		async ({ path, user, session }) => {
+			const data = await NotificationService.getUnreadCount(
+				user.id,
+				session?.activeOrganizationId ?? undefined
+			)
 			return formatResponse({ path, data })
 		},
 		{
@@ -48,10 +55,26 @@ export const notificationsHandler = new Elysia({
 			)
 		}
 	)
+	.get(
+		'/unread-count-by-org',
+		async ({ path, user }) => {
+			const data = await NotificationService.getUnreadCountByOrg(user.id)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			response: FormatResponseSchema(
+				NotificationModel.NotificationUnreadByOrgResponse
+			)
+		}
+	)
 	.patch(
 		'/read-all',
-		async ({ path, user }) => {
-			const data = await NotificationService.markAllAsRead(user.id)
+		async ({ path, user, session }) => {
+			const data = await NotificationService.markAllAsRead(
+				user.id,
+				session?.activeOrganizationId ?? undefined
+			)
 			return formatResponse({
 				path,
 				data,

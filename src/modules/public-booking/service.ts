@@ -12,6 +12,7 @@ import { service } from '../services/schema'
 import { WalkInPinService } from '../walk-in-pin/service'
 import type { WalkInPinModel } from '../walk-in-pin/model'
 import type { PublicBookingModel } from './model'
+import { env } from '../../lib/env'
 
 type MemberWithUser = typeof member.$inferSelect & {
 	user: typeof import('../auth/schema').user.$inferSelect
@@ -43,10 +44,7 @@ export abstract class PublicBookingService {
 				)
 			}),
 			db.query.member.findMany({
-				where: and(
-					eq(member.organizationId, org.id),
-					eq(member.role, 'member')
-				),
+				where: and(eq(member.organizationId, org.id)),
 				with: { user: true }
 			})
 		])
@@ -94,8 +92,7 @@ export abstract class PublicBookingService {
 
 	static async createAppointment(
 		slug: string,
-		input: PublicBookingModel.AppointmentCreateInput,
-		baseUrl: string
+		input: PublicBookingModel.AppointmentCreateInput
 	): Promise<{
 		appointment: PublicBookingModel.AppointmentCreatedResponse
 	}> {
@@ -131,7 +128,7 @@ export abstract class PublicBookingService {
 		})
 
 		if (token && input.customerEmail) {
-			const verifyUrl = `${baseUrl}/${slug}/booking/appointment/verify?token=${token}`
+			const verifyUrl = `${env.WEB_URL}/${slug}/booking/appointment/verify?token=${token}`
 			await sendAppointmentVerificationEmail({
 				to: input.customerEmail,
 				customerName: input.customerName,

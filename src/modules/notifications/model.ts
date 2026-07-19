@@ -35,6 +35,7 @@ export namespace NotificationModel {
 	export const NotificationListItem = t.Object({
 		id: t.String(),
 		organizationId: t.String(),
+		organizationName: t.String(),
 		type: NotificationTypeEnum,
 		title: t.String(),
 		body: t.String(),
@@ -59,6 +60,19 @@ export namespace NotificationModel {
 	})
 	export type NotificationUnreadCountResponse =
 		typeof NotificationUnreadCountResponse.static
+
+	export const NotificationUnreadByOrgItem = t.Object({
+		organizationId: t.String(),
+		count: t.Number()
+	})
+	export type NotificationUnreadByOrgItem =
+		typeof NotificationUnreadByOrgItem.static
+
+	export const NotificationUnreadByOrgResponse = t.Array(
+		NotificationUnreadByOrgItem
+	)
+	export type NotificationUnreadByOrgResponse =
+		typeof NotificationUnreadByOrgResponse.static
 
 	export const NotificationMarkReadResponse = t.Object({
 		id: t.String(),
