@@ -44,10 +44,7 @@ export abstract class PublicBookingService {
 				)
 			}),
 			db.query.member.findMany({
-				where: and(
-					eq(member.organizationId, org.id),
-					eq(member.role, 'member')
-				),
+				where: and(eq(member.organizationId, org.id)),
 				with: { user: true }
 			})
 		])

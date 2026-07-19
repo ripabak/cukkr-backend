@@ -51,10 +51,7 @@ export abstract class PublicService {
 				)
 			}),
 			db.query.member.findMany({
-				where: and(
-					eq(member.organizationId, org.id),
-					eq(member.role, 'member')
-				),
+				where: and(eq(member.organizationId, org.id)),
 				with: { user: true }
 			})
 		])
@@ -111,10 +108,7 @@ export abstract class PublicService {
 				)
 			}),
 			db.query.member.findMany({
-				where: and(
-					eq(member.organizationId, org.id),
-					eq(member.role, 'member')
-				),
+				where: and(eq(member.organizationId, org.id)),
 				with: { user: true }
 			}),
 			OpenHoursService.getWeeklyScheduleForOrganization(org.id)
