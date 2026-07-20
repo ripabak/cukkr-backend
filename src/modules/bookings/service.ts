@@ -932,6 +932,27 @@ export abstract class BookingService {
 				)
 			}
 
+			if (input.status === 'completed') {
+				const actorMember = await tx.query.member.findFirst({
+					where: and(
+						eq(member.userId, userId),
+						eq(member.organizationId, organizationId)
+					)
+				})
+
+				if (
+					actorMember &&
+					actorMember.role === 'member' &&
+					existing.handledByBarberId &&
+					actorMember.id !== existing.handledByBarberId
+				) {
+					throw new AppError(
+						'Only the handling barber can complete this booking',
+						'FORBIDDEN'
+					)
+				}
+			}
+
 			const now = new Date()
 			await tx
 				.update(booking)
