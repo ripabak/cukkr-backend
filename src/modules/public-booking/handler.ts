@@ -12,6 +12,11 @@ const VerifyAppointmentQuery = t.Object({
 	token: t.String({ minLength: 1 })
 })
 
+const IdentityCheckResponse = t.Object({
+	valid: t.Boolean(),
+	customerName: t.Nullable(t.String())
+})
+
 const VerifyAppointmentResponse = t.Object({
 	verified: t.Boolean(),
 	bookingId: t.Nullable(t.String()),
@@ -133,6 +138,24 @@ export const publicBookingHandler = new Elysia({
 			params: PublicBookingModel.Schemas.SlugParam,
 			query: VerifyAppointmentQuery,
 			response: FormatResponseSchema(VerifyAppointmentResponse)
+		}
+	)
+	.get(
+		'/:slug/identity/check',
+		async ({ params: { slug }, query: { token }, path }) => {
+			await PublicBookingService.getOrgIdBySlug(slug)
+
+			const result = await PublicBookingService.checkIdentityToken(token)
+
+			return formatResponse({
+				path,
+				data: result
+			})
+		},
+		{
+			params: PublicBookingModel.Schemas.SlugParam,
+			query: t.Object({ token: t.String({ minLength: 1 }) }),
+			response: FormatResponseSchema(IdentityCheckResponse)
 		}
 	)
 	.get(

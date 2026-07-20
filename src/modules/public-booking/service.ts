@@ -230,6 +230,22 @@ export abstract class PublicBookingService {
 		return { verified: true, bookingId: null, status: 'verified' }
 	}
 
+	static async checkIdentityToken(token: string): Promise<{
+		valid: boolean
+		customerName: string | null
+	}> {
+		const custRow = await db.query.customer.findFirst({
+			where: eq(customer.emailVerificationToken, token),
+			columns: { name: true }
+		})
+
+		if (!custRow) {
+			return { valid: false, customerName: null }
+		}
+
+		return { valid: true, customerName: custRow.name }
+	}
+
 	static async getOrgIdBySlug(slug: string): Promise<string> {
 		const org = await resolveOrgBySlug(slug)
 		return org.id
