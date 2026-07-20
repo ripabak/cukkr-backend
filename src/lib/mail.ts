@@ -387,20 +387,134 @@ export async function sendIdentityVerificationEmail({
 	})
 }
 
+interface BookingDetailServiceItem {
+	name: string
+	price: number
+	duration: number
+}
+
+function formatBookingDate(
+	dateStr: string | null,
+	language: Language
+): string | null {
+	if (!dateStr) return null
+	const date = new Date(dateStr)
+	const locale = language === 'id' ? 'id-ID' : 'en-US'
+	return date.toLocaleDateString(locale, {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit'
+	})
+}
+
+function renderBookingDetailsHtml(
+	services: BookingDetailServiceItem[],
+	scheduledAt: string | null,
+	barberName: string | null,
+	totalDuration: number,
+	language: Language
+): string {
+	const locale = language === 'id' ? 'id-ID' : 'en-US'
+	const fmtPrice = (p: number) => p.toLocaleString(locale)
+
+	const scheduleStr = formatBookingDate(scheduledAt, language)
+
+	const serviceRows = services
+		.map(
+			(s) => `
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#18181b;border-bottom:1px solid #f4f4f5;">${s.name}</td>
+          <td style="padding:8px 0;font-size:14px;color:#52525b;border-bottom:1px solid #f4f4f5;text-align:right;white-space:nowrap;">${fmtPrice(s.price)}</td>
+          <td style="padding:8px 0;font-size:14px;color:#52525b;border-bottom:1px solid #f4f4f5;text-align:right;white-space:nowrap;">${s.duration} ${t(language, 'email.bookingAccepted.minuteUnit')}</td>
+        </tr>`
+		)
+		.join('')
+
+	const barberRow = barberName
+		? `
+        <tr>
+          <td style="padding:8px 0;font-size:13px;color:#52525b;">${t(language, 'email.bookingAccepted.barberLabel')}</td>
+          <td style="padding:8px 0;font-size:14px;color:#18181b;text-align:right;" colspan="2">${barberName}</td>
+        </tr>`
+		: ''
+
+	const scheduleRow = scheduleStr
+		? `
+        <tr>
+          <td style="padding:8px 0;font-size:13px;color:#52525b;">${t(language, 'email.bookingAccepted.scheduleLabel')}</td>
+          <td style="padding:8px 0;font-size:14px;color:#18181b;text-align:right;" colspan="2">${scheduleStr}</td>
+        </tr>`
+		: ''
+
+	return `
+    <table cellpadding="0" cellspacing="0" width="100%" style="background-color:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+      <tr>
+        <td>
+          <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;">${t(language, 'email.bookingAccepted.servicesLabel')}</p>
+          <table cellpadding="0" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th style="padding:4px 0 8px;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:1px solid #e4e4e7;">${t(language, 'email.bookingAccepted.serviceLabel')}</th>
+                <th style="padding:4px 0 8px;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;text-align:right;border-bottom:1px solid #e4e4e7;">${t(language, 'email.bookingAccepted.priceLabel')}</th>
+                <th style="padding:4px 0 8px;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;text-align:right;border-bottom:1px solid #e4e4e7;">${t(language, 'email.bookingAccepted.durationLabel')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${serviceRows}
+              <tr>
+                <td style="padding:12px 0 0;font-size:13px;font-weight:600;color:#52525b;">${t(language, 'email.bookingAccepted.totalDurationLabel')}</td>
+                <td style="padding:12px 0 0;text-align:right;" colspan="2">
+                  <span style="font-size:14px;font-weight:700;color:#18181b;">${totalDuration} ${t(language, 'email.bookingAccepted.minuteUnit')}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          ${
+				barberRow || scheduleRow
+					? `
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-top:12px;border-top:1px solid #e4e4e7;padding-top:8px;">
+            ${barberRow}
+            ${scheduleRow}
+          </table>`
+					: ''
+			}
+        </td>
+      </tr>
+    </table>`
+}
+
 export async function sendBookingAcceptedEmail({
 	to,
 	customerName,
 	barbershopName,
 	referenceNumber,
+	services,
+	scheduledAt,
+	barberName,
+	totalDuration,
 	language = 'id'
 }: {
 	to: string
 	customerName: string
 	barbershopName: string
 	referenceNumber: string
+	services: BookingDetailServiceItem[]
+	scheduledAt: string | null
+	barberName: string | null
+	totalDuration: number
 	language?: Language
 }) {
 	const year = new Date().getFullYear()
+	const bookingDetailsHtml = renderBookingDetailsHtml(
+		services,
+		scheduledAt,
+		barberName,
+		totalDuration,
+		language
+	)
 	const html = `<!DOCTYPE html>
 <html lang="${language}">
 <head>
@@ -435,6 +549,7 @@ export async function sendBookingAcceptedEmail({
                   </td>
                 </tr>
               </table>
+              ${bookingDetailsHtml}
               <p style="margin:0;font-size:14px;color:#52525b;line-height:1.6;">
                 ${t(language, 'email.bookingAccepted.bodyExtra')}
               </p>
@@ -459,11 +574,28 @@ export async function sendBookingAcceptedEmail({
 </body>
 </html>`
 
-	const text = t(language, 'email.bookingAccepted.text', {
+	const acceptedServiceLines = services
+		.map(
+			(s) =>
+				`${s.name} - ${s.price.toLocaleString()} - ${s.duration} ${t(language, 'email.bookingAccepted.minuteUnit')}`
+		)
+		.join('\n')
+	const acceptedScheduleText = scheduledAt
+		? `\n${t(language, 'email.bookingAccepted.scheduleLabel')}: ${formatBookingDate(scheduledAt, language)}`
+		: ''
+	const acceptedBarberText = barberName
+		? `\n${t(language, 'email.bookingAccepted.barberLabel')}: ${barberName}`
+		: ''
+	const acceptedDurationText = `\n${t(language, 'email.bookingAccepted.totalDurationLabel')}: ${totalDuration} ${t(language, 'email.bookingAccepted.minuteUnit')}`
+
+	const text = `${t(language, 'email.bookingAccepted.text', {
 		customerName,
 		barbershopName,
 		referenceNumber
-	})
+	})}
+${t(language, 'email.bookingAccepted.servicesLabel')}:
+${acceptedServiceLines}
+${acceptedScheduleText}${acceptedBarberText}${acceptedDurationText}`
 
 	await sendEmail({
 		to,
@@ -480,6 +612,10 @@ export async function sendBookingDeclinedEmail({
 	customerName,
 	barbershopName,
 	referenceNumber,
+	services,
+	scheduledAt,
+	barberName,
+	totalDuration,
 	reason,
 	language = 'id'
 }: {
@@ -487,10 +623,22 @@ export async function sendBookingDeclinedEmail({
 	customerName: string
 	barbershopName: string
 	referenceNumber: string
+	services: BookingDetailServiceItem[]
+	scheduledAt: string | null
+	barberName: string | null
+	totalDuration: number
 	reason?: string | null
 	language?: Language
 }) {
 	const year = new Date().getFullYear()
+
+	const bookingDetailsHtml = renderBookingDetailsHtml(
+		services,
+		scheduledAt,
+		barberName,
+		totalDuration,
+		language
+	)
 
 	const reasonBlock = reason
 		? `<table cellpadding="0" cellspacing="0" width="100%" style="background-color:#fef2f2;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
@@ -537,6 +685,7 @@ export async function sendBookingDeclinedEmail({
                   </td>
                 </tr>
               </table>
+              ${bookingDetailsHtml}
               ${reasonBlock}
               <p style="margin:0;font-size:14px;color:#52525b;line-height:1.6;">
                 ${t(language, 'email.bookingDeclined.bodyExtra')}
@@ -565,12 +714,30 @@ export async function sendBookingDeclinedEmail({
 	const reasonText = reason
 		? `\n${t(language, 'email.bookingDeclined.reasonLabel')}: ${reason}\n`
 		: ''
-	const text = t(language, 'email.bookingDeclined.text', {
+
+	const serviceLines = services
+		.map(
+			(s) =>
+				`${s.name} - ${s.price.toLocaleString()} - ${s.duration} ${t(language, 'email.bookingDeclined.minuteUnit')}`
+		)
+		.join('\n')
+	const scheduleText = scheduledAt
+		? `\n${t(language, 'email.bookingDeclined.scheduleLabel')}: ${formatBookingDate(scheduledAt, language)}`
+		: ''
+	const barberText = barberName
+		? `\n${t(language, 'email.bookingDeclined.barberLabel')}: ${barberName}`
+		: ''
+	const durationText = `\n${t(language, 'email.bookingDeclined.totalDurationLabel')}: ${totalDuration} ${t(language, 'email.bookingDeclined.minuteUnit')}`
+
+	const text = `${t(language, 'email.bookingDeclined.text', {
 		customerName,
 		barbershopName,
 		referenceNumber,
 		reasonText
-	})
+	})}
+${t(language, 'email.bookingDeclined.servicesLabel')}:
+${serviceLines}
+${scheduleText}${barberText}${durationText}`
 
 	await sendEmail({
 		to,

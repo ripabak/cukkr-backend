@@ -1042,6 +1042,14 @@ export abstract class BookingService {
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
 				referenceNumber: result.referenceNumber,
+				services: result.services.map((s) => ({
+					name: s.serviceName,
+					price: s.price,
+					duration: s.duration
+				})),
+				scheduledAt: result.scheduledAt?.toISOString() ?? null,
+				barberName: result.requestedBarber?.name ?? null,
+				totalDuration: result.totalDuration,
 				language: customerLanguage
 			}).catch(console.error)
 		}
@@ -1119,6 +1127,14 @@ export abstract class BookingService {
 				customerName: result.customer.name,
 				barbershopName: orgRow?.name ?? 'the barbershop',
 				referenceNumber: result.referenceNumber,
+				services: result.services.map((s) => ({
+					name: s.serviceName,
+					price: s.price,
+					duration: s.duration
+				})),
+				scheduledAt: result.scheduledAt?.toISOString() ?? null,
+				barberName: result.requestedBarber?.name ?? null,
+				totalDuration: result.totalDuration,
 				reason: input.reason ?? null,
 				language: customerLanguage
 			}).catch(console.error)
