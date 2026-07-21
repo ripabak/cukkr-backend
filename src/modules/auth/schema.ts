@@ -106,9 +106,6 @@ export const organization = pgTable(
 		name: text('name').notNull(),
 		slug: text('slug').notNull().unique(),
 		logo: text('logo'),
-		logoThumb: text('logo_thumb'),
-		logoMed: text('logo_med'),
-		logoFull: text('logo_full'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
 		metadata: text('metadata')
 	},

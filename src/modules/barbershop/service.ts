@@ -104,13 +104,13 @@ export abstract class BarbershopService {
 				name: organization.name,
 				slug: organization.slug,
 				logo: organization.logo,
-				logoThumb: organization.logoThumb,
-				logoMed: organization.logoMed,
-				logoFull: organization.logoFull,
 				metadata: organization.metadata,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
+				logoThumb: barbershopSettings.logoThumb,
+				logoMed: barbershopSettings.logoMed,
+				logoFull: barbershopSettings.logoFull,
 				onboardingCompleted: barbershopSettings.onboardingCompleted
 			})
 			.from(organization)
@@ -123,14 +123,6 @@ export abstract class BarbershopService {
 
 		if (!rows[0]) {
 			throw new AppError('Organization not found', 'NOT_FOUND')
-		}
-
-		const syncedLogoUrl = rows[0].logoUrl
-		if (syncedLogoUrl && syncedLogoUrl !== rows[0].logo) {
-			await db
-				.update(organization)
-				.set({ logo: syncedLogoUrl })
-				.where(eq(organization.id, organizationId))
 		}
 
 		return {
@@ -352,15 +344,6 @@ export abstract class BarbershopService {
 				logoFull: logoUrl
 			})
 			.where(eq(barbershopSettings.organizationId, organizationId))
-		await db
-			.update(organization)
-			.set({
-				logo: logoUrl,
-				logoThumb,
-				logoMed,
-				logoFull: logoUrl
-			})
-			.where(eq(organization.id, organizationId))
 
 		if (oldLogoUrl) {
 			const oldKey = extractStorageKey(oldLogoUrl)
