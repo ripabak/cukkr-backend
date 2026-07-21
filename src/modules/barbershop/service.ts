@@ -8,7 +8,7 @@ import { organization, member } from '../auth/schema'
 import { barbershopSettings } from './schema'
 import { BarbershopModel } from './model'
 import { AppError } from '../../core/error'
-import { storageClient } from '../../lib/storage'
+import { storageClient, extractStorageKey } from '../../lib/storage'
 
 function isValidIanaTimezone(tz: string): boolean {
 	try {
@@ -96,6 +96,7 @@ export abstract class BarbershopService {
 				id: organization.id,
 				name: organization.name,
 				slug: organization.slug,
+				logo: organization.logo,
 				metadata: organization.metadata,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
@@ -114,6 +115,14 @@ export abstract class BarbershopService {
 			throw new AppError('Organization not found', 'NOT_FOUND')
 		}
 
+		const syncedLogoUrl = rows[0].logoUrl
+		if (syncedLogoUrl && syncedLogoUrl !== rows[0].logo) {
+			await db
+				.update(organization)
+				.set({ logo: syncedLogoUrl })
+				.where(eq(organization.id, organizationId))
+		}
+
 		return {
 			id: rows[0].id,
 			name: rows[0].name,
@@ -125,6 +134,40 @@ export abstract class BarbershopService {
 			timezone:
 				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE
 		}
+	}
+
+	static async listBarbershops(
+		userId: string
+	): Promise<BarbershopModel.BarbershopListItem[]> {
+		const rows = await db
+			.select({
+				id: organization.id,
+				name: organization.name,
+				slug: organization.slug,
+				description: barbershopSettings.description,
+				address: barbershopSettings.address,
+				logoUrl: barbershopSettings.logoUrl,
+				onboardingCompleted: barbershopSettings.onboardingCompleted,
+				role: member.role
+			})
+			.from(member)
+			.innerJoin(organization, eq(organization.id, member.organizationId))
+			.leftJoin(
+				barbershopSettings,
+				eq(barbershopSettings.organizationId, member.organizationId)
+			)
+			.where(eq(member.userId, userId))
+
+		return rows.map((row) => ({
+			id: row.id,
+			name: row.name,
+			slug: row.slug,
+			description: row.description ?? null,
+			address: row.address ?? null,
+			logoUrl: row.logoUrl ?? null,
+			onboardingCompleted: row.onboardingCompleted ?? false,
+			role: row.role
+		}))
 	}
 
 	static async updateTimezone(
@@ -253,6 +296,11 @@ export abstract class BarbershopService {
 			)
 		}
 
+		const existingSettings = await db.query.barbershopSettings.findFirst({
+			where: eq(barbershopSettings.organizationId, organizationId)
+		})
+		const oldLogoUrl = existingSettings?.logoUrl ?? null
+
 		const buffer = new Uint8Array(await file.arrayBuffer())
 		const key = `logos/${organizationId}/${nanoid()}.${ext}`
 		const logoUrl = await storageClient.upload(key, buffer, file.type)
@@ -262,6 +310,17 @@ export abstract class BarbershopService {
 			.update(barbershopSettings)
 			.set({ logoUrl })
 			.where(eq(barbershopSettings.organizationId, organizationId))
+		await db
+			.update(organization)
+			.set({ logo: logoUrl })
+			.where(eq(organization.id, organizationId))
+
+		if (oldLogoUrl) {
+			const oldKey = extractStorageKey(oldLogoUrl)
+			if (oldKey) {
+				await storageClient.delete(oldKey)
+			}
+		}
 
 		return { logoUrl }
 	}

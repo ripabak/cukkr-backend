@@ -63,7 +63,7 @@ export namespace BarbershopModel {
 	export type OrgIdParam = typeof OrgIdParam.static
 
 	export const LogoUploadInput = t.Object({
-		file: t.File()
+		file: t.File({ format: 'image/*' })
 	})
 	export type LogoUploadInput = typeof LogoUploadInput.static
 
