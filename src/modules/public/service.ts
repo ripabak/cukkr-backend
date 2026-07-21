@@ -86,6 +86,7 @@ export abstract class PublicService {
 				id: organization.id,
 				name: organization.name,
 				slug: organization.slug,
+				metadata: organization.metadata,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
@@ -120,6 +121,8 @@ export abstract class PublicService {
 			OpenHoursService.getWeeklyScheduleForOrganization(org.id)
 		])
 
+		const timezone = getOrgTimezone(org.metadata)
+
 		return {
 			id: org.id,
 			name: org.name,
@@ -130,6 +133,7 @@ export abstract class PublicService {
 			logoThumb: org.logoThumb ?? null,
 			logoMed: org.logoMed ?? null,
 			logoFull: org.logoFull ?? null,
+			timezone,
 			services: services.map((s) => ({
 				id: s.id,
 				name: s.name,
