@@ -176,6 +176,9 @@ export declare const servicesHandler: Elysia<"/services", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -200,6 +203,9 @@ export declare const servicesHandler: Elysia<"/services", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -358,6 +364,9 @@ export declare const servicesHandler: Elysia<"/services", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -529,6 +538,9 @@ export declare const servicesHandler: Elysia<"/services", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -553,6 +565,9 @@ export declare const servicesHandler: Elysia<"/services", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -593,6 +608,9 @@ export declare const servicesHandler: Elysia<"/services", {
                         duration: number;
                         id: string;
                         name: string;
+                        imageThumb: string | null;
+                        imageMed: string | null;
+                        imageFull: string | null;
                         createdAt: Date;
                         updatedAt: Date;
                         organizationId: string;
@@ -645,6 +663,9 @@ export declare const servicesHandler: Elysia<"/services", {
                         duration: number;
                         id: string;
                         name: string;
+                        imageThumb: string | null;
+                        imageMed: string | null;
+                        imageFull: string | null;
                         createdAt: Date;
                         updatedAt: Date;
                         organizationId: string;
@@ -696,6 +717,9 @@ export declare const servicesHandler: Elysia<"/services", {
                             duration: number;
                             id: string;
                             name: string;
+                            imageThumb: string | null;
+                            imageMed: string | null;
+                            imageFull: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
@@ -755,6 +779,9 @@ export declare const servicesHandler: Elysia<"/services", {
                             duration: number;
                             id: string;
                             name: string;
+                            imageThumb: string | null;
+                            imageMed: string | null;
+                            imageFull: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
@@ -807,6 +834,9 @@ export declare const servicesHandler: Elysia<"/services", {
                             duration: number;
                             id: string;
                             name: string;
+                            imageThumb: string | null;
+                            imageMed: string | null;
+                            imageFull: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
@@ -860,6 +890,9 @@ export declare const servicesHandler: Elysia<"/services", {
                                 duration: number;
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
+                                imageMed: string | null;
+                                imageFull: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
@@ -913,6 +946,9 @@ export declare const servicesHandler: Elysia<"/services", {
                             } | undefined;
                             message: string;
                             data: {
+                                imageThumb: string;
+                                imageMed: string;
+                                imageFull: string;
                                 imageUrl: string;
                             };
                             status: string | number;
@@ -959,6 +995,9 @@ export declare const servicesHandler: Elysia<"/services", {
                                 duration: number;
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
+                                imageMed: string | null;
+                                imageFull: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
@@ -1010,6 +1049,9 @@ export declare const servicesHandler: Elysia<"/services", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
@@ -1038,6 +1080,9 @@ export declare const servicesHandler: Elysia<"/services", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;

@@ -1,0 +1,1 @@
+ALTER TABLE "barbershop_settings" ADD COLUMN "last_slug_changed_at" timestamp with time zone;

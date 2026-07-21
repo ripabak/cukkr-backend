@@ -441,6 +441,9 @@ export declare const app: Elysia<"", {
                                 description: string | null;
                                 address: string | null;
                                 logoUrl: string | null;
+                                logoThumb: string | null;
+                                logoMed: string | null;
+                                logoFull: string | null;
                                 onboardingCompleted: boolean;
                             }[];
                             status: string | number;
@@ -485,7 +488,11 @@ export declare const app: Elysia<"", {
                             description: string | null;
                             address: string | null;
                             logoUrl: string | null;
+                            logoThumb: string | null;
+                            logoMed: string | null;
+                            logoFull: string | null;
                             onboardingCompleted: boolean;
+                            lastSlugChangedAt: string | null;
                             timezone: string;
                         };
                         status: string | number;
@@ -536,7 +543,11 @@ export declare const app: Elysia<"", {
                                 description: string | null;
                                 address: string | null;
                                 logoUrl: string | null;
+                                logoThumb: string | null;
+                                logoMed: string | null;
+                                logoFull: string | null;
                                 onboardingCompleted: boolean;
+                                lastSlugChangedAt: string | null;
                                 timezone: string;
                             };
                             status: string | number;
@@ -663,6 +674,9 @@ export declare const app: Elysia<"", {
                             message: string;
                             data: {
                                 logoUrl: string;
+                                logoThumb: string;
+                                logoMed: string;
+                                logoFull: string;
                             };
                             status: string | number;
                             path: string;
@@ -812,6 +826,9 @@ export declare const app: Elysia<"", {
                             duration: number;
                             id: string;
                             name: string;
+                            imageThumb: string | null;
+                            imageMed: string | null;
+                            imageFull: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
@@ -864,6 +881,9 @@ export declare const app: Elysia<"", {
                             duration: number;
                             id: string;
                             name: string;
+                            imageThumb: string | null;
+                            imageMed: string | null;
+                            imageFull: string | null;
                             createdAt: Date;
                             updatedAt: Date;
                             organizationId: string;
@@ -915,6 +935,9 @@ export declare const app: Elysia<"", {
                                 duration: number;
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
+                                imageMed: string | null;
+                                imageFull: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
@@ -974,6 +997,9 @@ export declare const app: Elysia<"", {
                                 duration: number;
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
+                                imageMed: string | null;
+                                imageFull: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
@@ -1026,6 +1052,9 @@ export declare const app: Elysia<"", {
                                 duration: number;
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
+                                imageMed: string | null;
+                                imageFull: string | null;
                                 createdAt: Date;
                                 updatedAt: Date;
                                 organizationId: string;
@@ -1079,6 +1108,9 @@ export declare const app: Elysia<"", {
                                     duration: number;
                                     id: string;
                                     name: string;
+                                    imageThumb: string | null;
+                                    imageMed: string | null;
+                                    imageFull: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
@@ -1132,6 +1164,9 @@ export declare const app: Elysia<"", {
                                 } | undefined;
                                 message: string;
                                 data: {
+                                    imageThumb: string;
+                                    imageMed: string;
+                                    imageFull: string;
                                     imageUrl: string;
                                 };
                                 status: string | number;
@@ -1178,6 +1213,9 @@ export declare const app: Elysia<"", {
                                     duration: number;
                                     id: string;
                                     name: string;
+                                    imageThumb: string | null;
+                                    imageMed: string | null;
+                                    imageFull: string | null;
                                     createdAt: Date;
                                     updatedAt: Date;
                                     organizationId: string;
@@ -2508,6 +2546,9 @@ export declare const app: Elysia<"", {
                             updatedAt: Date;
                             role: string | null;
                             avatarUrl: string | null;
+                            avatarThumb: string | null;
+                            avatarMed: string | null;
+                            avatarFull: string | null;
                         };
                         status: string | number;
                         path: string;
@@ -2556,6 +2597,9 @@ export declare const app: Elysia<"", {
                             updatedAt: Date;
                             role: string | null;
                             avatarUrl: string | null;
+                            avatarThumb: string | null;
+                            avatarMed: string | null;
+                            avatarFull: string | null;
                         };
                         status: string | number;
                         path: string;
@@ -2596,6 +2640,9 @@ export declare const app: Elysia<"", {
                             message: string;
                             data: {
                                 avatarUrl: string;
+                                avatarThumb: string;
+                                avatarMed: string;
+                                avatarFull: string;
                             };
                             status: string | number;
                             path: string;
@@ -2768,6 +2815,7 @@ export declare const app: Elysia<"", {
                                 topBarber: {
                                     id: string;
                                     name: string;
+                                    imageThumb: string | null;
                                     imageUrl: string | null;
                                     count: number;
                                     revenue: number;
@@ -2775,6 +2823,7 @@ export declare const app: Elysia<"", {
                                 topService: {
                                     id: string;
                                     name: string;
+                                    imageThumb: string | null;
                                     imageUrl: string | null;
                                     count: number;
                                     revenue: number;
@@ -3111,6 +3160,7 @@ export declare const app: Elysia<"", {
                                 message: string;
                                 data: {
                                     name: string;
+                                    imageThumb: string | null;
                                     imageUrl: string | null;
                                     barberId: string;
                                     totalCustomers: number;
@@ -3759,10 +3809,14 @@ export declare const app: Elysia<"", {
                                     description: string | null;
                                     address: string | null;
                                     logoUrl: string | null;
+                                    logoThumb: string | null;
+                                    logoMed: string | null;
+                                    logoFull: string | null;
                                     services: {
                                         duration: number;
                                         id: string;
                                         name: string;
+                                        imageThumb: string | null;
                                         description: string | null;
                                         price: number;
                                         discount: number;
@@ -3772,7 +3826,9 @@ export declare const app: Elysia<"", {
                                     barbers: {
                                         id: string;
                                         name: string;
+                                        bio: string | null;
                                         avatarUrl: string | null;
+                                        avatarThumb: string | null;
                                     }[];
                                     openHours: {
                                         dayOfWeek: number;

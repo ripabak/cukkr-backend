@@ -22,6 +22,9 @@ export const service = pgTable(
 		duration: integer('duration').notNull(),
 		discount: integer('discount').default(0).notNull(),
 		imageUrl: text('image_url'),
+		imageThumb: text('image_thumb'),
+		imageMed: text('image_med'),
+		imageFull: text('image_full'),
 		isActive: boolean('is_active').default(false).notNull(),
 		isDefault: boolean('is_default').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true })

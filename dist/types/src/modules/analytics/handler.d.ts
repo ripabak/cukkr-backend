@@ -176,6 +176,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -200,6 +203,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -358,6 +364,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -529,6 +538,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -553,6 +565,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -632,6 +647,7 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                             topBarber: {
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
                                 imageUrl: string | null;
                                 count: number;
                                 revenue: number;
@@ -639,6 +655,7 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                             topService: {
                                 id: string;
                                 name: string;
+                                imageThumb: string | null;
                                 imageUrl: string | null;
                                 count: number;
                                 revenue: number;
@@ -975,6 +992,7 @@ export declare const analyticsHandler: Elysia<"/analytics", {
                             message: string;
                             data: {
                                 name: string;
+                                imageThumb: string | null;
                                 imageUrl: string | null;
                                 barberId: string;
                                 totalCustomers: number;
@@ -1129,6 +1147,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
@@ -1157,6 +1178,9 @@ export declare const analyticsHandler: Elysia<"/analytics", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;

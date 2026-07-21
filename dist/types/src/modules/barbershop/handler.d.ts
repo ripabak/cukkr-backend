@@ -176,6 +176,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -200,6 +203,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -358,6 +364,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -529,6 +538,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -553,6 +565,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -591,6 +606,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                             description: string | null;
                             address: string | null;
                             logoUrl: string | null;
+                            logoThumb: string | null;
+                            logoMed: string | null;
+                            logoFull: string | null;
                             onboardingCompleted: boolean;
                         }[];
                         status: string | number;
@@ -635,7 +653,11 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                         description: string | null;
                         address: string | null;
                         logoUrl: string | null;
+                        logoThumb: string | null;
+                        logoMed: string | null;
+                        logoFull: string | null;
                         onboardingCompleted: boolean;
+                        lastSlugChangedAt: string | null;
                         timezone: string;
                     };
                     status: string | number;
@@ -686,7 +708,11 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                             description: string | null;
                             address: string | null;
                             logoUrl: string | null;
+                            logoThumb: string | null;
+                            logoMed: string | null;
+                            logoFull: string | null;
                             onboardingCompleted: boolean;
+                            lastSlugChangedAt: string | null;
                             timezone: string;
                         };
                         status: string | number;
@@ -813,6 +839,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                         message: string;
                         data: {
                             logoUrl: string;
+                            logoThumb: string;
+                            logoMed: string;
+                            logoFull: string;
                         };
                         status: string | number;
                         path: string;
@@ -899,6 +928,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
@@ -927,6 +959,9 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;

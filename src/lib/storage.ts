@@ -9,16 +9,31 @@ import { env } from './env'
 
 const TEST_STORAGE_BASE_URL = `${env.BETTER_AUTH_URL.replace(/\/$/, '')}/mock-storage`
 
+export interface StorageUploadOptions {
+	cacheControl?: string
+}
+
 export interface StorageClient {
-	upload(key: string, buffer: Uint8Array, mimeType: string): Promise<string>
+	upload(
+		key: string,
+		buffer: Uint8Array,
+		mimeType: string,
+		options?: StorageUploadOptions
+	): Promise<string>
 	getPublicUrl(key: string): string
 	delete(key: string): Promise<void>
 }
 
 class TestStorageClient implements StorageClient {
-	async upload(key: string, buffer: Uint8Array, mimeType: string) {
+	async upload(
+		key: string,
+		buffer: Uint8Array,
+		mimeType: string,
+		options?: StorageUploadOptions
+	) {
 		void buffer
 		void mimeType
+		void options
 		return this.getPublicUrl(key)
 	}
 
@@ -68,13 +83,21 @@ class S3CompatibleStorageClient implements StorageClient {
 		})
 	}
 
-	async upload(key: string, buffer: Uint8Array, mimeType: string) {
+	async upload(
+		key: string,
+		buffer: Uint8Array,
+		mimeType: string,
+		options?: StorageUploadOptions
+	) {
 		await this.client.send(
 			new PutObjectCommand({
 				Bucket: this.bucket,
 				Key: key,
 				Body: buffer,
-				ContentType: mimeType
+				ContentType: mimeType,
+				...(options?.cacheControl
+					? { CacheControl: options.cacheControl }
+					: {})
 			})
 		)
 

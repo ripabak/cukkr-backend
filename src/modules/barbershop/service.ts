@@ -9,6 +9,13 @@ import { barbershopSettings } from './schema'
 import { BarbershopModel } from './model'
 import { AppError } from '../../core/error'
 import { storageClient, extractStorageKey } from '../../lib/storage'
+import {
+	generateWebPVariants,
+	IMAGE_VARIANTS,
+	type ImageVariant
+} from '../../lib/image-processor'
+
+const CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 function isValidIanaTimezone(tz: string): boolean {
 	try {
@@ -20,6 +27,7 @@ function isValidIanaTimezone(tz: string): boolean {
 }
 
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+const SLUG_COOLDOWN_HOURS = 72
 
 export abstract class BarbershopService {
 	static async generateUniqueSlug(name: string): Promise<string> {
@@ -101,7 +109,11 @@ export abstract class BarbershopService {
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
-				onboardingCompleted: barbershopSettings.onboardingCompleted
+				logoThumb: barbershopSettings.logoThumb,
+				logoMed: barbershopSettings.logoMed,
+				logoFull: barbershopSettings.logoFull,
+				onboardingCompleted: barbershopSettings.onboardingCompleted,
+				lastSlugChangedAt: barbershopSettings.lastSlugChangedAt
 			})
 			.from(organization)
 			.leftJoin(
@@ -115,14 +127,6 @@ export abstract class BarbershopService {
 			throw new AppError('Organization not found', 'NOT_FOUND')
 		}
 
-		const syncedLogoUrl = rows[0].logoUrl
-		if (syncedLogoUrl && syncedLogoUrl !== rows[0].logo) {
-			await db
-				.update(organization)
-				.set({ logo: syncedLogoUrl })
-				.where(eq(organization.id, organizationId))
-		}
-
 		return {
 			id: rows[0].id,
 			name: rows[0].name,
@@ -130,9 +134,13 @@ export abstract class BarbershopService {
 			description: rows[0].description ?? null,
 			address: rows[0].address ?? null,
 			logoUrl: rows[0].logoUrl ?? null,
+			logoThumb: rows[0].logoThumb ?? null,
+			logoMed: rows[0].logoMed ?? null,
+			logoFull: rows[0].logoFull ?? null,
 			onboardingCompleted: rows[0].onboardingCompleted ?? false,
 			timezone:
-				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE
+				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE,
+			lastSlugChangedAt: rows[0].lastSlugChangedAt?.toISOString() ?? null
 		}
 	}
 
@@ -147,6 +155,9 @@ export abstract class BarbershopService {
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
+				logoThumb: barbershopSettings.logoThumb,
+				logoMed: barbershopSettings.logoMed,
+				logoFull: barbershopSettings.logoFull,
 				onboardingCompleted: barbershopSettings.onboardingCompleted,
 				role: member.role
 			})
@@ -165,6 +176,9 @@ export abstract class BarbershopService {
 			description: row.description ?? null,
 			address: row.address ?? null,
 			logoUrl: row.logoUrl ?? null,
+			logoThumb: row.logoThumb ?? null,
+			logoMed: row.logoMed ?? null,
+			logoFull: row.logoFull ?? null,
 			onboardingCompleted: row.onboardingCompleted ?? false,
 			role: row.role
 		}))
@@ -210,16 +224,52 @@ export abstract class BarbershopService {
 			)
 		}
 
+		let slugChanged = false
+
 		if (slug !== undefined) {
-			await BarbershopService.validateAndCheckSlug(slug, organizationId)
+			const currentOrg = await db.query.organization.findFirst({
+				where: eq(organization.id, organizationId),
+				columns: { slug: true }
+			})
+
+			if (slug !== currentOrg?.slug) {
+				await BarbershopService.validateAndCheckSlug(
+					slug,
+					organizationId
+				)
+
+				const currentSettings =
+					await db.query.barbershopSettings.findFirst({
+						where: eq(
+							barbershopSettings.organizationId,
+							organizationId
+						)
+					})
+
+				if (currentSettings?.lastSlugChangedAt) {
+					const cooldownEnd = new Date(
+						currentSettings.lastSlugChangedAt.getTime() +
+							SLUG_COOLDOWN_HOURS * 60 * 60 * 1000
+					)
+					const now = new Date()
+					if (now < cooldownEnd) {
+						throw new AppError(
+							`Slug can only be changed once every ${SLUG_COOLDOWN_HOURS} hours. Next available: ${cooldownEnd.toISOString()}`,
+							'TOO_MANY_REQUESTS'
+						)
+					}
+				}
+
+				slugChanged = true
+			}
 		}
 
-		if (name !== undefined || slug !== undefined) {
+		if (name !== undefined || slugChanged) {
 			await db
 				.update(organization)
 				.set({
 					...(name !== undefined ? { name } : {}),
-					...(slug !== undefined ? { slug } : {})
+					...(slugChanged ? { slug: slug } : {})
 				})
 				.where(eq(organization.id, organizationId))
 		}
@@ -230,10 +280,15 @@ export abstract class BarbershopService {
 			description?: string | null
 			address?: string | null
 			onboardingCompleted?: boolean
+			lastSlugChangedAt?: Date
 		} = {}
 
 		if (description !== undefined) settingsUpdate.description = description
 		if (address !== undefined) settingsUpdate.address = address
+
+		if (slugChanged) {
+			settingsUpdate.lastSlugChangedAt = new Date()
+		}
 
 		if (onboardingCompleted === true) {
 			const current = await db.query.barbershopSettings.findFirst({
@@ -302,27 +357,61 @@ export abstract class BarbershopService {
 		const oldLogoUrl = existingSettings?.logoUrl ?? null
 
 		const buffer = new Uint8Array(await file.arrayBuffer())
-		const key = `logos/${organizationId}/${nanoid()}.${ext}`
-		const logoUrl = await storageClient.upload(key, buffer, file.type)
+		const baseId = nanoid()
+		const variants = await generateWebPVariants(buffer, IMAGE_VARIANTS.logo)
+
+		const uploadResults: Record<string, string> = {}
+		const uploadTasks = variants.map(async (variant: ImageVariant) => {
+			const key = `logos/${organizationId}/${baseId}_${variant.suffix}.webp`
+			const url = await storageClient.upload(
+				key,
+				new Uint8Array(variant.buffer),
+				variant.mimeType,
+				{ cacheControl: CACHE_CONTROL }
+			)
+			uploadResults[variant.suffix] = url
+		})
+
+		await Promise.all(uploadTasks)
+
+		const logoUrl = uploadResults.full || ''
+		const logoThumb = uploadResults.thumb || ''
+		const logoMed = uploadResults.med || ''
 
 		await BarbershopService.ensureSettingsRow(organizationId)
 		await db
 			.update(barbershopSettings)
-			.set({ logoUrl })
+			.set({
+				logoUrl,
+				logoThumb,
+				logoMed,
+				logoFull: logoUrl
+			})
 			.where(eq(barbershopSettings.organizationId, organizationId))
-		await db
-			.update(organization)
-			.set({ logo: logoUrl })
-			.where(eq(organization.id, organizationId))
 
 		if (oldLogoUrl) {
 			const oldKey = extractStorageKey(oldLogoUrl)
 			if (oldKey) {
-				await storageClient.delete(oldKey)
+				const baseFilePath = oldKey.replace(/\.\w+$/, '')
+				const suffixVariants = ['_thumb', '_med', '_full']
+				suffixVariants.forEach((suffix) => {
+					const variantKey = `${baseFilePath}${suffix}.webp`
+					storageClient.delete(variantKey).catch(() => {
+						void 0
+					})
+				})
+				storageClient.delete(oldKey).catch(() => {
+					void 0
+				})
 			}
 		}
 
-		return { logoUrl }
+		return {
+			logoUrl,
+			logoThumb,
+			logoMed,
+			logoFull: logoUrl
+		}
 	}
 
 	static async leaveBarbershop(

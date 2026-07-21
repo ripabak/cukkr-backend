@@ -65,12 +65,15 @@ export abstract class PublicService {
 				duration: s.duration,
 				discount: s.discount,
 				imageUrl: s.imageUrl ?? null,
+				imageThumb: s.imageThumb ?? null,
 				isDefault: s.isDefault
 			})),
 			barbers: (members as MemberWithUser[]).map((m) => ({
 				id: m.id,
 				name: m.user.name,
-				avatarUrl: m.user.image ?? null
+				avatarUrl: m.user.image ?? null,
+				avatarThumb: m.user.imageThumb ?? null,
+				bio: m.user.bio ?? null
 			}))
 		}
 	}
@@ -85,7 +88,10 @@ export abstract class PublicService {
 				slug: organization.slug,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
-				logoUrl: barbershopSettings.logoUrl
+				logoUrl: barbershopSettings.logoUrl,
+				logoThumb: barbershopSettings.logoThumb,
+				logoMed: barbershopSettings.logoMed,
+				logoFull: barbershopSettings.logoFull
 			})
 			.from(organization)
 			.leftJoin(
@@ -121,6 +127,9 @@ export abstract class PublicService {
 			description: org.description ?? null,
 			address: org.address ?? null,
 			logoUrl: org.logoUrl ?? null,
+			logoThumb: org.logoThumb ?? null,
+			logoMed: org.logoMed ?? null,
+			logoFull: org.logoFull ?? null,
 			services: services.map((s) => ({
 				id: s.id,
 				name: s.name,
@@ -129,12 +138,15 @@ export abstract class PublicService {
 				duration: s.duration,
 				discount: s.discount,
 				imageUrl: s.imageUrl ?? null,
+				imageThumb: s.imageThumb ?? null,
 				isDefault: s.isDefault
 			})),
 			barbers: (members as MemberWithUser[]).map((m) => ({
 				id: m.id,
 				name: m.user.name,
-				avatarUrl: m.user.image ?? null
+				avatarUrl: m.user.image ?? null,
+				avatarThumb: m.user.imageThumb ?? null,
+				bio: m.user.bio ?? null
 			})),
 			openHours
 		}

@@ -186,6 +186,18 @@ export const auth = betterAuth({
 				type: 'string',
 				required: false,
 				defaultValue: 'id'
+			},
+			imageThumb: {
+				type: 'string',
+				required: false
+			},
+			imageMed: {
+				type: 'string',
+				required: false
+			},
+			imageFull: {
+				type: 'string',
+				required: false
 			}
 		},
 		changeEmail: {

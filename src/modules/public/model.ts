@@ -3,7 +3,9 @@ import { t } from 'elysia'
 const PublicBarberItem = t.Object({
 	id: t.String(),
 	name: t.String(),
-	avatarUrl: t.Nullable(t.String())
+	avatarUrl: t.Nullable(t.String()),
+	avatarThumb: t.Nullable(t.String()),
+	bio: t.Nullable(t.String())
 })
 
 const PublicServiceItem = t.Object({
@@ -14,6 +16,7 @@ const PublicServiceItem = t.Object({
 	duration: t.Number(),
 	discount: t.Number(),
 	imageUrl: t.Nullable(t.String()),
+	imageThumb: t.Nullable(t.String()),
 	isDefault: t.Boolean()
 })
 
@@ -31,6 +34,9 @@ const PublicBarbershopResponse = t.Object({
 	description: t.Nullable(t.String()),
 	address: t.Nullable(t.String()),
 	logoUrl: t.Nullable(t.String()),
+	logoThumb: t.Nullable(t.String()),
+	logoMed: t.Nullable(t.String()),
+	logoFull: t.Nullable(t.String()),
 	services: t.Array(PublicServiceItem),
 	barbers: t.Array(PublicBarberItem),
 	openHours: t.Array(PublicOpenHoursDay)

@@ -122,7 +122,7 @@ export const app = new Elysia()
 	)
 	.use(
 		typeShareEdenElysia({
-			autoGenerate: true,
+			autoGenerate: env.NODE_ENV !== 'test',
 			verbose: env.NODE_ENV === 'development',
 			tsconfigPath: './tsconfig.declarations.json',
 			path: './dist/types/src/app.d.ts',

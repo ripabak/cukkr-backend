@@ -128,6 +128,7 @@ export abstract class AnalyticsService {
 			id: barberId,
 			name: memberRow.user.name,
 			imageUrl: memberRow.user.image ?? null,
+			imageThumb: memberRow.user.imageThumb ?? null,
 			count: parseInt(cuts, 10),
 			revenue: parseInt(revenue, 10)
 		}
@@ -177,6 +178,7 @@ export abstract class AnalyticsService {
 			id: serviceId,
 			name: serviceRow.name,
 			imageUrl: serviceRow.imageUrl ?? null,
+			imageThumb: serviceRow.imageThumb ?? null,
 			count: parseInt(books, 10),
 			revenue: parseInt(revenue, 10)
 		}
