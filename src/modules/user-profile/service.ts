@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 
 import { AppError } from '../../core/error'
 import { db } from '../../lib/database'
-import { storageClient } from '../../lib/storage'
+import { storageClient, extractStorageKey } from '../../lib/storage'
 import { member, user } from '../auth/schema'
 import { UserProfileModel } from './model'
 
@@ -168,6 +168,9 @@ export abstract class UserProfileService {
 			)
 		}
 
+		const oldProfile = await this.getProfileRecord(userId)
+		const oldImage = oldProfile.image ?? null
+
 		const buffer = new Uint8Array(await file.arrayBuffer())
 		const detectedMimeType = detectImageMimeType(buffer)
 
@@ -198,6 +201,13 @@ export abstract class UserProfileService {
 
 		if (activeOrganizationId) {
 			await this.getUserRole(userId, activeOrganizationId)
+		}
+
+		if (oldImage) {
+			const oldKey = extractStorageKey(oldImage)
+			if (oldKey) {
+				await storageClient.delete(oldKey)
+			}
 		}
 
 		return {

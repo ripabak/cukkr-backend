@@ -5,7 +5,7 @@ import { db } from '../../lib/database'
 import { service } from './schema'
 import { ServiceModel } from './model'
 import { AppError } from '../../core/error'
-import { storageClient } from '../../lib/storage'
+import { storageClient, extractStorageKey } from '../../lib/storage'
 
 export abstract class ServiceService {
 	private static async findInOrg(
@@ -222,7 +222,8 @@ export abstract class ServiceService {
 		id: string,
 		file: File
 	): Promise<ServiceModel.ServiceImageUploadResponse> {
-		await ServiceService.findInOrg(id, organizationId)
+		const existing = await ServiceService.findInOrg(id, organizationId)
+		const oldImageUrl = existing.imageUrl ?? null
 
 		const SERVICE_IMAGE_MAX_SIZE = 5 * 1024 * 1024
 		const ALLOWED_MIME_EXTENSIONS: Record<string, string> = {
@@ -259,6 +260,13 @@ export abstract class ServiceService {
 					eq(service.organizationId, organizationId)
 				)
 			)
+
+		if (oldImageUrl) {
+			const oldKey = extractStorageKey(oldImageUrl)
+			if (oldKey) {
+				await storageClient.delete(oldKey)
+			}
+		}
 
 		return { imageUrl }
 	}

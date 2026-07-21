@@ -16,6 +16,21 @@ export const barbershopHandler = new Elysia({
 })
 	.use(authMiddleware)
 
+	// GET /barbershop/list — list all barbershops for current user
+	.get(
+		'/list',
+		async ({ path, user }) => {
+			const data = await BarbershopService.listBarbershops(user.id)
+			return formatResponse({ path, data })
+		},
+		{
+			requireAuth: true,
+			response: FormatResponseSchema(
+				BarbershopModel.BarbershopListResponse
+			)
+		}
+	)
+
 	// GET /barbershop — retrieve active org profile
 	.get(
 		'/',

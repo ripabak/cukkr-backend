@@ -1,4 +1,5 @@
 import {
+	DeleteObjectCommand,
 	HeadBucketCommand,
 	PutObjectCommand,
 	S3Client
@@ -11,6 +12,7 @@ const TEST_STORAGE_BASE_URL = `${env.BETTER_AUTH_URL.replace(/\/$/, '')}/mock-st
 export interface StorageClient {
 	upload(key: string, buffer: Uint8Array, mimeType: string): Promise<string>
 	getPublicUrl(key: string): string
+	delete(key: string): Promise<void>
 }
 
 class TestStorageClient implements StorageClient {
@@ -18,6 +20,10 @@ class TestStorageClient implements StorageClient {
 		void buffer
 		void mimeType
 		return this.getPublicUrl(key)
+	}
+
+	async delete(key: string) {
+		void key
 	}
 
 	getPublicUrl(key: string) {
@@ -75,6 +81,15 @@ class S3CompatibleStorageClient implements StorageClient {
 		return this.getPublicUrl(key)
 	}
 
+	async delete(key: string) {
+		await this.client.send(
+			new DeleteObjectCommand({
+				Bucket: this.bucket,
+				Key: key
+			})
+		)
+	}
+
 	getPublicUrl(key: string) {
 		return `${this.endpoint}/${this.bucket}/${key}`
 	}
@@ -84,6 +99,26 @@ export const storageClient: StorageClient =
 	env.NODE_ENV === 'test'
 		? new TestStorageClient()
 		: new S3CompatibleStorageClient()
+
+export function extractStorageKey(url: string): string | null {
+	if (!url || url.startsWith(TEST_STORAGE_BASE_URL)) {
+		return null
+	}
+
+	const { STORAGE_ENDPOINT, STORAGE_BUCKET } = env
+	if (!STORAGE_ENDPOINT || !STORAGE_BUCKET) {
+		return null
+	}
+
+	const endpoint = STORAGE_ENDPOINT.replace(/\/$/, '')
+	const prefix = `${endpoint}/${STORAGE_BUCKET}/`
+
+	if (!url.startsWith(prefix)) {
+		return null
+	}
+
+	return url.slice(prefix.length)
+}
 
 export async function verifyStorage() {
 	if (env.NODE_ENV === 'test') {
