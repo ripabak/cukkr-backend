@@ -3823,6 +3823,7 @@ export declare const app: Elysia<"", {
                                         imageUrl: string | null;
                                         isDefault: boolean;
                                     }[];
+                                    timezone: string;
                                     barbers: {
                                         id: string;
                                         name: string;

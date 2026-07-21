@@ -32,6 +32,7 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
     logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    timezone: import("@sinclair/typebox").TString;
     services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
@@ -150,6 +151,7 @@ export declare namespace PublicModel {
             logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            timezone: import("@sinclair/typebox").TString;
             services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;

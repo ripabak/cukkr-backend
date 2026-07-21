@@ -37,6 +37,7 @@ const PublicBarbershopResponse = t.Object({
 	logoThumb: t.Nullable(t.String()),
 	logoMed: t.Nullable(t.String()),
 	logoFull: t.Nullable(t.String()),
+	timezone: t.String(),
 	services: t.Array(PublicServiceItem),
 	barbers: t.Array(PublicBarberItem),
 	openHours: t.Array(PublicOpenHoursDay)

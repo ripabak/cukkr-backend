@@ -57,6 +57,7 @@ export declare const publicHandler: Elysia<"/public", {
                                     imageUrl: string | null;
                                     isDefault: boolean;
                                 }[];
+                                timezone: string;
                                 barbers: {
                                     id: string;
                                     name: string;
