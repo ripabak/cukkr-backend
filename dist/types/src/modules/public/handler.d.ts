@@ -43,10 +43,14 @@ export declare const publicHandler: Elysia<"/public", {
                                 description: string | null;
                                 address: string | null;
                                 logoUrl: string | null;
+                                logoThumb: string | null;
+                                logoMed: string | null;
+                                logoFull: string | null;
                                 services: {
                                     duration: number;
                                     id: string;
                                     name: string;
+                                    imageThumb: string | null;
                                     description: string | null;
                                     price: number;
                                     discount: number;
@@ -57,6 +61,7 @@ export declare const publicHandler: Elysia<"/public", {
                                     id: string;
                                     name: string;
                                     avatarUrl: string | null;
+                                    avatarThumb: string | null;
                                 }[];
                                 openHours: {
                                     dayOfWeek: number;

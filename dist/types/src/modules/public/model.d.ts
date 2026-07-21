@@ -2,6 +2,7 @@ declare const PublicBarberItem: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
     name: import("@sinclair/typebox").TString;
     avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
 }>;
 declare const PublicServiceItem: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
@@ -11,6 +12,7 @@ declare const PublicServiceItem: import("@sinclair/typebox").TObject<{
     duration: import("@sinclair/typebox").TNumber;
     discount: import("@sinclair/typebox").TNumber;
     imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     isDefault: import("@sinclair/typebox").TBoolean;
 }>;
 declare const PublicOpenHoursDay: import("@sinclair/typebox").TObject<{
@@ -26,6 +28,9 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
     description: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
@@ -34,12 +39,14 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
         duration: import("@sinclair/typebox").TNumber;
         discount: import("@sinclair/typebox").TNumber;
         imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         isDefault: import("@sinclair/typebox").TBoolean;
     }>>;
     barbers: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
     openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         dayOfWeek: import("@sinclair/typebox").TInteger;
@@ -57,12 +64,14 @@ declare const WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
         duration: import("@sinclair/typebox").TNumber;
         discount: import("@sinclair/typebox").TNumber;
         imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         isDefault: import("@sinclair/typebox").TBoolean;
     }>>;
     barbers: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
 }>;
 declare const PublicSlugParam: import("@sinclair/typebox").TObject<{
@@ -114,6 +123,7 @@ export declare namespace PublicModel {
             id: import("@sinclair/typebox").TString;
             name: import("@sinclair/typebox").TString;
             avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         }>;
         PublicServiceItem: import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
@@ -123,6 +133,7 @@ export declare namespace PublicModel {
             duration: import("@sinclair/typebox").TNumber;
             discount: import("@sinclair/typebox").TNumber;
             imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             isDefault: import("@sinclair/typebox").TBoolean;
         }>;
         PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
@@ -132,6 +143,9 @@ export declare namespace PublicModel {
             description: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;
@@ -140,12 +154,14 @@ export declare namespace PublicModel {
                 duration: import("@sinclair/typebox").TNumber;
                 discount: import("@sinclair/typebox").TNumber;
                 imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 isDefault: import("@sinclair/typebox").TBoolean;
             }>>;
             barbers: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
             openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 dayOfWeek: import("@sinclair/typebox").TInteger;
@@ -169,12 +185,14 @@ export declare namespace PublicModel {
                 duration: import("@sinclair/typebox").TNumber;
                 discount: import("@sinclair/typebox").TNumber;
                 imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 isDefault: import("@sinclair/typebox").TBoolean;
             }>>;
             barbers: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
         }>;
         PublicSlugParam: import("@sinclair/typebox").TObject<{
