@@ -22,6 +22,7 @@ export declare namespace WalkInPinModel {
         serviceIds: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TString>;
         barberId: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
         notes: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>>;
+        lang: import("@sinclair/typebox").TOptional<import("@sinclair/typebox").TString>;
     }>;
     type WalkInBookingBody = typeof WalkInBookingBody.static;
     const SlugParam: import("@sinclair/typebox").TObject<{

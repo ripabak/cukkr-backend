@@ -18,5 +18,9 @@ export declare abstract class PublicBookingService {
         bookingId: null;
         status: 'verified' | 'already_verified' | 'invalid';
     }>;
+    static checkIdentityToken(token: string): Promise<{
+        valid: boolean;
+        customerName: string | null;
+    }>;
     static getOrgIdBySlug(slug: string): Promise<string>;
 }

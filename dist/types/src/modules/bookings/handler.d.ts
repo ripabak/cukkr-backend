@@ -803,8 +803,8 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                                 memberId: string;
                             } | null;
                             customerName: string;
-                            serviceNames: string[];
                             totalDuration: number;
+                            serviceNames: string[];
                         }[];
                         status: string | number;
                         path: string;
@@ -862,8 +862,8 @@ export declare const bookingsHandler: Elysia<"/bookings", {
                             memberId: string;
                         } | null;
                         customerName: string;
-                        serviceNames: string[];
                         totalDuration: number;
+                        serviceNames: string[];
                     }[];
                     status: string | number;
                     path: string;
