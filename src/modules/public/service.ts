@@ -72,7 +72,8 @@ export abstract class PublicService {
 				id: m.id,
 				name: m.user.name,
 				avatarUrl: m.user.image ?? null,
-				avatarThumb: m.user.imageThumb ?? null
+				avatarThumb: m.user.imageThumb ?? null,
+				bio: m.user.bio ?? null
 			}))
 		}
 	}
@@ -144,7 +145,8 @@ export abstract class PublicService {
 				id: m.id,
 				name: m.user.name,
 				avatarUrl: m.user.image ?? null,
-				avatarThumb: m.user.imageThumb ?? null
+				avatarThumb: m.user.imageThumb ?? null,
+				bio: m.user.bio ?? null
 			})),
 			openHours
 		}

@@ -60,6 +60,7 @@ export declare const publicHandler: Elysia<"/public", {
                                 barbers: {
                                     id: string;
                                     name: string;
+                                    bio: string | null;
                                     avatarUrl: string | null;
                                     avatarThumb: string | null;
                                 }[];

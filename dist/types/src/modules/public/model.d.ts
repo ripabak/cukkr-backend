@@ -3,6 +3,7 @@ declare const PublicBarberItem: import("@sinclair/typebox").TObject<{
     name: import("@sinclair/typebox").TString;
     avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+    bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
 }>;
 declare const PublicServiceItem: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
@@ -47,6 +48,7 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
     openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
         dayOfWeek: import("@sinclair/typebox").TInteger;
@@ -72,6 +74,7 @@ declare const WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
 }>;
 declare const PublicSlugParam: import("@sinclair/typebox").TObject<{
@@ -124,6 +127,7 @@ export declare namespace PublicModel {
             name: import("@sinclair/typebox").TString;
             avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+            bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         }>;
         PublicServiceItem: import("@sinclair/typebox").TObject<{
             id: import("@sinclair/typebox").TString;
@@ -162,6 +166,7 @@ export declare namespace PublicModel {
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
             openHours: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
                 dayOfWeek: import("@sinclair/typebox").TInteger;
@@ -193,6 +198,7 @@ export declare namespace PublicModel {
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 avatarThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                bio: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
         }>;
         PublicSlugParam: import("@sinclair/typebox").TObject<{

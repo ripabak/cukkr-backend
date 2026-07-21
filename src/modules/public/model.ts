@@ -4,7 +4,8 @@ const PublicBarberItem = t.Object({
 	id: t.String(),
 	name: t.String(),
 	avatarUrl: t.Nullable(t.String()),
-	avatarThumb: t.Nullable(t.String())
+	avatarThumb: t.Nullable(t.String()),
+	bio: t.Nullable(t.String())
 })
 
 const PublicServiceItem = t.Object({
