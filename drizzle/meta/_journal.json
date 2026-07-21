@@ -92,6 +92,13 @@
       "when": 1784649769842,
       "tag": "20260721160249_remove-org-logo-variants",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1784654084490,
+      "tag": "20260721171444_add-last-slug-changed-at",
+      "breakpoints": true
     }
   ]
 }

@@ -657,6 +657,7 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                         logoMed: string | null;
                         logoFull: string | null;
                         onboardingCompleted: boolean;
+                        lastSlugChangedAt: string | null;
                         timezone: string;
                     };
                     status: string | number;
@@ -711,6 +712,7 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                             logoMed: string | null;
                             logoFull: string | null;
                             onboardingCompleted: boolean;
+                            lastSlugChangedAt: string | null;
                             timezone: string;
                         };
                         status: string | number;

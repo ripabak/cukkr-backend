@@ -1,6 +1,9 @@
 import { describe, expect, it, beforeAll } from 'bun:test'
 import { treaty } from '@elysiajs/eden'
 import { app } from '../../src/app'
+import { db } from '../../src/lib/database'
+import { barbershopSettings } from '../../src/modules/barbershop/schema'
+import { eq } from 'drizzle-orm'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -15,6 +18,30 @@ async function signUp(): Promise<string> {
 		{ fetch: { headers: { origin: ORIGIN } } }
 	)
 	return res.response?.headers.get('set-cookie') || ''
+}
+
+async function signUpAndCreateOrg(): Promise<{
+	cookie: string
+	orgId: string
+}> {
+	const cookie = await signUp()
+	const orgRes = await (tClient as any).auth.api.organization.create.post(
+		{ name: 'Cooldown Test Org', slug: 'placeholder' },
+		{ fetch: { headers: { cookie, origin: ORIGIN } } }
+	)
+	const orgId = orgRes.data?.id as string
+
+	const setActiveRes = await (tClient as any).auth.api.organization[
+		'set-active'
+	].post(
+		{ organizationId: orgId },
+		{ fetch: { headers: { cookie, origin: ORIGIN } } }
+	)
+
+	return {
+		cookie: setActiveRes.response?.headers.get('set-cookie') || cookie,
+		orgId
+	}
 }
 
 describe('Barbershop Slug Auto-Generation Tests', () => {
@@ -61,5 +88,68 @@ describe('Barbershop Slug Auto-Generation Tests', () => {
 		)
 		expect(status).toBe(200)
 		expect(data?.data.available).toBe(true)
+	})
+})
+
+describe('Barbershop Slug Cooldown Tests', () => {
+	// T-04: First slug change succeeds and sets lastSlugChangedAt
+	it('T-04: First slug change succeeds and sets lastSlugChangedAt', async () => {
+		const { cookie } = await signUpAndCreateOrg()
+
+		const newSlug = `first-slug-${Date.now()}`
+		const { status, data } = await tClient.api.barbershop.settings.patch(
+			{ slug: newSlug },
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect(status).toBe(200)
+		expect(data?.data.slug).toBe(newSlug)
+		expect(data?.data.lastSlugChangedAt).toBeTruthy()
+		expect(data?.data.lastSlugChangedAt).not.toBeNull()
+	})
+
+	// T-05: Second slug change within cooldown returns 429
+	it('T-05: Second slug change within cooldown returns 429', async () => {
+		const { cookie } = await signUpAndCreateOrg()
+
+		const firstSlug = `first-slug-${Date.now()}`
+		const firstRes = await tClient.api.barbershop.settings.patch(
+			{ slug: firstSlug },
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect(firstRes.status).toBe(200)
+
+		const secondSlug = `second-slug-${Date.now()}`
+		const secondRes = await tClient.api.barbershop.settings.patch(
+			{ slug: secondSlug },
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect(secondRes.status).toBe(429)
+	})
+
+	// T-06: Slug change succeeds after cooldown expires
+	it('T-06: Slug change succeeds after cooldown expires', async () => {
+		const { cookie, orgId } = await signUpAndCreateOrg()
+
+		const firstSlug = `first-slug-${Date.now()}`
+		const firstRes = await tClient.api.barbershop.settings.patch(
+			{ slug: firstSlug },
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect(firstRes.status).toBe(200)
+
+		const pastDate = new Date()
+		pastDate.setHours(pastDate.getHours() - 73)
+		await db
+			.update(barbershopSettings)
+			.set({ lastSlugChangedAt: pastDate })
+			.where(eq(barbershopSettings.organizationId, orgId))
+
+		const newSlug = `after-cooldown-${Date.now()}`
+		const { status, data } = await tClient.api.barbershop.settings.patch(
+			{ slug: newSlug },
+			{ fetch: { headers: { cookie, origin: ORIGIN } } }
+		)
+		expect(status).toBe(200)
+		expect(data?.data.slug).toBe(newSlug)
 	})
 })

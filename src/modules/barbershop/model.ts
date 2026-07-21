@@ -12,7 +12,8 @@ export namespace BarbershopModel {
 		logoMed: t.Nullable(t.String()),
 		logoFull: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean(),
-		timezone: t.String()
+		timezone: t.String(),
+		lastSlugChangedAt: t.Nullable(t.String())
 	})
 	export type BarbershopResponse = typeof BarbershopResponse.static
 

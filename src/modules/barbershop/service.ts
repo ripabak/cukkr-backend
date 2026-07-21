@@ -27,6 +27,7 @@ function isValidIanaTimezone(tz: string): boolean {
 }
 
 const SLUG_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+const SLUG_COOLDOWN_HOURS = 72
 
 export abstract class BarbershopService {
 	static async generateUniqueSlug(name: string): Promise<string> {
@@ -111,7 +112,8 @@ export abstract class BarbershopService {
 				logoThumb: barbershopSettings.logoThumb,
 				logoMed: barbershopSettings.logoMed,
 				logoFull: barbershopSettings.logoFull,
-				onboardingCompleted: barbershopSettings.onboardingCompleted
+				onboardingCompleted: barbershopSettings.onboardingCompleted,
+				lastSlugChangedAt: barbershopSettings.lastSlugChangedAt
 			})
 			.from(organization)
 			.leftJoin(
@@ -137,7 +139,8 @@ export abstract class BarbershopService {
 			logoFull: rows[0].logoFull ?? null,
 			onboardingCompleted: rows[0].onboardingCompleted ?? false,
 			timezone:
-				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE
+				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE,
+			lastSlugChangedAt: rows[0].lastSlugChangedAt?.toISOString() ?? null
 		}
 	}
 
@@ -222,6 +225,26 @@ export abstract class BarbershopService {
 		}
 
 		if (slug !== undefined) {
+			const currentSettings = await db.query.barbershopSettings.findFirst(
+				{
+					where: eq(barbershopSettings.organizationId, organizationId)
+				}
+			)
+
+			if (currentSettings?.lastSlugChangedAt) {
+				const cooldownEnd = new Date(
+					currentSettings.lastSlugChangedAt.getTime() +
+						SLUG_COOLDOWN_HOURS * 60 * 60 * 1000
+				)
+				const now = new Date()
+				if (now < cooldownEnd) {
+					throw new AppError(
+						`Slug can only be changed once every ${SLUG_COOLDOWN_HOURS} hours. Next available: ${cooldownEnd.toISOString()}`,
+						'TOO_MANY_REQUESTS'
+					)
+				}
+			}
+
 			await BarbershopService.validateAndCheckSlug(slug, organizationId)
 		}
 
@@ -241,10 +264,15 @@ export abstract class BarbershopService {
 			description?: string | null
 			address?: string | null
 			onboardingCompleted?: boolean
+			lastSlugChangedAt?: Date
 		} = {}
 
 		if (description !== undefined) settingsUpdate.description = description
 		if (address !== undefined) settingsUpdate.address = address
+
+		if (slug !== undefined) {
+			settingsUpdate.lastSlugChangedAt = new Date()
+		}
 
 		if (onboardingCompleted === true) {
 			const current = await db.query.barbershopSettings.findFirst({

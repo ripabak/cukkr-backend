@@ -24,6 +24,9 @@ export const barbershopSettings = pgTable(
 		onboardingCompleted: boolean('onboarding_completed')
 			.default(false)
 			.notNull(),
+		lastSlugChangedAt: timestamp('last_slug_changed_at', {
+			withTimezone: true
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true })
 			.defaultNow()
 			.notNull(),

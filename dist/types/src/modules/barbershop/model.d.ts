@@ -11,6 +11,7 @@ export declare namespace BarbershopModel {
         logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
         timezone: import("@sinclair/typebox").TString;
+        lastSlugChangedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>;
     type BarbershopResponse = typeof BarbershopResponse.static;
     const TimezoneInput: import("@sinclair/typebox").TObject<{
