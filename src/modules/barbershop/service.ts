@@ -224,36 +224,52 @@ export abstract class BarbershopService {
 			)
 		}
 
+		let slugChanged = false
+
 		if (slug !== undefined) {
-			const currentSettings = await db.query.barbershopSettings.findFirst(
-				{
-					where: eq(barbershopSettings.organizationId, organizationId)
-				}
-			)
+			const currentOrg = await db.query.organization.findFirst({
+				where: eq(organization.id, organizationId),
+				columns: { slug: true }
+			})
 
-			if (currentSettings?.lastSlugChangedAt) {
-				const cooldownEnd = new Date(
-					currentSettings.lastSlugChangedAt.getTime() +
-						SLUG_COOLDOWN_HOURS * 60 * 60 * 1000
+			if (slug !== currentOrg?.slug) {
+				await BarbershopService.validateAndCheckSlug(
+					slug,
+					organizationId
 				)
-				const now = new Date()
-				if (now < cooldownEnd) {
-					throw new AppError(
-						`Slug can only be changed once every ${SLUG_COOLDOWN_HOURS} hours. Next available: ${cooldownEnd.toISOString()}`,
-						'TOO_MANY_REQUESTS'
-					)
-				}
-			}
 
-			await BarbershopService.validateAndCheckSlug(slug, organizationId)
+				const currentSettings =
+					await db.query.barbershopSettings.findFirst({
+						where: eq(
+							barbershopSettings.organizationId,
+							organizationId
+						)
+					})
+
+				if (currentSettings?.lastSlugChangedAt) {
+					const cooldownEnd = new Date(
+						currentSettings.lastSlugChangedAt.getTime() +
+							SLUG_COOLDOWN_HOURS * 60 * 60 * 1000
+					)
+					const now = new Date()
+					if (now < cooldownEnd) {
+						throw new AppError(
+							`Slug can only be changed once every ${SLUG_COOLDOWN_HOURS} hours. Next available: ${cooldownEnd.toISOString()}`,
+							'TOO_MANY_REQUESTS'
+						)
+					}
+				}
+
+				slugChanged = true
+			}
 		}
 
-		if (name !== undefined || slug !== undefined) {
+		if (name !== undefined || slugChanged) {
 			await db
 				.update(organization)
 				.set({
 					...(name !== undefined ? { name } : {}),
-					...(slug !== undefined ? { slug } : {})
+					...(slugChanged ? { slug: slug } : {})
 				})
 				.where(eq(organization.id, organizationId))
 		}
@@ -270,7 +286,7 @@ export abstract class BarbershopService {
 		if (description !== undefined) settingsUpdate.description = description
 		if (address !== undefined) settingsUpdate.address = address
 
-		if (slug !== undefined) {
+		if (slugChanged) {
 			settingsUpdate.lastSlugChangedAt = new Date()
 		}
 
