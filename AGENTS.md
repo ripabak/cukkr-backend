@@ -261,6 +261,87 @@ const subject = t('id', 'email.bookingAccepted.subject', { barbershopName: 'Barb
 const body = t(lang, 'notification.appointmentRequested.body', { customerName: 'Budi' })
 ```
 
+## Image Upload (Storage)
+
+Image uploads use S3-compatible object storage via `StorageClient` (`src/lib/storage.ts`). The client auto-selects between real S3 and a test mock based on `NODE_ENV`.
+
+### Architecture
+
+```
+Handler (.image.post)
+    ↓  t.File({ format: 'image/*' })
+    ↓  validates MIME type, provides native File object
+    ↓
+Service (uploadServiceImage / uploadLogo / uploadAvatar)
+    ↓  file.arrayBuffer() → Uint8Array
+    ↓  validates size (5 MB max) and MIME type (jpeg/png/webp)
+    ↓  storageClient.upload(key, buffer, mimeType) → public URL
+    ↓  updates DB row with new URL
+    ↓  extractStorageKey(oldUrl) → storageClient.delete(oldKey)  // deletes old file
+    ↓
+DB (schema column)
+    stores the public URL string (e.g., imageUrl, logoUrl, image)
+```
+
+### StorageClient API
+
+```typescript
+import { storageClient, extractStorageKey, type StorageClient } from '../../lib/storage'
+
+// Upload a file buffer, returns public URL
+const url = await storageClient.upload(key, buffer, mimeType)
+
+// Get read-only public URL from a key
+const publicUrl = storageClient.getPublicUrl(key)
+
+// Delete a file by key
+await storageClient.delete(key)
+
+// Extract storage key from a full public URL (for old-file cleanup)
+const oldKey = extractStorageKey(oldUrl)
+```
+
+### Handler Pattern
+
+Use `t.File({ format: 'image/*' })` in the model schema. The handler receives a native `File` object from Elysia:
+
+```typescript
+// model.ts
+export const ImageUploadBody = t.Object({
+    file: t.File({ format: 'image/*' })
+})
+
+// handler.ts
+.post('/:id/image', async ({ body, params, activeOrganizationId }) => {
+    const data = await ServiceService.uploadServiceImage(
+        activeOrganizationId,
+        params.id,
+        body.file   // native File — arrayBuffer(), size, type available
+    )
+    return formatResponse({ path, data })
+}, {
+    requireRoles: ['owner', 'admin'],
+    params: t.Object({ id: t.String() }),
+    body: ServiceModel.ImageUploadBody,
+})
+```
+
+### Current Upload Endpoints
+
+| Endpoint | Service Method | Auth | Old-file cleanup |
+|---|---|---|---|
+| `POST /api/services/:id/image` | `ServiceService.uploadServiceImage()` | `owner` | Yes |
+| `POST /api/barbershop/:orgId/logo` | `BarbershopService.uploadLogo()` | `owner` | Yes |
+| `POST /api/user-profile/avatar` | `UserProfileService.uploadAvatar()` | `requireAuth` | Yes |
+
+### Rules
+
+- Always validate file size and MIME type server-side before uploading.
+- Always use `extractStorageKey()` + `storageClient.delete()` to clean up old files (non-blocking).
+- Use `t.File({ format: 'image/*' })` (or plain `t.File()`) in the model — this gives you a native `File` with `.arrayBuffer()`, `.size`, `.type`.
+- If using plain `t.File()`, perform MIME validation in the service layer (currently: `services/service.ts` checks MIME by extension, `user-profile/service.ts` detects MIME via magic bytes).
+- Key format: `{resource}/{orgId}/{id}/{nanoid()}.{ext}` for scoped storage paths.
+
 ## Security & Configuration
 
 - All secrets live in `.env`. Use `src/lib/env.ts` to access them — never import `process.env` directly in modules.
