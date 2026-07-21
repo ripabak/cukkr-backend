@@ -33,18 +33,31 @@ export declare function sendIdentityVerificationEmail({ to, customerName, barber
     verifyUrl: string;
     language?: Language;
 }): Promise<void>;
-export declare function sendBookingAcceptedEmail({ to, customerName, barbershopName, referenceNumber, language }: {
+interface BookingDetailServiceItem {
+    name: string;
+    price: number;
+    duration: number;
+}
+export declare function sendBookingAcceptedEmail({ to, customerName, barbershopName, referenceNumber, services, scheduledAt, barberName, totalDuration, language }: {
     to: string;
     customerName: string;
     barbershopName: string;
     referenceNumber: string;
+    services: BookingDetailServiceItem[];
+    scheduledAt: string | null;
+    barberName: string | null;
+    totalDuration: number;
     language?: Language;
 }): Promise<void>;
-export declare function sendBookingDeclinedEmail({ to, customerName, barbershopName, referenceNumber, reason, language }: {
+export declare function sendBookingDeclinedEmail({ to, customerName, barbershopName, referenceNumber, services, scheduledAt, barberName, totalDuration, reason, language }: {
     to: string;
     customerName: string;
     barbershopName: string;
     referenceNumber: string;
+    services: BookingDetailServiceItem[];
+    scheduledAt: string | null;
+    barberName: string | null;
+    totalDuration: number;
     reason?: string | null;
     language?: Language;
 }): Promise<void>;

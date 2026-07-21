@@ -1403,8 +1403,8 @@ export declare const app: Elysia<"", {
                                     memberId: string;
                                 } | null;
                                 customerName: string;
-                                serviceNames: string[];
                                 totalDuration: number;
+                                serviceNames: string[];
                             }[];
                             status: string | number;
                             path: string;
@@ -1462,8 +1462,8 @@ export declare const app: Elysia<"", {
                                 memberId: string;
                             } | null;
                             customerName: string;
-                            serviceNames: string[];
                             totalDuration: number;
+                            serviceNames: string[];
                         }[];
                         status: string | number;
                         path: string;
@@ -4111,6 +4111,56 @@ export declare const app: Elysia<"", {
                                             status: "verified" | "already_verified" | "invalid";
                                             bookingId: string | null;
                                             verified: boolean;
+                                        };
+                                        status: string | number;
+                                        path: string;
+                                        timeStamp: string;
+                                    };
+                                    422: {
+                                        type: "validation";
+                                        on: string;
+                                        summary?: string;
+                                        message?: string;
+                                        found?: unknown;
+                                        property?: string;
+                                        expected?: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        public: {
+            booking: {
+                ":slug": {
+                    identity: {
+                        check: {
+                            get: {
+                                body: unknown;
+                                params: {
+                                    slug: string;
+                                };
+                                query: {
+                                    token: string;
+                                };
+                                headers: unknown;
+                                response: {
+                                    200: {
+                                        meta?: {
+                                            limit: number;
+                                            page: number;
+                                            totalItems: number;
+                                            totalPages: number;
+                                            hasNext: boolean;
+                                            hasPrev: boolean;
+                                        } | undefined;
+                                        message: string;
+                                        data: {
+                                            customerName: string | null;
+                                            valid: boolean;
                                         };
                                         status: string | number;
                                         path: string;
