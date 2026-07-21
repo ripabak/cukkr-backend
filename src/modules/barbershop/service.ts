@@ -9,6 +9,13 @@ import { barbershopSettings } from './schema'
 import { BarbershopModel } from './model'
 import { AppError } from '../../core/error'
 import { storageClient, extractStorageKey } from '../../lib/storage'
+import {
+	generateWebPVariants,
+	IMAGE_VARIANTS,
+	type ImageVariant
+} from '../../lib/image-processor'
+
+const CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 function isValidIanaTimezone(tz: string): boolean {
 	try {
@@ -97,6 +104,9 @@ export abstract class BarbershopService {
 				name: organization.name,
 				slug: organization.slug,
 				logo: organization.logo,
+				logoThumb: organization.logoThumb,
+				logoMed: organization.logoMed,
+				logoFull: organization.logoFull,
 				metadata: organization.metadata,
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
@@ -130,6 +140,9 @@ export abstract class BarbershopService {
 			description: rows[0].description ?? null,
 			address: rows[0].address ?? null,
 			logoUrl: rows[0].logoUrl ?? null,
+			logoThumb: rows[0].logoThumb ?? null,
+			logoMed: rows[0].logoMed ?? null,
+			logoFull: rows[0].logoFull ?? null,
 			onboardingCompleted: rows[0].onboardingCompleted ?? false,
 			timezone:
 				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE
@@ -147,6 +160,9 @@ export abstract class BarbershopService {
 				description: barbershopSettings.description,
 				address: barbershopSettings.address,
 				logoUrl: barbershopSettings.logoUrl,
+				logoThumb: barbershopSettings.logoThumb,
+				logoMed: barbershopSettings.logoMed,
+				logoFull: barbershopSettings.logoFull,
 				onboardingCompleted: barbershopSettings.onboardingCompleted,
 				role: member.role
 			})
@@ -165,6 +181,9 @@ export abstract class BarbershopService {
 			description: row.description ?? null,
 			address: row.address ?? null,
 			logoUrl: row.logoUrl ?? null,
+			logoThumb: row.logoThumb ?? null,
+			logoMed: row.logoMed ?? null,
+			logoFull: row.logoFull ?? null,
 			onboardingCompleted: row.onboardingCompleted ?? false,
 			role: row.role
 		}))
@@ -302,27 +321,70 @@ export abstract class BarbershopService {
 		const oldLogoUrl = existingSettings?.logoUrl ?? null
 
 		const buffer = new Uint8Array(await file.arrayBuffer())
-		const key = `logos/${organizationId}/${nanoid()}.${ext}`
-		const logoUrl = await storageClient.upload(key, buffer, file.type)
+		const baseId = nanoid()
+		const variants = await generateWebPVariants(buffer, IMAGE_VARIANTS.logo)
+
+		const uploadResults: Record<string, string> = {}
+		const uploadTasks = variants.map(async (variant: ImageVariant) => {
+			const key = `logos/${organizationId}/${baseId}_${variant.suffix}.webp`
+			const url = await storageClient.upload(
+				key,
+				new Uint8Array(variant.buffer),
+				variant.mimeType,
+				{ cacheControl: CACHE_CONTROL }
+			)
+			uploadResults[variant.suffix] = url
+		})
+
+		await Promise.all(uploadTasks)
+
+		const logoUrl = uploadResults.full || ''
+		const logoThumb = uploadResults.thumb || ''
+		const logoMed = uploadResults.med || ''
 
 		await BarbershopService.ensureSettingsRow(organizationId)
 		await db
 			.update(barbershopSettings)
-			.set({ logoUrl })
+			.set({
+				logoUrl,
+				logoThumb,
+				logoMed,
+				logoFull: logoUrl
+			})
 			.where(eq(barbershopSettings.organizationId, organizationId))
 		await db
 			.update(organization)
-			.set({ logo: logoUrl })
+			.set({
+				logo: logoUrl,
+				logoThumb,
+				logoMed,
+				logoFull: logoUrl
+			})
 			.where(eq(organization.id, organizationId))
 
 		if (oldLogoUrl) {
 			const oldKey = extractStorageKey(oldLogoUrl)
 			if (oldKey) {
-				await storageClient.delete(oldKey)
+				const baseFilePath = oldKey.replace(/\.\w+$/, '')
+				const suffixVariants = ['_thumb', '_med', '_full']
+				suffixVariants.forEach((suffix) => {
+					const variantKey = `${baseFilePath}${suffix}.webp`
+					storageClient.delete(variantKey).catch(() => {
+						void 0
+					})
+				})
+				storageClient.delete(oldKey).catch(() => {
+					void 0
+				})
 			}
 		}
 
-		return { logoUrl }
+		return {
+			logoUrl,
+			logoThumb,
+			logoMed,
+			logoFull: logoUrl
+		}
 	}
 
 	static async leaveBarbershop(

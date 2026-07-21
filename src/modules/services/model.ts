@@ -47,7 +47,10 @@ export namespace ServiceModel {
 	export type ServiceImageUploadInput = typeof ServiceImageUploadInput.static
 
 	export const ServiceImageUploadResponse = t.Object({
-		imageUrl: t.String()
+		imageUrl: t.String(),
+		imageThumb: t.String(),
+		imageMed: t.String(),
+		imageFull: t.String()
 	})
 	export type ServiceImageUploadResponse =
 		typeof ServiceImageUploadResponse.static
@@ -61,6 +64,9 @@ export namespace ServiceModel {
 		duration: t.Number(),
 		discount: t.Number(),
 		imageUrl: t.Nullable(t.String()),
+		imageThumb: t.Nullable(t.String()),
+		imageMed: t.Nullable(t.String()),
+		imageFull: t.Nullable(t.String()),
 		isActive: t.Boolean(),
 		isDefault: t.Boolean(),
 		createdAt: t.Date(),

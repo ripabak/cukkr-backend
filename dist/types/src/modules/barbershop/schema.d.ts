@@ -87,6 +87,57 @@ export declare const barbershopSettings: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        logoThumb: import("drizzle-orm/pg-core").PgColumn<{
+            name: "logo_thumb";
+            tableName: "barbershop_settings";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        logoMed: import("drizzle-orm/pg-core").PgColumn<{
+            name: "logo_med";
+            tableName: "barbershop_settings";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        logoFull: import("drizzle-orm/pg-core").PgColumn<{
+            name: "logo_full";
+            tableName: "barbershop_settings";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         onboardingCompleted: import("drizzle-orm/pg-core").PgColumn<{
             name: "onboarding_completed";
             tableName: "barbershop_settings";

@@ -78,6 +78,13 @@
       "when": 1784487837655,
       "tag": "20260719190357_add-booking-language",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784646938297,
+      "tag": "20260721151538_add-image-variant-columns",
+      "breakpoints": true
     }
   ]
 }

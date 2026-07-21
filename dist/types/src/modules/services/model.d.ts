@@ -34,6 +34,9 @@ export declare namespace ServiceModel {
     type ServiceImageUploadInput = typeof ServiceImageUploadInput.static;
     const ServiceImageUploadResponse: import("@sinclair/typebox").TObject<{
         imageUrl: import("@sinclair/typebox").TString;
+        imageThumb: import("@sinclair/typebox").TString;
+        imageMed: import("@sinclair/typebox").TString;
+        imageFull: import("@sinclair/typebox").TString;
     }>;
     type ServiceImageUploadResponse = typeof ServiceImageUploadResponse.static;
     const ServiceResponse: import("@sinclair/typebox").TObject<{
@@ -45,6 +48,9 @@ export declare namespace ServiceModel {
         duration: import("@sinclair/typebox").TNumber;
         discount: import("@sinclair/typebox").TNumber;
         imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         isActive: import("@sinclair/typebox").TBoolean;
         isDefault: import("@sinclair/typebox").TBoolean;
         createdAt: import("@sinclair/typebox").TDate;

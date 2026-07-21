@@ -21,6 +21,7 @@ export declare namespace AnalyticsModel {
         id: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         count: import("@sinclair/typebox").TNumber;
         revenue: import("@sinclair/typebox").TNumber;
     }>;
@@ -126,6 +127,7 @@ export declare namespace AnalyticsModel {
         barberId: import("@sinclair/typebox").TString;
         name: import("@sinclair/typebox").TString;
         imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         totalCustomers: import("@sinclair/typebox").TNumber;
         totalRevenue: import("@sinclair/typebox").TNumber;
     }>;
@@ -217,6 +219,7 @@ export declare namespace AnalyticsModel {
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;
                 imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 count: import("@sinclair/typebox").TNumber;
                 revenue: import("@sinclair/typebox").TNumber;
             }>, import("@sinclair/typebox").TNull]>;
@@ -224,6 +227,7 @@ export declare namespace AnalyticsModel {
                 id: import("@sinclair/typebox").TString;
                 name: import("@sinclair/typebox").TString;
                 imageUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+                imageThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 count: import("@sinclair/typebox").TNumber;
                 revenue: import("@sinclair/typebox").TNumber;
             }>, import("@sinclair/typebox").TNull]>;

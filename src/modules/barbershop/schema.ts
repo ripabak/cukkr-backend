@@ -18,6 +18,9 @@ export const barbershopSettings = pgTable(
 		description: text('description'),
 		address: text('address'),
 		logoUrl: text('logo_url'),
+		logoThumb: text('logo_thumb'),
+		logoMed: text('logo_med'),
+		logoFull: text('logo_full'),
 		onboardingCompleted: boolean('onboarding_completed')
 			.default(false)
 			.notNull(),

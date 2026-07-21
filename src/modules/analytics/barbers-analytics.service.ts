@@ -71,6 +71,7 @@ export abstract class BarberAnalyticsService {
 				memberId: member.id,
 				barberName: user.name,
 				barberImageUrl: user.image,
+				barberImageThumb: user.imageThumb,
 				totalCustomers: sql<string>`COUNT(DISTINCT ${booking.customerId})`,
 				totalRevenue: sql<string>`COALESCE(SUM(${bookingService.price}), 0)`
 			})
@@ -88,13 +89,14 @@ export abstract class BarberAnalyticsService {
 			)
 			.leftJoin(bookingService, eq(bookingService.bookingId, booking.id))
 			.where(eq(member.organizationId, organizationId))
-			.groupBy(member.id, user.name, user.image)
+			.groupBy(member.id, user.name, user.image, user.imageThumb)
 			.orderBy(sql`COALESCE(SUM(${bookingService.price}), 0) DESC`)
 
 		return rows.map((r) => ({
 			barberId: r.memberId,
 			name: r.barberName,
 			imageUrl: r.barberImageUrl ?? null,
+			imageThumb: r.barberImageThumb ?? null,
 			totalCustomers: parseInt(r.totalCustomers, 10),
 			totalRevenue: parseInt(r.totalRevenue, 10)
 		}))

@@ -50,6 +50,24 @@ export const auth = betterAuth({
 			}
 		}),
 		organization({
+			schema: {
+				organization: {
+					additionalFields: {
+						logoThumb: {
+							type: 'string',
+							required: false
+						},
+						logoMed: {
+							type: 'string',
+							required: false
+						},
+						logoFull: {
+							type: 'string',
+							required: false
+						}
+					}
+				}
+			},
 			organizationHooks: {
 				beforeCreateOrganization: async ({ organization: orgData }) => {
 					const slug = await BarbershopService.generateUniqueSlug(
@@ -186,6 +204,18 @@ export const auth = betterAuth({
 				type: 'string',
 				required: false,
 				defaultValue: 'id'
+			},
+			imageThumb: {
+				type: 'string',
+				required: false
+			},
+			imageMed: {
+				type: 'string',
+				required: false
+			},
+			imageFull: {
+				type: 'string',
+				required: false
 			}
 		},
 		changeEmail: {

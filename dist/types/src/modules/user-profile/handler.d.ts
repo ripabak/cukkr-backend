@@ -176,6 +176,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -200,6 +203,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -358,6 +364,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -529,6 +538,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 } | undefined;
@@ -553,6 +565,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                     name: string;
                     image?: string | null | undefined | undefined;
                     language: string | null | undefined;
+                    imageThumb?: string | null | undefined;
+                    imageMed?: string | null | undefined;
+                    imageFull?: string | null | undefined;
                     phone?: string | null | undefined;
                     bio?: string | null | undefined;
                 };
@@ -592,6 +607,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                         updatedAt: Date;
                         role: string | null;
                         avatarUrl: string | null;
+                        avatarThumb: string | null;
+                        avatarMed: string | null;
+                        avatarFull: string | null;
                     };
                     status: string | number;
                     path: string;
@@ -640,6 +658,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                         updatedAt: Date;
                         role: string | null;
                         avatarUrl: string | null;
+                        avatarThumb: string | null;
+                        avatarMed: string | null;
+                        avatarFull: string | null;
                     };
                     status: string | number;
                     path: string;
@@ -680,6 +701,9 @@ export declare const userProfileHandler: Elysia<"/me", {
                         message: string;
                         data: {
                             avatarUrl: string;
+                            avatarThumb: string;
+                            avatarMed: string;
+                            avatarFull: string;
                         };
                         status: string | number;
                         path: string;
@@ -721,6 +745,9 @@ export declare const userProfileHandler: Elysia<"/me", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;
@@ -749,6 +776,9 @@ export declare const userProfileHandler: Elysia<"/me", {
             name: string;
             image?: string | null | undefined | undefined;
             language: string | null | undefined;
+            imageThumb?: string | null | undefined;
+            imageMed?: string | null | undefined;
+            imageFull?: string | null | undefined;
             phone?: string | null | undefined;
             bio?: string | null | undefined;
         } | undefined;

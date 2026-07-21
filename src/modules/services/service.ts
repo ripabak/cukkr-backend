@@ -6,6 +6,13 @@ import { service } from './schema'
 import { ServiceModel } from './model'
 import { AppError } from '../../core/error'
 import { storageClient, extractStorageKey } from '../../lib/storage'
+import {
+	generateWebPVariants,
+	IMAGE_VARIANTS,
+	type ImageVariant
+} from '../../lib/image-processor'
+
+const CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 export abstract class ServiceService {
 	private static async findInOrg(
@@ -248,12 +255,33 @@ export abstract class ServiceService {
 		}
 
 		const buffer = new Uint8Array(await file.arrayBuffer())
-		const key = `services/${organizationId}/${id}/${nanoid()}.${ext}`
-		const imageUrl = await storageClient.upload(key, buffer, file.type)
+		const baseId = nanoid()
+		const variants = await generateWebPVariants(
+			buffer,
+			IMAGE_VARIANTS.service
+		)
+
+		const uploadResults: Record<string, string> = {}
+		const uploadTasks = variants.map(async (variant: ImageVariant) => {
+			const key = `services/${organizationId}/${id}/${baseId}_${variant.suffix}.webp`
+			const url = await storageClient.upload(
+				key,
+				new Uint8Array(variant.buffer),
+				variant.mimeType,
+				{ cacheControl: CACHE_CONTROL }
+			)
+			uploadResults[variant.suffix] = url
+		})
+
+		await Promise.all(uploadTasks)
+
+		const imageUrl = uploadResults.full || ''
+		const imageThumb = uploadResults.thumb || ''
+		const imageMed = uploadResults.med || ''
 
 		await db
 			.update(service)
-			.set({ imageUrl })
+			.set({ imageUrl, imageThumb, imageMed, imageFull: imageUrl })
 			.where(
 				and(
 					eq(service.id, id),
@@ -264,10 +292,20 @@ export abstract class ServiceService {
 		if (oldImageUrl) {
 			const oldKey = extractStorageKey(oldImageUrl)
 			if (oldKey) {
-				await storageClient.delete(oldKey)
+				const baseFilePath = oldKey.replace(/\.\w+$/, '')
+				const suffixVariants = ['_thumb', '_med', '_full']
+				suffixVariants.forEach((suffix) => {
+					const variantKey = `${baseFilePath}${suffix}.webp`
+					storageClient.delete(variantKey).catch(() => {
+						void 0
+					})
+				})
+				storageClient.delete(oldKey).catch(() => {
+					void 0
+				})
 			}
 		}
 
-		return { imageUrl }
+		return { imageUrl, imageThumb, imageMed, imageFull: imageUrl }
 	}
 }

@@ -6,6 +6,9 @@ export declare namespace BarbershopModel {
         description: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
         timezone: import("@sinclair/typebox").TString;
     }>;
@@ -41,6 +44,9 @@ export declare namespace BarbershopModel {
         description: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
         role: import("@sinclair/typebox").TString;
     }>;
@@ -52,6 +58,9 @@ export declare namespace BarbershopModel {
         description: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         address: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         logoUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoThumb: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoMed: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
         role: import("@sinclair/typebox").TString;
     }>>;
@@ -66,6 +75,9 @@ export declare namespace BarbershopModel {
     type LogoUploadInput = typeof LogoUploadInput.static;
     const LogoUploadResponse: import("@sinclair/typebox").TObject<{
         logoUrl: import("@sinclair/typebox").TString;
+        logoThumb: import("@sinclair/typebox").TString;
+        logoMed: import("@sinclair/typebox").TString;
+        logoFull: import("@sinclair/typebox").TString;
     }>;
     type LogoUploadResponse = typeof LogoUploadResponse.static;
     const LeaveOrgResponse: import("@sinclair/typebox").TObject<{

@@ -37,6 +37,7 @@ export namespace AnalyticsModel {
 		id: t.String(),
 		name: t.String(),
 		imageUrl: t.Nullable(t.String()),
+		imageThumb: t.Nullable(t.String()),
 		count: t.Number(),
 		revenue: t.Number()
 	})
@@ -120,6 +121,7 @@ export namespace AnalyticsModel {
 		barberId: t.String(),
 		name: t.String(),
 		imageUrl: t.Nullable(t.String()),
+		imageThumb: t.Nullable(t.String()),
 		totalCustomers: t.Number(),
 		totalRevenue: t.Number()
 	})

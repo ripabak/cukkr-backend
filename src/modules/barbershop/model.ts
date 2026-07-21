@@ -8,6 +8,9 @@ export namespace BarbershopModel {
 		description: t.Nullable(t.String()),
 		address: t.Nullable(t.String()),
 		logoUrl: t.Nullable(t.String()),
+		logoThumb: t.Nullable(t.String()),
+		logoMed: t.Nullable(t.String()),
+		logoFull: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean(),
 		timezone: t.String()
 	})
@@ -49,6 +52,9 @@ export namespace BarbershopModel {
 		description: t.Nullable(t.String()),
 		address: t.Nullable(t.String()),
 		logoUrl: t.Nullable(t.String()),
+		logoThumb: t.Nullable(t.String()),
+		logoMed: t.Nullable(t.String()),
+		logoFull: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean(),
 		role: t.String()
 	})
@@ -68,7 +74,10 @@ export namespace BarbershopModel {
 	export type LogoUploadInput = typeof LogoUploadInput.static
 
 	export const LogoUploadResponse = t.Object({
-		logoUrl: t.String()
+		logoUrl: t.String(),
+		logoThumb: t.String(),
+		logoMed: t.String(),
+		logoFull: t.String()
 	})
 	export type LogoUploadResponse = typeof LogoUploadResponse.static
 

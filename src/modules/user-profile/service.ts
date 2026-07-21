@@ -6,6 +6,13 @@ import { db } from '../../lib/database'
 import { storageClient, extractStorageKey } from '../../lib/storage'
 import { member, user } from '../auth/schema'
 import { UserProfileModel } from './model'
+import {
+	generateWebPVariants,
+	IMAGE_VARIANTS,
+	type ImageVariant
+} from '../../lib/image-processor'
+
+const CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 const AVATAR_MAX_SIZE_BYTES = 5 * 1024 * 1024
 
@@ -117,6 +124,9 @@ export abstract class UserProfileService {
 			name: row.name,
 			bio: row.bio ?? null,
 			avatarUrl: row.image ?? null,
+			avatarThumb: row.imageThumb ?? null,
+			avatarMed: row.imageMed ?? null,
+			avatarFull: row.imageFull ?? null,
 			email: row.email,
 			emailVerified: row.emailVerified,
 			role,
@@ -181,19 +191,46 @@ export abstract class UserProfileService {
 			)
 		}
 
-		const extension = getAvatarExtension(detectedMimeType)
-		const key = `avatars/${userId}/${nanoid()}.${extension}`
-		const avatarUrl = await storageClient.upload(
-			key,
+		const baseId = nanoid()
+		const variants = await generateWebPVariants(
 			buffer,
-			detectedMimeType
+			IMAGE_VARIANTS.avatar
 		)
+
+		const uploadResults: Record<string, string> = {}
+		const uploadTasks = variants.map(async (variant: ImageVariant) => {
+			const key = `avatars/${userId}/${baseId}_${variant.suffix}.webp`
+			const url = await storageClient.upload(
+				key,
+				new Uint8Array(variant.buffer),
+				variant.mimeType,
+				{ cacheControl: CACHE_CONTROL }
+			)
+			uploadResults[variant.suffix] = url
+		})
+
+		await Promise.all(uploadTasks)
+
+		const avatarUrl = uploadResults.full || ''
+		const avatarThumb = uploadResults.thumb || ''
+		const avatarMed = uploadResults.med || ''
 
 		const [updated] = await db
 			.update(user)
-			.set({ image: avatarUrl })
+			.set({
+				image: avatarUrl,
+				imageThumb: avatarThumb,
+				imageMed: avatarMed,
+				imageFull: avatarUrl
+			})
 			.where(eq(user.id, userId))
-			.returning({ id: user.id, image: user.image })
+			.returning({
+				id: user.id,
+				image: user.image,
+				imageThumb: user.imageThumb,
+				imageMed: user.imageMed,
+				imageFull: user.imageFull
+			})
 
 		if (!updated) {
 			throw new AppError('User not found', 'NOT_FOUND')
@@ -206,12 +243,25 @@ export abstract class UserProfileService {
 		if (oldImage) {
 			const oldKey = extractStorageKey(oldImage)
 			if (oldKey) {
-				await storageClient.delete(oldKey)
+				const baseFilePath = oldKey.replace(/\.\w+$/, '')
+				const suffixVariants = ['_thumb', '_med', '_full']
+				suffixVariants.forEach((suffix) => {
+					const variantKey = `${baseFilePath}${suffix}.webp`
+					storageClient.delete(variantKey).catch(() => {
+						void 0
+					})
+				})
+				storageClient.delete(oldKey).catch(() => {
+					void 0
+				})
 			}
 		}
 
 		return {
-			avatarUrl: updated.image ?? avatarUrl
+			avatarUrl: updated.image ?? avatarUrl,
+			avatarThumb: updated.imageThumb ?? avatarThumb,
+			avatarMed: updated.imageMed ?? avatarMed,
+			avatarFull: updated.imageFull ?? avatarUrl
 		}
 	}
 }

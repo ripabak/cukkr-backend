@@ -20,6 +20,9 @@ export namespace UserProfileModel {
 		name: t.String(),
 		bio: t.Nullable(t.String()),
 		avatarUrl: t.Nullable(t.String()),
+		avatarThumb: t.Nullable(t.String()),
+		avatarMed: t.Nullable(t.String()),
+		avatarFull: t.Nullable(t.String()),
 		email: t.String(),
 		emailVerified: t.Boolean(),
 		role: t.Nullable(t.String()),
@@ -29,7 +32,10 @@ export namespace UserProfileModel {
 	export type UserProfileResponse = typeof UserProfileResponse.static
 
 	export const AvatarUploadResponse = t.Object({
-		avatarUrl: t.String()
+		avatarUrl: t.String(),
+		avatarThumb: t.String(),
+		avatarMed: t.String(),
+		avatarFull: t.String()
 	})
 	export type AvatarUploadResponse = typeof AvatarUploadResponse.static
 }
