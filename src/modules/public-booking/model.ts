@@ -23,9 +23,15 @@ const ServiceItem = t.Object({
 	isDefault: t.Boolean()
 })
 
+const BookingWindowSchema = t.Object({
+	minAdvanceHours: t.Number(),
+	maxAdvanceDays: t.Number()
+})
+
 const FormDataResponse = t.Object({
 	services: t.Array(ServiceItem),
-	barbers: t.Array(BarberItem)
+	barbers: t.Array(BarberItem),
+	bookingWindow: BookingWindowSchema
 })
 
 const ValidatePinBody = t.Object(

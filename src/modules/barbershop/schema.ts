@@ -2,6 +2,7 @@ import {
 	pgTable,
 	text,
 	boolean,
+	integer,
 	timestamp,
 	uniqueIndex
 } from 'drizzle-orm/pg-core'
@@ -24,6 +25,8 @@ export const barbershopSettings = pgTable(
 		onboardingCompleted: boolean('onboarding_completed')
 			.default(false)
 			.notNull(),
+		minAdvanceHours: integer('min_advance_hours').default(2).notNull(),
+		maxAdvanceDays: integer('max_advance_days').default(30).notNull(),
 		lastSlugChangedAt: timestamp('last_slug_changed_at', {
 			withTimezone: true
 		}),

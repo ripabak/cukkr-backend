@@ -155,6 +155,40 @@ export declare const barbershopSettings: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        minAdvanceHours: import("drizzle-orm/pg-core").PgColumn<{
+            name: "min_advance_hours";
+            tableName: "barbershop_settings";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        maxAdvanceDays: import("drizzle-orm/pg-core").PgColumn<{
+            name: "max_advance_days";
+            tableName: "barbershop_settings";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         lastSlugChangedAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "last_slug_changed_at";
             tableName: "barbershop_settings";

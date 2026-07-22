@@ -11,9 +11,21 @@ export declare namespace BarbershopModel {
         logoFull: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         onboardingCompleted: import("@sinclair/typebox").TBoolean;
         timezone: import("@sinclair/typebox").TString;
+        minAdvanceHours: import("@sinclair/typebox").TNumber;
+        maxAdvanceDays: import("@sinclair/typebox").TNumber;
         lastSlugChangedAt: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>;
     type BarbershopResponse = typeof BarbershopResponse.static;
+    const BookingWindowInput: import("@sinclair/typebox").TObject<{
+        minAdvanceHours: import("@sinclair/typebox").TNumber;
+        maxAdvanceDays: import("@sinclair/typebox").TNumber;
+    }>;
+    type BookingWindowInput = typeof BookingWindowInput.static;
+    const BookingWindowResponse: import("@sinclair/typebox").TObject<{
+        minAdvanceHours: import("@sinclair/typebox").TNumber;
+        maxAdvanceDays: import("@sinclair/typebox").TNumber;
+    }>;
+    type BookingWindowResponse = typeof BookingWindowResponse.static;
     const TimezoneInput: import("@sinclair/typebox").TObject<{
         timezone: import("@sinclair/typebox").TString;
     }>;

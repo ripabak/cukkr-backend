@@ -99,6 +99,13 @@
       "when": 1784654084490,
       "tag": "20260721171444_add-last-slug-changed-at",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1784717886431,
+      "tag": "20260722105806_add-booking-window-to-barbershop-settings",
+      "breakpoints": true
     }
   ]
 }

@@ -53,6 +53,10 @@ export declare const publicBookingHandler: Elysia<"/public/booking", {
                                         name: string;
                                         avatarUrl: string | null;
                                     }[];
+                                    bookingWindow: {
+                                        minAdvanceHours: number;
+                                        maxAdvanceDays: number;
+                                    };
                                 };
                                 status: string | number;
                                 path: string;

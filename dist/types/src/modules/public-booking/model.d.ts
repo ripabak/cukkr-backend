@@ -17,6 +17,10 @@ declare const FormDataResponse: import("@sinclair/typebox").TObject<{
         name: import("@sinclair/typebox").TString;
         avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
+    bookingWindow: import("@sinclair/typebox").TObject<{
+        minAdvanceHours: import("@sinclair/typebox").TNumber;
+        maxAdvanceDays: import("@sinclair/typebox").TNumber;
+    }>;
 }>;
 declare const ValidatePinBody: import("@sinclair/typebox").TObject<{
     pin: import("@sinclair/typebox").TString;
@@ -83,6 +87,10 @@ export declare namespace PublicBookingModel {
                 name: import("@sinclair/typebox").TString;
                 avatarUrl: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
+            bookingWindow: import("@sinclair/typebox").TObject<{
+                minAdvanceHours: import("@sinclair/typebox").TNumber;
+                maxAdvanceDays: import("@sinclair/typebox").TNumber;
+            }>;
         }>;
         ValidatePinBody: import("@sinclair/typebox").TObject<{
             pin: import("@sinclair/typebox").TString;

@@ -85,6 +85,9 @@ describe('Public Barbershop API', () => {
 		expect(Array.isArray(shop.barbers)).toBe(true)
 		expect(Array.isArray(shop.openHours)).toBe(true)
 		expect(shop.openHours).toHaveLength(7)
+		expect(shop.bookingWindow).toBeDefined()
+		expect(typeof shop.bookingWindow.minAdvanceHours).toBe('number')
+		expect(typeof shop.bookingWindow.maxAdvanceDays).toBe('number')
 	})
 
 	it('only returns active services', async () => {

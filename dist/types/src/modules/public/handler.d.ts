@@ -71,6 +71,10 @@ export declare const publicHandler: Elysia<"/public", {
                                     openTime: string | null;
                                     closeTime: string | null;
                                 }[];
+                                bookingWindow: {
+                                    minAdvanceHours: number;
+                                    maxAdvanceDays: number;
+                                };
                             };
                             status: string | number;
                             path: string;

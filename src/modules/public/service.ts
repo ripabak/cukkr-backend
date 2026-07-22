@@ -92,7 +92,9 @@ export abstract class PublicService {
 				logoUrl: barbershopSettings.logoUrl,
 				logoThumb: barbershopSettings.logoThumb,
 				logoMed: barbershopSettings.logoMed,
-				logoFull: barbershopSettings.logoFull
+				logoFull: barbershopSettings.logoFull,
+				minAdvanceHours: barbershopSettings.minAdvanceHours,
+				maxAdvanceDays: barbershopSettings.maxAdvanceDays
 			})
 			.from(organization)
 			.leftJoin(
@@ -152,7 +154,11 @@ export abstract class PublicService {
 				avatarThumb: m.user.imageThumb ?? null,
 				bio: m.user.bio ?? null
 			})),
-			openHours
+			openHours,
+			bookingWindow: {
+				minAdvanceHours: org.minAdvanceHours ?? 2,
+				maxAdvanceDays: org.maxAdvanceDays ?? 30
+			}
 		}
 	}
 

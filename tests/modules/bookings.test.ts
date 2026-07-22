@@ -20,6 +20,7 @@ import {
 } from '../../src/modules/notifications/schema'
 import { openHour } from '../../src/modules/open-hours/schema'
 import { service } from '../../src/modules/services/schema'
+import { barbershopSettings } from '../../src/modules/barbershop/schema'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -1974,5 +1975,213 @@ describe('Booking Stale Cancellation Cron', () => {
 	it('handles clean state without error', async () => {
 		const result = await BookingService.cancelStaleBookings()
 		expect(result.cancelled).toBeGreaterThanOrEqual(0)
+	})
+})
+
+describe('Booking Window Limits', () => {
+	let owner: OwnerContext
+	let svc: ServiceSeed
+
+	beforeAll(async () => {
+		owner = await createOwnerWithOrg('booking-window')
+		svc = await seedService({
+			organizationId: owner.orgId,
+			name: 'Window Test Cut',
+			price: 50000,
+			duration: 30
+		})
+		await seedWeeklyOpenHours(owner.orgId, {
+			0: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			1: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			2: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			3: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			4: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			5: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			6: { isOpen: true, openTime: '08:00', closeTime: '20:00' }
+		})
+	})
+
+	function tomorrowWibIso(hour: number, minute: number): string {
+		return getFutureWibIso(1, hour, minute)
+	}
+
+	function futureDayWibIso(dayOffset: number): string {
+		return getFutureWibIso(dayOffset, 10, 0)
+	}
+
+	it('allows appointment within default window (tomorrow 10:00 WIB > min 2h, < max 30d)', async () => {
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Window OK',
+				customerEmail: 'windowok@example.com',
+				serviceIds: [svc.id],
+				scheduledAt: tomorrowWibIso(10, 0)
+			},
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+		expect(status).toBe(201)
+	})
+
+	it('rejects appointment beyond default max advance (45d > 30d)', async () => {
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Too Far',
+				customerEmail: 'toofar@example.com',
+				serviceIds: [svc.id],
+				scheduledAt: futureDayWibIso(45)
+			},
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+		expect(status).toBe(400)
+	})
+
+	it('walk-in is not affected by booking window limits', async () => {
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'walk_in',
+				customerName: 'Walk-in OK',
+				customerEmail: 'walkin@example.com',
+				serviceIds: [svc.id]
+			},
+			{ fetch: { headers: { cookie: owner.authCookie } } }
+		)
+		expect(status).toBe(201)
+	})
+
+	it('rejects within min advance after increasing minAdvanceHours', async () => {
+		const patchOwner = await createOwnerWithOrg('bw-min-inc')
+		const patchSvc = await seedService({
+			organizationId: patchOwner.orgId,
+			name: 'Min Inc Cut',
+			price: 50000,
+			duration: 30
+		})
+		await seedWeeklyOpenHours(patchOwner.orgId, {
+			0: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			1: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			2: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			3: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			4: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			5: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			6: { isOpen: true, openTime: '08:00', closeTime: '20:00' }
+		})
+
+		const { status: patchStatus } = await tClient.api.barbershop.settings[
+			'booking-window'
+		].patch(
+			{ minAdvanceHours: 48, maxAdvanceDays: 90 },
+			{ fetch: { headers: { cookie: patchOwner.authCookie } } }
+		)
+		expect(patchStatus).toBe(200)
+
+		const { status: rejectStatus } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Min Fail',
+				customerEmail: 'minfail@example.com',
+				serviceIds: [patchSvc.id],
+				scheduledAt: tomorrowWibIso(10, 0)
+			},
+			{ fetch: { headers: { cookie: patchOwner.authCookie } } }
+		)
+		expect(rejectStatus).toBe(400)
+	})
+
+	it('rejects staff-created appointment violating window limits too', async () => {
+		const staffOwner = await createOwnerWithOrg('bw-staff')
+		const staffSvc = await seedService({
+			organizationId: staffOwner.orgId,
+			name: 'Staff Cut',
+			price: 50000,
+			duration: 30
+		})
+		await seedWeeklyOpenHours(staffOwner.orgId, {
+			0: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			1: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			2: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			3: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			4: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			5: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			6: { isOpen: true, openTime: '08:00', closeTime: '20:00' }
+		})
+
+		await tClient.api.barbershop.settings['booking-window'].patch(
+			{ minAdvanceHours: 48, maxAdvanceDays: 90 },
+			{ fetch: { headers: { cookie: staffOwner.authCookie } } }
+		)
+
+		const { status } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Staff Fail',
+				customerEmail: 'stafffail@example.com',
+				serviceIds: [staffSvc.id],
+				scheduledAt: tomorrowWibIso(10, 0)
+			},
+			{ fetch: { headers: { cookie: staffOwner.authCookie } } }
+		)
+		expect(status).toBe(400)
+	})
+
+	it('works with overridden max advance via API', async () => {
+		const maxOwner = await createOwnerWithOrg('bw-max')
+		const maxSvc = await seedService({
+			organizationId: maxOwner.orgId,
+			name: 'Max Cut',
+			price: 50000,
+			duration: 30
+		})
+		await seedWeeklyOpenHours(maxOwner.orgId, {
+			0: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			1: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			2: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			3: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			4: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			5: { isOpen: true, openTime: '08:00', closeTime: '20:00' },
+			6: { isOpen: true, openTime: '08:00', closeTime: '20:00' }
+		})
+
+		const { status: patchStatus } = await tClient.api.barbershop.settings[
+			'booking-window'
+		].patch(
+			{ minAdvanceHours: 1, maxAdvanceDays: 5 },
+			{ fetch: { headers: { cookie: maxOwner.authCookie } } }
+		)
+		expect(patchStatus).toBe(200)
+
+		// 3 days from now — accepted (3d < 5d)
+		const { status: okStatus } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Max OK',
+				customerEmail: 'maxok@example.com',
+				serviceIds: [maxSvc.id],
+				scheduledAt: futureDayWibIso(3)
+			},
+			{ fetch: { headers: { cookie: maxOwner.authCookie } } }
+		)
+		expect(okStatus).toBe(201)
+
+		// 7 days from now — rejected (7d > 5d)
+		const { status: rejectStatus } = await tClient.api.bookings.post(
+			{
+				type: 'appointment',
+				customerName: 'Max Fail',
+				customerEmail: 'maxfail@example.com',
+				serviceIds: [maxSvc.id],
+				scheduledAt: futureDayWibIso(7)
+			},
+			{ fetch: { headers: { cookie: maxOwner.authCookie } } }
+		)
+		expect(rejectStatus).toBe(400)
+
+		const settingsRow = await db.query.barbershopSettings.findFirst({
+			where: eq(barbershopSettings.organizationId, maxOwner.orgId),
+			columns: { minAdvanceHours: true, maxAdvanceDays: true }
+		})
+		expect(settingsRow?.minAdvanceHours).toBe(1)
+		expect(settingsRow?.maxAdvanceDays).toBe(5)
 	})
 })

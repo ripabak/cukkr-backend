@@ -5,6 +5,7 @@ import { db } from '../../lib/database'
 import { sendAppointmentVerificationEmail } from '../../lib/mail'
 import type { Language } from '../../lib/i18n'
 import { member, organization } from '../auth/schema'
+import { barbershopSettings } from '../barbershop/schema'
 import { BookingService } from '../bookings/service'
 import { booking, customer } from '../bookings/schema'
 import type { BookingModel } from '../bookings/model'
@@ -37,7 +38,7 @@ export abstract class PublicBookingService {
 	): Promise<PublicBookingModel.FormDataResponse> {
 		const org = await resolveOrgBySlug(slug)
 
-		const [services, members] = await Promise.all([
+		const [services, members, settings] = await Promise.all([
 			db.query.service.findMany({
 				where: and(
 					eq(service.organizationId, org.id),
@@ -47,6 +48,13 @@ export abstract class PublicBookingService {
 			db.query.member.findMany({
 				where: and(eq(member.organizationId, org.id)),
 				with: { user: true }
+			}),
+			db.query.barbershopSettings.findFirst({
+				where: eq(barbershopSettings.organizationId, org.id),
+				columns: {
+					minAdvanceHours: true,
+					maxAdvanceDays: true
+				}
 			})
 		])
 
@@ -65,7 +73,11 @@ export abstract class PublicBookingService {
 				id: m.id,
 				name: m.user.name,
 				avatarUrl: m.user.image ?? null
-			}))
+			})),
+			bookingWindow: {
+				minAdvanceHours: settings?.minAdvanceHours ?? 2,
+				maxAdvanceDays: settings?.maxAdvanceDays ?? 30
+			}
 		}
 	}
 
