@@ -33,6 +33,7 @@ import {
 } from '../../lib/timezone'
 import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { member, organization, user } from '../auth/schema'
+import { barbershopSettings } from '../barbershop/schema'
 import { OpenHoursService } from '../open-hours/service'
 import { service as serviceTable } from '../services/schema'
 import { BookingModel } from './model'
@@ -220,6 +221,8 @@ export abstract class BookingService {
 			timezone
 		)
 
+		await BookingService.validateBookingWindow(organizationId, scheduledAt)
+
 		return scheduledAt
 	}
 
@@ -246,6 +249,43 @@ export abstract class BookingService {
 		) {
 			throw new AppError(
 				'Appointment scheduledAt must fall within open hours',
+				'BAD_REQUEST'
+			)
+		}
+	}
+
+	private static async validateBookingWindow(
+		organizationId: string,
+		scheduledAt: Date
+	): Promise<void> {
+		const settings = await db.query.barbershopSettings.findFirst({
+			where: eq(barbershopSettings.organizationId, organizationId),
+			columns: {
+				minAdvanceHours: true,
+				maxAdvanceDays: true
+			}
+		})
+
+		const minAdvanceHours = settings?.minAdvanceHours ?? 2
+		const maxAdvanceDays = settings?.maxAdvanceDays ?? 30
+		const now = new Date()
+
+		const minAllowed = new Date(
+			now.getTime() + minAdvanceHours * 60 * 60 * 1000
+		)
+		if (scheduledAt.getTime() < minAllowed.getTime()) {
+			throw new AppError(
+				`Appointment must be booked at least ${minAdvanceHours} hour(s) in advance`,
+				'BAD_REQUEST'
+			)
+		}
+
+		const maxAllowed = new Date(
+			now.getTime() + maxAdvanceDays * 24 * 60 * 60 * 1000
+		)
+		if (scheduledAt.getTime() > maxAllowed.getTime()) {
+			throw new AppError(
+				`Appointment can only be booked up to ${maxAdvanceDays} day(s) in advance`,
 				'BAD_REQUEST'
 			)
 		}

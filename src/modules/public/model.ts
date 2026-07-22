@@ -27,6 +27,11 @@ const PublicOpenHoursDay = t.Object({
 	closeTime: t.Nullable(t.String())
 })
 
+const BookingWindowSchema = t.Object({
+	minAdvanceHours: t.Number(),
+	maxAdvanceDays: t.Number()
+})
+
 const PublicBarbershopResponse = t.Object({
 	id: t.String(),
 	name: t.String(),
@@ -40,7 +45,8 @@ const PublicBarbershopResponse = t.Object({
 	timezone: t.String(),
 	services: t.Array(PublicServiceItem),
 	barbers: t.Array(PublicBarberItem),
-	openHours: t.Array(PublicOpenHoursDay)
+	openHours: t.Array(PublicOpenHoursDay),
+	bookingWindow: BookingWindowSchema
 })
 
 const WalkInFormDataResponse = t.Object({
@@ -100,6 +106,7 @@ export namespace PublicModel {
 	export type PublicBarbershopResponse =
 		typeof PublicBarbershopResponse.static
 	export type PublicOpenHoursDay = typeof PublicOpenHoursDay.static
+	export type BookingWindowSchema = typeof BookingWindowSchema.static
 	export type WalkInFormDataResponse = typeof WalkInFormDataResponse.static
 	export type PublicSlugParam = typeof PublicSlugParam.static
 	export type PublicAvailabilityQuery = typeof PublicAvailabilityQuery.static
@@ -115,6 +122,7 @@ export namespace PublicModel {
 		PublicServiceItem,
 		PublicBarbershopResponse,
 		PublicOpenHoursDay,
+		BookingWindowSchema,
 		WalkInFormDataResponse,
 		PublicSlugParam,
 		PublicAvailabilityQuery,

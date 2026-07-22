@@ -113,6 +113,8 @@ export abstract class BarbershopService {
 				logoMed: barbershopSettings.logoMed,
 				logoFull: barbershopSettings.logoFull,
 				onboardingCompleted: barbershopSettings.onboardingCompleted,
+				minAdvanceHours: barbershopSettings.minAdvanceHours,
+				maxAdvanceDays: barbershopSettings.maxAdvanceDays,
 				lastSlugChangedAt: barbershopSettings.lastSlugChangedAt
 			})
 			.from(organization)
@@ -140,6 +142,8 @@ export abstract class BarbershopService {
 			onboardingCompleted: rows[0].onboardingCompleted ?? false,
 			timezone:
 				parseOrgMetadata(rows[0].metadata).timezone ?? DEFAULT_TIMEZONE,
+			minAdvanceHours: rows[0].minAdvanceHours ?? 2,
+			maxAdvanceDays: rows[0].maxAdvanceDays ?? 30,
 			lastSlugChangedAt: rows[0].lastSlugChangedAt?.toISOString() ?? null
 		}
 	}
@@ -209,6 +213,33 @@ export abstract class BarbershopService {
 			.where(eq(organization.id, organizationId))
 
 		return { timezone }
+	}
+
+	static async updateBookingWindow(
+		organizationId: string,
+		body: BarbershopModel.BookingWindowInput
+	): Promise<BarbershopModel.BookingWindowResponse> {
+		const { minAdvanceHours, maxAdvanceDays } = body
+
+		if (maxAdvanceDays * 24 <= minAdvanceHours) {
+			throw new AppError(
+				'Maximum advance (in hours) must be greater than minimum advance hours',
+				'BAD_REQUEST'
+			)
+		}
+
+		await BarbershopService.ensureSettingsRow(organizationId)
+
+		await db
+			.update(barbershopSettings)
+			.set({
+				minAdvanceHours,
+				maxAdvanceDays,
+				updatedAt: new Date()
+			})
+			.where(eq(barbershopSettings.organizationId, organizationId))
+
+		return { minAdvanceHours, maxAdvanceDays }
 	}
 
 	static async updateSettings(

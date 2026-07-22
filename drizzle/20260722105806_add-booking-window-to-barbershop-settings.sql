@@ -1,0 +1,2 @@
+ALTER TABLE "barbershop_settings" ADD COLUMN "min_advance_hours" integer DEFAULT 2 NOT NULL;--> statement-breakpoint
+ALTER TABLE "barbershop_settings" ADD COLUMN "max_advance_days" integer DEFAULT 30 NOT NULL;

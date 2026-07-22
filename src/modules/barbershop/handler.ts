@@ -79,6 +79,29 @@ export const barbershopHandler = new Elysia({
 		}
 	)
 
+	// PATCH /barbershop/settings/booking-window — update booking window limits
+	.patch(
+		'/settings/booking-window',
+		async ({ body, path, activeOrganizationId }) => {
+			const data = await BarbershopService.updateBookingWindow(
+				activeOrganizationId,
+				body
+			)
+			return formatResponse({
+				path,
+				data,
+				message: 'Booking window updated'
+			})
+		},
+		{
+			requireRoles: ['owner', 'admin'],
+			body: BarbershopModel.BookingWindowInput,
+			response: FormatResponseSchema(
+				BarbershopModel.BookingWindowResponse
+			)
+		}
+	)
+
 	// PATCH /barbershop/timezone — update org timezone
 	.patch(
 		'/timezone',

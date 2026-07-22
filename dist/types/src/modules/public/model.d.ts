@@ -22,6 +22,10 @@ declare const PublicOpenHoursDay: import("@sinclair/typebox").TObject<{
     openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
 }>;
+declare const BookingWindowSchema: import("@sinclair/typebox").TObject<{
+    minAdvanceHours: import("@sinclair/typebox").TNumber;
+    maxAdvanceDays: import("@sinclair/typebox").TNumber;
+}>;
 declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
     id: import("@sinclair/typebox").TString;
     name: import("@sinclair/typebox").TString;
@@ -57,6 +61,10 @@ declare const PublicBarbershopResponse: import("@sinclair/typebox").TObject<{
         openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
         closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
     }>>;
+    bookingWindow: import("@sinclair/typebox").TObject<{
+        minAdvanceHours: import("@sinclair/typebox").TNumber;
+        maxAdvanceDays: import("@sinclair/typebox").TNumber;
+    }>;
 }>;
 declare const WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
     services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{
@@ -116,6 +124,7 @@ export declare namespace PublicModel {
     type PublicServiceItem = typeof PublicServiceItem.static;
     type PublicBarbershopResponse = typeof PublicBarbershopResponse.static;
     type PublicOpenHoursDay = typeof PublicOpenHoursDay.static;
+    type BookingWindowSchema = typeof BookingWindowSchema.static;
     type WalkInFormDataResponse = typeof WalkInFormDataResponse.static;
     type PublicSlugParam = typeof PublicSlugParam.static;
     type PublicAvailabilityQuery = typeof PublicAvailabilityQuery.static;
@@ -176,12 +185,20 @@ export declare namespace PublicModel {
                 openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
                 closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             }>>;
+            bookingWindow: import("@sinclair/typebox").TObject<{
+                minAdvanceHours: import("@sinclair/typebox").TNumber;
+                maxAdvanceDays: import("@sinclair/typebox").TNumber;
+            }>;
         }>;
         PublicOpenHoursDay: import("@sinclair/typebox").TObject<{
             dayOfWeek: import("@sinclair/typebox").TInteger;
             isOpen: import("@sinclair/typebox").TBoolean;
             openTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
             closeTime: import("@sinclair/typebox").TUnion<[import("@sinclair/typebox").TString, import("@sinclair/typebox").TNull]>;
+        }>;
+        BookingWindowSchema: import("@sinclair/typebox").TObject<{
+            minAdvanceHours: import("@sinclair/typebox").TNumber;
+            maxAdvanceDays: import("@sinclair/typebox").TNumber;
         }>;
         WalkInFormDataResponse: import("@sinclair/typebox").TObject<{
             services: import("@sinclair/typebox").TArray<import("@sinclair/typebox").TObject<{

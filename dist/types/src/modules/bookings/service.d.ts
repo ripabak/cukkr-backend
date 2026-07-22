@@ -8,6 +8,7 @@ export declare abstract class BookingService {
     private static validateServices;
     private static validateScheduledAt;
     static validateOpenHours(organizationId: string, scheduledAt: Date, timezone?: string): Promise<void>;
+    private static validateBookingWindow;
     private static validateStatusTransition;
     private static checkSingleInProgress;
     private static buildStatusUpdate;

@@ -13,9 +13,26 @@ export namespace BarbershopModel {
 		logoFull: t.Nullable(t.String()),
 		onboardingCompleted: t.Boolean(),
 		timezone: t.String(),
+		minAdvanceHours: t.Number(),
+		maxAdvanceDays: t.Number(),
 		lastSlugChangedAt: t.Nullable(t.String())
 	})
 	export type BarbershopResponse = typeof BarbershopResponse.static
+
+	export const BookingWindowInput = t.Object(
+		{
+			minAdvanceHours: t.Number({ minimum: 1, maximum: 168 }),
+			maxAdvanceDays: t.Number({ minimum: 1, maximum: 365 })
+		},
+		{ additionalProperties: false }
+	)
+	export type BookingWindowInput = typeof BookingWindowInput.static
+
+	export const BookingWindowResponse = t.Object({
+		minAdvanceHours: t.Number(),
+		maxAdvanceDays: t.Number()
+	})
+	export type BookingWindowResponse = typeof BookingWindowResponse.static
 
 	export const TimezoneInput = t.Object({
 		timezone: t.String({ minLength: 1, maxLength: 100 })

@@ -657,6 +657,8 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                         logoMed: string | null;
                         logoFull: string | null;
                         onboardingCompleted: boolean;
+                        minAdvanceHours: number;
+                        maxAdvanceDays: number;
                         lastSlugChangedAt: string | null;
                         timezone: string;
                     };
@@ -712,6 +714,8 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                             logoMed: string | null;
                             logoFull: string | null;
                             onboardingCompleted: boolean;
+                            minAdvanceHours: number;
+                            maxAdvanceDays: number;
                             lastSlugChangedAt: string | null;
                             timezone: string;
                         };
@@ -756,6 +760,51 @@ export declare const barbershopHandler: Elysia<"/barbershop", {
                             message: string;
                             data: {
                                 message: string;
+                            };
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    barbershop: {
+        settings: {
+            "booking-window": {
+                patch: {
+                    body: {
+                        minAdvanceHours: number;
+                        maxAdvanceDays: number;
+                    };
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                minAdvanceHours: number;
+                                maxAdvanceDays: number;
                             };
                             status: string | number;
                             path: string;
