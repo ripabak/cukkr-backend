@@ -798,6 +798,14 @@ export abstract class BookingService {
 				to: custEmail,
 				customerName: bookingDetail.customer.name,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
+				referenceNumber: bookingDetail.referenceNumber,
+				scheduledAt: bookingDetail.scheduledAt?.toISOString() ?? null,
+				services: bookingDetail.services.map((s) => ({
+					name: s.serviceName,
+					price: s.price,
+					duration: s.duration
+				})),
+				barberName: bookingDetail.requestedBarber?.name ?? null,
 				verifyUrl,
 				language: customerLanguage
 			}).catch((err) => {
@@ -1476,7 +1484,9 @@ export abstract class BookingService {
 				id: booking.id,
 				organizationId: booking.organizationId,
 				customerId: booking.customerId,
-				referenceNumber: booking.referenceNumber
+				referenceNumber: booking.referenceNumber,
+				scheduledAt: booking.scheduledAt,
+				barberId: booking.barberId
 			})
 
 		if (staleBookings.length === 0) {
@@ -1495,11 +1505,16 @@ export abstract class BookingService {
 			bookingEventBus.notify(orgId)
 		}
 
-		// Batch fetch customer emails and organization names
+		// Batch fetch customer emails, organization names, booking services, and barber names
 		const customerIds = [...new Set(staleBookings.map((b) => b.customerId))]
 		const orgIds = [...new Set(staleBookings.map((b) => b.organizationId))]
+		const bookingIds = staleBookings.map((b) => b.id)
+		const barberIds = staleBookings
+			.map((b) => b.barberId)
+			.filter((id): id is string => id !== null)
+		const uniqueBarberIds = [...new Set(barberIds)]
 
-		const [customers, orgs] = await Promise.all([
+		const [customers, orgs, services, barbers] = await Promise.all([
 			db.query.customer.findMany({
 				where: inArray(customer.id, customerIds),
 				columns: { id: true, email: true, name: true, language: true }
@@ -1507,11 +1522,41 @@ export abstract class BookingService {
 			db.query.organization.findMany({
 				where: inArray(organization.id, orgIds),
 				columns: { id: true, name: true }
-			})
+			}),
+			db.query.bookingService.findMany({
+				where: inArray(bookingService.bookingId, bookingIds),
+				columns: {
+					bookingId: true,
+					serviceName: true,
+					price: true,
+					duration: true
+				}
+			}),
+			uniqueBarberIds.length > 0
+				? db.query.member.findMany({
+						where: inArray(member.id, uniqueBarberIds),
+						columns: { id: true },
+						with: { user: { columns: { name: true } } }
+					})
+				: Promise.resolve([])
 		])
 
 		const customerMap = new Map(customers.map((c) => [c.id, c]))
 		const orgMap = new Map(orgs.map((o) => [o.id, o]))
+		const servicesMap = new Map<
+			string,
+			{ name: string; price: number; duration: number }[]
+		>()
+		for (const s of services) {
+			const existing = servicesMap.get(s.bookingId) ?? []
+			existing.push({
+				name: s.serviceName,
+				price: s.price,
+				duration: s.duration
+			})
+			servicesMap.set(s.bookingId, existing)
+		}
+		const barberMap = new Map(barbers.map((b) => [b.id, b.user.name]))
 
 		for (const row of staleBookings) {
 			const customerRow = customerMap.get(row.customerId)
@@ -1523,6 +1568,11 @@ export abstract class BookingService {
 					customerName: customerRow.name,
 					barbershopName: orgRow.name,
 					referenceNumber: row.referenceNumber,
+					scheduledAt: row.scheduledAt,
+					services: servicesMap.get(row.id) ?? [],
+					barberName: row.barberId
+						? (barberMap.get(row.barberId) ?? null)
+						: null,
 					language: (customerRow.language as Language) ?? 'id'
 				}).catch(console.error)
 			}

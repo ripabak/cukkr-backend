@@ -148,6 +148,14 @@ export abstract class PublicBookingService {
 				to: input.customerEmail,
 				customerName: input.customerName,
 				barbershopName: orgInfo?.name ?? 'the barbershop',
+				referenceNumber: detail.referenceNumber,
+				scheduledAt: detail.scheduledAt?.toISOString() ?? null,
+				services: detail.services.map((s) => ({
+					name: s.serviceName,
+					price: s.price,
+					duration: s.duration
+				})),
+				barberName: detail.requestedBarber?.name ?? null,
 				verifyUrl,
 				language: lang
 			}).catch((err) => {

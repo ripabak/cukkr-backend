@@ -19,20 +19,22 @@ export const en = {
 			title: 'Confirm Your Appointment',
 			heading: 'Hi, {customerName}',
 			body: 'Please confirm your appointment at <strong>{barbershopName}</strong> by clicking the button below. Your booking will only be processed after confirmation.',
+			referenceLabel: 'Reference Number',
 			cta: 'Confirm Appointment',
 			linkHint: 'Or copy this link into your browser:',
 			footer: 'If you did not make this appointment, you can safely ignore this email.<br/>&copy; {year} Cukkr. All rights reserved.',
-			text: 'Confirm Your Appointment\n\nHi {customerName},\n\nPlease confirm your appointment at {barbershopName} by visiting the link below. Your booking will only be processed after confirmation.\n\n{verifyUrl}\n\nIf you did not make this appointment, you can safely ignore this email.'
+			text: 'Confirm Your Appointment\n\nHi {customerName},\n\nPlease confirm your appointment at {barbershopName} by visiting the link below.\n\nReference Number: {referenceNumber}\n\n{verifyUrl}\n\nIf you did not make this appointment, you can safely ignore this email.'
 		},
 		identityVerification: {
 			subject: 'Verify your identity at {barbershopName}',
 			title: 'Identity Verification',
 			heading: 'Is this you, {customerName}?',
 			body: 'Please confirm your identity for <strong>{barbershopName}</strong> by clicking the button below. This helps us keep your booking history connected to your account.',
+			referenceLabel: 'Reference Number',
 			cta: 'Verify My Identity',
 			linkHint: 'Or copy this link into your browser:',
 			footer: 'If this was not you, you can safely ignore this email.<br/>&copy; {year} Cukkr. All rights reserved.',
-			text: 'Verify Your Identity\n\nIs this you, {customerName}?\n\nPlease confirm your identity for {barbershopName} by visiting the link below. This helps us keep your booking history connected to your account.\n\n{verifyUrl}\n\nIf this was not you, you can safely ignore this email.'
+			text: 'Verify Your Identity\n\nIs this you, {customerName}?\n\nPlease confirm your identity for {barbershopName} by visiting the link below.\n\nReference Number: {referenceNumber}\n\n{verifyUrl}\n\nIf this was not you, you can safely ignore this email.'
 		},
 		bookingAccepted: {
 			subject: 'Your appointment at {barbershopName} has been accepted',
@@ -78,10 +80,13 @@ export const en = {
 			heading: 'Hi, {customerName}',
 			body: 'Your appointment at <strong>{barbershopName}</strong> has <strong>expired</strong> because it was not confirmed in time.',
 			referenceLabel: 'Reference Number',
+			scheduleLabel: 'Schedule',
+			barberLabel: 'Barber',
+			servicesLabel: 'Services',
 			bodyExtra:
 				'If you still need an appointment, please book a new time.',
 			footer: 'This email was sent to <strong>{to}</strong>.<br/>&copy; {year} Cukkr. All rights reserved.',
-			text: 'Booking Expired\n\nHi {customerName},\n\nYour appointment at {barbershopName} has expired because it was not confirmed in time.\n\nReference Number: {referenceNumber}\n\nIf you still need an appointment, please book a new time.'
+			text: 'Booking Expired\n\nHi {customerName},\n\nYour appointment at {barbershopName} has expired because it was not confirmed in time.\n\nReference Number: {referenceNumber}{servicesDetail}{scheduleDetail}{barberDetail}\n\nIf you still need an appointment, please book a new time.'
 		}
 	},
 	notification: {
