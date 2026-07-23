@@ -211,16 +211,33 @@ export async function sendAppointmentVerificationEmail({
 	to,
 	customerName,
 	barbershopName,
+	referenceNumber,
+	scheduledAt,
+	services,
+	barberName,
 	verifyUrl,
 	language = 'id'
 }: {
 	to: string
 	customerName: string
 	barbershopName: string
+	referenceNumber: string
+	scheduledAt: string | null
+	services: BookingDetailServiceItem[]
+	barberName: string | null
 	verifyUrl: string
 	language?: Language
 }) {
 	const year = new Date().getFullYear()
+	const totalDuration = services.reduce((sum, s) => sum + s.duration, 0)
+	const bookingDetailsHtml = renderBookingDetailsHtml(
+		services,
+		scheduledAt,
+		barberName,
+		totalDuration,
+		language
+	)
+
 	const html = `<!DOCTYPE html>
 <html lang="${language}">
 <head>
@@ -247,6 +264,15 @@ export async function sendAppointmentVerificationEmail({
               <p style="margin:0 0 28px;font-size:15px;color:#52525b;line-height:1.6;">
                 ${t(language, 'email.appointmentVerification.body', { barbershopName })}
               </p>
+              <table cellpadding="0" cellspacing="0" width="100%" style="background-color:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:13px;color:#52525b;">${t(language, 'email.appointmentVerification.referenceLabel')}</p>
+                    <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#18181b;letter-spacing:0.5px;">${referenceNumber}</p>
+                  </td>
+                </tr>
+              </table>
+              ${bookingDetailsHtml}
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="border-radius:8px;background-color:#ffc81e;">
@@ -281,11 +307,28 @@ export async function sendAppointmentVerificationEmail({
 </body>
 </html>`
 
-	const text = t(language, 'email.appointmentVerification.text', {
+	const serviceLines = services
+		.map(
+			(s) =>
+				`${s.name} - ${s.price.toLocaleString()} - ${s.duration} ${t(language, 'email.bookingAccepted.minuteUnit')}`
+		)
+		.join('\n')
+	const scheduleText = scheduledAt
+		? `\n${t(language, 'email.bookingAccepted.scheduleLabel')}: ${formatBookingDate(scheduledAt, language)}`
+		: ''
+	const barberText = barberName
+		? `\n${t(language, 'email.bookingAccepted.barberLabel')}: ${barberName}`
+		: ''
+
+	const text = `${t(language, 'email.appointmentVerification.text', {
 		customerName,
 		barbershopName,
+		referenceNumber,
 		verifyUrl
-	})
+	})}
+${t(language, 'email.bookingAccepted.servicesLabel')}:
+${serviceLines}
+${scheduleText}${barberText}`
 
 	await sendEmail({
 		to,
@@ -301,16 +344,33 @@ export async function sendIdentityVerificationEmail({
 	to,
 	customerName,
 	barbershopName,
+	referenceNumber,
+	scheduledAt,
+	services,
+	barberName,
 	verifyUrl,
 	language = 'id'
 }: {
 	to: string
 	customerName: string
 	barbershopName: string
+	referenceNumber: string
+	scheduledAt: string | null
+	services: BookingDetailServiceItem[]
+	barberName: string | null
 	verifyUrl: string
 	language?: Language
 }) {
 	const year = new Date().getFullYear()
+	const totalDuration = services.reduce((sum, s) => sum + s.duration, 0)
+	const bookingDetailsHtml = renderBookingDetailsHtml(
+		services,
+		scheduledAt,
+		barberName,
+		totalDuration,
+		language
+	)
+
 	const html = `<!DOCTYPE html>
 <html lang="${language}">
 <head>
@@ -337,6 +397,15 @@ export async function sendIdentityVerificationEmail({
               <p style="margin:0 0 28px;font-size:15px;color:#52525b;line-height:1.6;">
                 ${t(language, 'email.identityVerification.body', { barbershopName })}
               </p>
+              <table cellpadding="0" cellspacing="0" width="100%" style="background-color:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:13px;color:#52525b;">${t(language, 'email.identityVerification.referenceLabel')}</p>
+                    <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#18181b;letter-spacing:0.5px;">${referenceNumber}</p>
+                  </td>
+                </tr>
+              </table>
+              ${bookingDetailsHtml}
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="border-radius:8px;background-color:#ffc81e;">
@@ -371,11 +440,28 @@ export async function sendIdentityVerificationEmail({
 </body>
 </html>`
 
-	const text = t(language, 'email.identityVerification.text', {
+	const serviceLines = services
+		.map(
+			(s) =>
+				`${s.name} - ${s.price.toLocaleString()} - ${s.duration} ${t(language, 'email.bookingAccepted.minuteUnit')}`
+		)
+		.join('\n')
+	const scheduleText = scheduledAt
+		? `\n${t(language, 'email.bookingAccepted.scheduleLabel')}: ${formatBookingDate(scheduledAt, language)}`
+		: ''
+	const barberText = barberName
+		? `\n${t(language, 'email.bookingAccepted.barberLabel')}: ${barberName}`
+		: ''
+
+	const text = `${t(language, 'email.identityVerification.text', {
 		customerName,
 		barbershopName,
+		referenceNumber,
 		verifyUrl
-	})
+	})}
+${t(language, 'email.bookingAccepted.servicesLabel')}:
+${serviceLines}
+${scheduleText}${barberText}`
 
 	await sendEmail({
 		to,
@@ -754,15 +840,35 @@ export async function sendBookingExpiredEmail({
 	customerName,
 	barbershopName,
 	referenceNumber,
+	scheduledAt,
+	services,
+	barberName,
 	language = 'id'
 }: {
 	to: string
 	customerName: string
 	barbershopName: string
 	referenceNumber: string
+	scheduledAt: Date | string | null
+	services: { name: string; price: number; duration: number }[]
+	barberName: string | null
 	language?: Language
 }) {
 	const year = new Date().getFullYear()
+	const totalDuration = services.reduce((sum, s) => sum + s.duration, 0)
+	const scheduleStr = formatBookingDate(
+		scheduledAt instanceof Date ? scheduledAt.toISOString() : scheduledAt,
+		language
+	)
+
+	const bookingDetailsHtml = renderBookingDetailsHtml(
+		services,
+		scheduledAt instanceof Date ? scheduledAt.toISOString() : scheduledAt,
+		barberName,
+		totalDuration,
+		language
+	)
+
 	const html = `<!DOCTYPE html>
 <html lang="${language}">
 <head>
@@ -797,6 +903,7 @@ export async function sendBookingExpiredEmail({
                   </td>
                 </tr>
               </table>
+              ${bookingDetailsHtml}
               <p style="margin:0;font-size:14px;color:#52525b;line-height:1.6;">
                 ${t(language, 'email.bookingExpired.bodyExtra')}
               </p>
@@ -821,10 +928,25 @@ export async function sendBookingExpiredEmail({
 </body>
 </html>`
 
+	const servicesText = services
+		.map((s) => `  - ${s.name} (${s.duration} min)`)
+		.join('\n')
+
+	const scheduleText = scheduleStr
+		? `\n${t(language, 'email.bookingExpired.scheduleLabel')}: ${scheduleStr}`
+		: ''
+
+	const barberText = barberName
+		? `\n${t(language, 'email.bookingExpired.barberLabel')}: ${barberName}`
+		: ''
+
 	const text = t(language, 'email.bookingExpired.text', {
 		customerName,
 		barbershopName,
-		referenceNumber
+		referenceNumber,
+		servicesDetail: `\n\n${t(language, 'email.bookingExpired.servicesLabel')}:\n${servicesText}`,
+		scheduleDetail: scheduleText,
+		barberDetail: barberText
 	})
 
 	await sendEmail({

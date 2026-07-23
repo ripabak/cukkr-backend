@@ -105,7 +105,7 @@ export const publicBookingHandler = new Elysia({
 				data: data.appointment,
 				status: 201,
 				message:
-					'Appointment created. Please check your email to confirm.'
+					'Appointment created. Please check your email to confirm (check spam folder too).'
 			})
 		},
 		{
