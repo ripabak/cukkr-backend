@@ -19,6 +19,7 @@ export declare const en: {
             title: string;
             heading: string;
             body: string;
+            referenceLabel: string;
             cta: string;
             linkHint: string;
             footer: string;
@@ -29,6 +30,7 @@ export declare const en: {
             title: string;
             heading: string;
             body: string;
+            referenceLabel: string;
             cta: string;
             linkHint: string;
             footer: string;
@@ -77,6 +79,9 @@ export declare const en: {
             heading: string;
             body: string;
             referenceLabel: string;
+            scheduleLabel: string;
+            barberLabel: string;
+            servicesLabel: string;
             bodyExtra: string;
             footer: string;
             text: string;
