@@ -19,17 +19,25 @@ export declare function sendOrganizationInvitation({ to, inviterName, organizati
     inviteUrl: string;
     language?: Language;
 }): Promise<void>;
-export declare function sendAppointmentVerificationEmail({ to, customerName, barbershopName, verifyUrl, language }: {
+export declare function sendAppointmentVerificationEmail({ to, customerName, barbershopName, referenceNumber, scheduledAt, services, barberName, verifyUrl, language }: {
     to: string;
     customerName: string;
     barbershopName: string;
+    referenceNumber: string;
+    scheduledAt: string | null;
+    services: BookingDetailServiceItem[];
+    barberName: string | null;
     verifyUrl: string;
     language?: Language;
 }): Promise<void>;
-export declare function sendIdentityVerificationEmail({ to, customerName, barbershopName, verifyUrl, language }: {
+export declare function sendIdentityVerificationEmail({ to, customerName, barbershopName, referenceNumber, scheduledAt, services, barberName, verifyUrl, language }: {
     to: string;
     customerName: string;
     barbershopName: string;
+    referenceNumber: string;
+    scheduledAt: string | null;
+    services: BookingDetailServiceItem[];
+    barberName: string | null;
     verifyUrl: string;
     language?: Language;
 }): Promise<void>;
@@ -61,11 +69,18 @@ export declare function sendBookingDeclinedEmail({ to, customerName, barbershopN
     reason?: string | null;
     language?: Language;
 }): Promise<void>;
-export declare function sendBookingExpiredEmail({ to, customerName, barbershopName, referenceNumber, language }: {
+export declare function sendBookingExpiredEmail({ to, customerName, barbershopName, referenceNumber, scheduledAt, services, barberName, language }: {
     to: string;
     customerName: string;
     barbershopName: string;
     referenceNumber: string;
+    scheduledAt: Date | string | null;
+    services: {
+        name: string;
+        price: number;
+        duration: number;
+    }[];
+    barberName: string | null;
     language?: Language;
 }): Promise<void>;
 export declare function verifySmtp(): Promise<boolean>;
