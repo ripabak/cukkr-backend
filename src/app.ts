@@ -8,6 +8,7 @@ import cors from '@elysiajs/cors'
 import { healthCheck } from './utils/health-check'
 import { AppError, CustomError } from './core/error'
 import { productExampleHandler } from './modules/product-example/handler'
+import { billingHandler } from './modules/billing/handler'
 import { barbershopHandler } from './modules/barbershop/handler'
 import { barbersHandler } from './modules/barbers/handler'
 import { servicesHandler } from './modules/services/handler'
@@ -117,6 +118,7 @@ export const app = new Elysia()
 			.use(walkInPinHandler)
 			.use(analyticsHandler)
 			.use(notificationsHandler)
+			.use(billingHandler)
 			.use(publicHandler)
 			.use(publicBookingHandler)
 	)
