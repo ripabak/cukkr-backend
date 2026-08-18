@@ -10,11 +10,6 @@ import { db } from '../../src/lib/database'
 import { expoPushClient } from '../../src/lib/push'
 import { invitation, member, user } from '../../src/modules/auth/schema'
 import { booking, customer } from '../../src/modules/bookings/schema'
-import {
-	notification,
-	notificationPushToken
-} from '../../src/modules/notifications/schema'
-import { auth } from '../../src/lib/auth'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'
@@ -229,22 +224,6 @@ async function seedBookingForBarber(args: {
 	return bookingId
 }
 
-async function waitForTokenInvalidation(token: string): Promise<void> {
-	for (let attempt = 0; attempt < 20; attempt++) {
-		const tokenRow = await db.query.notificationPushToken.findFirst({
-			where: eq(notificationPushToken.token, token)
-		})
-
-		if (tokenRow && !tokenRow.isActive && tokenRow.invalidatedAt) {
-			return
-		}
-
-		await new Promise((resolve) => setTimeout(resolve, 0))
-	}
-
-	throw new Error('Timed out waiting for invitation push token invalidation')
-}
-
 describe('Barber Management Tests', () => {
 	let owner: OwnerContext
 
@@ -321,7 +300,6 @@ describe('Barber Management Tests', () => {
 	})
 
 	it('T-05: POST /barbers/invite creates an invitation from email for an existing user', async () => {
-		const email = `phone_invitee_${Date.now()}@example.com`
 		const phoneUser = await signUpUser({
 			name: 'Phone Invitee',
 			emailPrefix: 'phone_invitee'

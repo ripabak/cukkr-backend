@@ -6,7 +6,7 @@ export declare const app: Elysia<"", {
         beforeTime?: bigint | undefined;
         logger: import("logixlysia").Logger;
         pino: import("logixlysia").Pino;
-        cron: Record<"notification-cleanup", import("croner").Cron> & Record<"stale-booking-cancellation", import("croner").Cron>;
+        cron: Record<"notification-cleanup", import("croner").Cron> & Record<"stale-booking-cancellation", import("croner").Cron> & Record<"subscription-expiry", import("croner").Cron> & Record<"payment-reconciliation", import("croner").Cron>;
     };
     derive: import("logixlysia").EmptyElysiaSlot;
     resolve: import("logixlysia").EmptyElysiaSlot;
@@ -3822,6 +3822,248 @@ export declare const app: Elysia<"", {
                                 property?: string;
                                 expected?: string;
                             };
+                        };
+                    };
+                };
+            };
+        };
+    };
+} & {
+    api: {
+        billing: {
+            plans: {
+                get: {
+                    body: unknown;
+                    params: {};
+                    query: unknown;
+                    headers: unknown;
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                id: string;
+                                name: string;
+                                price: number;
+                                currency: string;
+                                requiresContact: boolean;
+                                interval: string;
+                                maxBarbershops: number | null;
+                                features: string[];
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        billing: {
+            webhook: {
+                xendit: {
+                    post: {
+                        body: any;
+                        params: {};
+                        query: unknown;
+                        headers: unknown;
+                        response: {
+                            200: {
+                                meta?: {
+                                    limit: number;
+                                    page: number;
+                                    totalItems: number;
+                                    totalPages: number;
+                                    hasNext: boolean;
+                                    hasPrev: boolean;
+                                } | undefined;
+                                message: string;
+                                data: {
+                                    received: boolean;
+                                    paymentStatus: string;
+                                };
+                                status: string | number;
+                                path: string;
+                                timeStamp: string;
+                            };
+                            422: {
+                                type: "validation";
+                                on: string;
+                                summary?: string;
+                                message?: string;
+                                found?: unknown;
+                                property?: string;
+                                expected?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        billing: {};
+    } & {
+        billing: {
+            subscription: {
+                checkout: {
+                    post: {
+                        body: {
+                            paymentMethod?: string | undefined;
+                            planId: "premium" | "business";
+                        };
+                        params: {};
+                        query: {};
+                        headers: {};
+                        response: {
+                            200: {
+                                meta?: {
+                                    limit: number;
+                                    page: number;
+                                    totalItems: number;
+                                    totalPages: number;
+                                    hasNext: boolean;
+                                    hasPrev: boolean;
+                                } | undefined;
+                                message: string;
+                                data: {
+                                    planId: string;
+                                    amount: number;
+                                    currency: string;
+                                    invoiceUrl: string;
+                                    xenditInvoiceId: string;
+                                    invoiceId: string;
+                                };
+                                status: string | number;
+                                path: string;
+                                timeStamp: string;
+                            };
+                            422: {
+                                type: "validation";
+                                on: string;
+                                summary?: string;
+                                message?: string;
+                                found?: unknown;
+                                property?: string;
+                                expected?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        billing: {
+            payments: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                id: string;
+                                createdAt: string;
+                                expiresAt: string;
+                                status: string;
+                                planId: string;
+                                amount: number;
+                                currency: string;
+                                invoiceUrl: string | null;
+                                xenditInvoiceId: string | null;
+                                paymentMethod: string;
+                                paidAt: string | null;
+                            }[];
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
+                        };
+                    };
+                };
+            };
+        };
+    } & {
+        billing: {
+            subscription: {
+                get: {
+                    body: {};
+                    params: {};
+                    query: {};
+                    headers: {};
+                    response: {
+                        200: {
+                            meta?: {
+                                limit: number;
+                                page: number;
+                                totalItems: number;
+                                totalPages: number;
+                                hasNext: boolean;
+                                hasPrev: boolean;
+                            } | undefined;
+                            message: string;
+                            data: {
+                                status: string;
+                                planId: string;
+                                currentPeriodStart: string | null;
+                                currentPeriodEnd: string | null;
+                                plan: {
+                                    id: string;
+                                    name: string;
+                                    price: number;
+                                    currency: string;
+                                    requiresContact: boolean;
+                                    interval: string;
+                                    maxBarbershops: number | null;
+                                    features: string[];
+                                } | null;
+                            };
+                            status: string | number;
+                            path: string;
+                            timeStamp: string;
+                        };
+                        422: {
+                            type: "validation";
+                            on: string;
+                            summary?: string;
+                            message?: string;
+                            found?: unknown;
+                            property?: string;
+                            expected?: string;
                         };
                     };
                 };

@@ -10,6 +10,7 @@ import { sendOtpEmail, sendEmail, sendOrganizationInvitation } from './mail'
 import { t, type Language } from './i18n'
 import { expo } from '@better-auth/expo'
 import { BarbershopService } from '../modules/barbershop/service'
+import { BillingService } from '../modules/billing/service'
 import { validateEmail } from '../utils/email-validation'
 
 export const auth = betterAuth({
@@ -67,6 +68,9 @@ export const auth = betterAuth({
 				}
 			},
 			allowUserToCreateOrganization: async (user) => {
+				// Test stays permissive to keep the suite hermetic. The tier limit
+				// (Free=1, Premium=5, Business=unlimited barbershops) is enforced
+				// from the subscription's effective plan via the billing catalog.
 				if (env.NODE_ENV !== 'production') return true
 				const orgCount = await db.$count(
 					schema.member,
@@ -75,7 +79,8 @@ export const auth = betterAuth({
 						eq(schema.member.role, 'owner')
 					)
 				)
-				return orgCount < 2
+				const max = await BillingService.getMaxBarbershops(user.id)
+				return max === null ? true : orgCount < max
 			},
 			requireEmailVerificationOnInvitation: env.NODE_ENV !== 'test',
 			async sendInvitationEmail(data) {

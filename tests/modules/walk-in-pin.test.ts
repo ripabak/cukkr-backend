@@ -453,11 +453,10 @@ describe('Walk-In PIN System', () => {
 
 describe('Public Walk-In Form Data (F4)', () => {
 	let formDataOwner: OwnerContext
-	let formServiceId: string
 
 	beforeAll(async () => {
 		formDataOwner = await createOwnerWithOrg('form-data')
-		formServiceId = await createActiveService(formDataOwner.authCookie)
+		await createActiveService(formDataOwner.authCookie)
 	})
 
 	it('F4-02: GET /public/booking/:slug/form-data only includes active services', async () => {
