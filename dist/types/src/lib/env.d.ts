@@ -12,6 +12,7 @@ export declare const env: {
     VAPID_PUBLIC_KEY: string;
     VAPID_PRIVATE_KEY: string;
     VAPID_EMAIL: string;
+    XENDIT_API_URL: string;
     STORAGE_ENDPOINT?: string | undefined;
     STORAGE_BUCKET?: string | undefined;
     STORAGE_ACCESS_KEY?: string | undefined;
@@ -21,4 +22,6 @@ export declare const env: {
     SMTP_USER?: string | undefined;
     SMTP_PASS?: string | undefined;
     SMTP_FROM?: string | undefined;
+    XENDIT_SECRET_API_KEY?: string | undefined;
+    XENDIT_WEBHOOK_TOKEN?: string | undefined;
 };

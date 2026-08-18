@@ -11,13 +11,30 @@
  * (or its DB-backed successor) server-side.
  */
 
-export const PLANS_CATALOG = [
+export interface PlanCatalogEntry {
+	id: string
+	name: string
+	price: number
+	currency: string
+	interval: string
+	maxBarbershops: number | null
+	features: string[]
+	/**
+	 * Plan enterprise — TIDAK bisa dibeli langsung via checkout.
+	 * Calon customer harus menghubungi tim Cukkr (hello@cukkr.com) dulu.
+	 */
+	requiresContact?: boolean
+}
+
+export const PLANS_CATALOG: readonly PlanCatalogEntry[] = [
 	{
 		id: 'free',
 		name: 'Free',
 		price: 0,
 		currency: 'IDR',
 		interval: 'month',
+		/** Max barbershops this plan allows; null = unlimited. Used by subscription enforcement. */
+		maxBarbershops: 1,
 		features: [
 			'barbershop_count_1',
 			'walk_in_queue',
@@ -35,9 +52,10 @@ export const PLANS_CATALOG = [
 		price: 99_000,
 		currency: 'IDR',
 		interval: 'month',
+		maxBarbershops: 3,
 		features: [
 			'includes_free',
-			'barbershop_count_5',
+			'barbershop_count_3',
 			'broadcasting',
 			'custom_booking_path',
 			'barber_unlimited',
@@ -51,14 +69,12 @@ export const PLANS_CATALOG = [
 		price: 299_000,
 		currency: 'IDR',
 		interval: 'month',
+		requiresContact: true,
+		maxBarbershops: null,
 		features: [
 			'includes_premium',
 			'barbershop_unlimited',
 			'priority_email_support'
 		]
 	}
-] as const
-
-export type PlanId = (typeof PLANS_CATALOG)[number]['id']
-
-export type PlanCatalogEntry = (typeof PLANS_CATALOG)[number]
+]

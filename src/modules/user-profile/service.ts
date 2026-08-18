@@ -25,17 +25,6 @@ const IMAGE_MIME_TYPES = {
 type SupportedImageMimeType =
 	(typeof IMAGE_MIME_TYPES)[keyof typeof IMAGE_MIME_TYPES]
 
-function getAvatarExtension(mimeType: SupportedImageMimeType): string {
-	switch (mimeType) {
-		case IMAGE_MIME_TYPES.jpeg:
-			return 'jpg'
-		case IMAGE_MIME_TYPES.png:
-			return 'png'
-		case IMAGE_MIME_TYPES.webp:
-			return 'webp'
-	}
-}
-
 function detectImageMimeType(
 	buffer: Uint8Array
 ): SupportedImageMimeType | null {

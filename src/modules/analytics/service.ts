@@ -5,7 +5,7 @@ import { fetchOrgTimezone } from '../auth/organization-metadata'
 import { member } from '../auth/schema'
 import { booking, bookingService } from '../bookings/schema'
 import { service } from '../services/schema'
-import { BucketDef, TimeWindows, buildTimeWindows } from './time-windows'
+import { BucketDef, buildTimeWindows } from './time-windows'
 import { AnalyticsModel } from './model'
 
 type AnalyticsRange = AnalyticsModel.AnalyticsRange

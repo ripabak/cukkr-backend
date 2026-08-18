@@ -1,0 +1,1 @@
+ALTER TABLE "subscription_payment" ADD COLUMN "invoice_url" text;

@@ -41,7 +41,14 @@ const envSchema = z.object({
 	// Web Push (VAPID)
 	VAPID_PUBLIC_KEY: z.string().min(1),
 	VAPID_PRIVATE_KEY: z.string().min(1),
-	VAPID_EMAIL: z.string().min(1)
+	VAPID_EMAIL: z.string().min(1),
+
+	// Xendit payment gateway — sandbox/test first (keys from Dashboard > Settings)
+	// Optional so the server boots without them; checkout returns a clear error
+	// until XENDIT_SECRET_API_KEY + XENDIT_WEBHOOK_TOKEN are configured.
+	XENDIT_SECRET_API_KEY: z.string().optional(),
+	XENDIT_WEBHOOK_TOKEN: z.string().optional(),
+	XENDIT_API_URL: z.url().default('https://api.xendit.co')
 })
 
 const parsed = envSchema.safeParse(process.env)

@@ -125,29 +125,6 @@ async function requestJson(args: {
 	}
 }
 
-async function signUpUserOnly(args: {
-	name: string
-	emailPrefix: string
-}): Promise<{ cookie: string; userId: string; email: string }> {
-	const email = `${args.emailPrefix}_${Date.now()}_${nanoid(4)}@example.com`
-
-	const signUpRes = await (tClient as any).auth.api['sign-up'].email.post(
-		{ email, password: 'password123', name: args.name },
-		{ fetch: { headers: { origin: ORIGIN } } }
-	)
-	const cookie = signUpRes.response?.headers.get('set-cookie') ?? ''
-	const sessionRes = await (tClient as any).auth.api['get-session'].get({
-		headers: { cookie }
-	})
-	const createdUser = sessionRes.data?.user
-
-	if (!createdUser) {
-		throw new Error('Failed to create user in signUpUserOnly')
-	}
-
-	return { cookie, userId: createdUser.id, email }
-}
-
 describe('Notification Action Mutations', () => {
 	let ownerCtx: UserContext
 	let appointmentAcceptNotifId = ''
@@ -362,14 +339,13 @@ describe('Notifications Module Tests', () => {
 	let ownerB: UserContext
 	let newestNotificationId = ''
 	let unreadNotificationId = ''
-	let readNotificationId = ''
 	let foreignNotificationId = ''
 
 	beforeAll(async () => {
 		ownerA = await createUserWithOrg('owner-a')
 		ownerB = await createUserWithOrg('owner-b')
 
-		readNotificationId = await seedNotification({
+		await seedNotification({
 			organizationId: ownerA.orgId,
 			recipientUserId: ownerA.userId,
 			title: 'Old Read Notification',

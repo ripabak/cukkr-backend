@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { eq } from 'drizzle-orm'
 import { treaty } from '@elysiajs/eden'
 import { customAlphabet, nanoid } from 'nanoid'
 
@@ -38,11 +37,9 @@ const testJpegBuffer = new Uint8Array([
 
 import { app } from '../../src/app'
 import { db } from '../../src/lib/database'
-import { member, invitation } from '../../src/modules/auth/schema'
-import { notification } from '../../src/modules/notifications/schema'
+import { member } from '../../src/modules/auth/schema'
 import { openHour } from '../../src/modules/open-hours/schema'
 import { service } from '../../src/modules/services/schema'
-import { and } from 'drizzle-orm'
 
 const tClient = treaty(app)
 const ORIGIN = 'http://localhost:3001'

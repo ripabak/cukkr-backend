@@ -9,6 +9,7 @@ import { healthCheck } from './utils/health-check'
 import { AppError, CustomError } from './core/error'
 import { productExampleHandler } from './modules/product-example/handler'
 import { billingHandler } from './modules/billing/handler'
+import { BillingService } from './modules/billing/service'
 import { barbershopHandler } from './modules/barbershop/handler'
 import { barbersHandler } from './modules/barbers/handler'
 import { servicesHandler } from './modules/services/handler'
@@ -88,6 +89,28 @@ export const app = new Elysia()
 			pattern: '*/5 * * * *', // Every 5 minutes
 			run() {
 				void BookingService.cancelStaleBookings().catch(console.error)
+			}
+		})
+	)
+	.use(
+		cron({
+			name: 'subscription-expiry',
+			pattern: '0 3 * * *', // Daily at 03:00
+			run() {
+				void BillingService.expireOverdueSubscriptions().catch(
+					console.error
+				)
+			}
+		})
+	)
+	.use(
+		cron({
+			name: 'payment-reconciliation',
+			pattern: '0 * * * *', // Setiap jam — invoice valid hanya 1 jam, tutup pending basi
+			run() {
+				void BillingService.expireStalePendingPayments().catch(
+					console.error
+				)
 			}
 		})
 	)
